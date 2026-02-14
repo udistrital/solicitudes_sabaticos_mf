@@ -1,0 +1,60 @@
+.historial-solicitudes {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  &__encabezado {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  &__tabla {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  &__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+.mat-mdc-header-cell {
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #3b3f51;
+}
+
+.estado {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: #f3f4f6;
+  color: #1f2933;
+
+  &--pendiente {
+    background-color: #fff4e5;
+    color: #a36300;
+  }
+
+  &--en-revision {
+    background-color: #e0f2ff;
+    color: #00528c;
+  }
+
+  &--aprobada {
+    background-color: #e6f4ea;
+    color: #1b6b36;
+  }
+
+  &--rechazada {
+    background-color: #fde8e8;
+    color: #9f1d1d;
+  }
+}

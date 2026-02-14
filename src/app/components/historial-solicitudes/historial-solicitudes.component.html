@@ -1,0 +1,58 @@
+<section class="historial-solicitudes">
+  <header class="historial-solicitudes__encabezado">
+    <h1>Historial de solicitudes</h1>
+    <p>Bienvenido al módulo principal de seguimiento.</p>
+  </header>
+
+  <table
+    mat-table
+    [dataSource]="solicitudes"
+    [trackBy]="trackBySolicitud"
+    class="historial-solicitudes__tabla mat-elevation-z2"
+    aria-label="Tabla de historial de solicitudes"
+  >
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef>ID</th>
+      <td mat-cell *matCellDef="let solicitud">{{ solicitud.id }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="fechaRadicado">
+      <th mat-header-cell *matHeaderCellDef>Fecha radicado</th>
+      <td mat-cell *matCellDef="let solicitud">{{ solicitud.fechaRadicado | date: 'longDate' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="estado">
+      <th mat-header-cell *matHeaderCellDef>Estado solicitud</th>
+      <td mat-cell *matCellDef="let solicitud">
+        <span [ngClass]="['estado', getEstadoClass(solicitud.estado)]">
+          {{ solicitud.estado }}
+        </span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="gestion">
+      <th mat-header-cell *matHeaderCellDef>Gestión</th>
+      <td mat-cell *matCellDef="let solicitud" class="historial-solicitudes__acciones">
+        <button
+          mat-stroked-button
+          color="primary"
+          type="button"
+          (click)="onEditar(solicitud.id)"
+        >
+          Editar
+        </button>
+        <button
+          mat-flat-button
+          color="accent"
+          type="button"
+          (click)="onEnviar(solicitud.id)"
+        >
+          Enviar
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+</section>
