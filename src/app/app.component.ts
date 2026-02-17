@@ -23,8 +23,12 @@ export class AppComponent {
     let lang = getCookie('lang') || 'es';
     this.whatLang$.subscribe((x: any) => {
       lang = x['detail']['answer'];
-      this.translate.setDefaultLang(lang)
+      this.translate.setDefaultLang(lang);
+      this.translate.use(lang);
     });
-    this.translate.setDefaultLang(getCookie('lang') || 'es');
+    const initialLang = getCookie('lang') || 'es';
+    this.translate.setDefaultLang(initialLang);
+    this.translate.use(initialLang);
+
   }
 }

@@ -566,7 +566,38 @@
     "item": "Item",
     "evaluar": "Evaluate"
   },
+  "ERROR": {
+    "rol_insuficiente_titulo": "Insufficient role"
+  },
+  "HISTORIAL_SOLICITUDES": {
+    "title": "Request history",
+    "description": "Welcome to the main tracking module.",
+    "tableAriaLabel": "Request history table",
+    "columns": {
+      "id": "ID",
+      "fechaRadicado": "Filing date",
+      "estado": "Request status",
+      "gestion": "Management"
+    },
+    "actions": {
+      "add": "Add request"
+    },
+    "filters": {
+      "id": "Filter by ID",
+      "fechaRadicadoDesde": "Start date",
+      "fechaRadicadoHasta": "End date",
+      "estado": "Filter by status",
+      "gestion": "Filter by management"
+    },
+    "status": {
+      "pending": "Pending",
+      "review": "Under review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
+  },
   "gestion_horarios": {
+
     "encabezado": "Module for the Availability of quotas",
     "label": "Availability of places",
     "mensaje_inicial": "Please select the curricular project, the academic period and the semester that is to consult the availability of places by academic space",

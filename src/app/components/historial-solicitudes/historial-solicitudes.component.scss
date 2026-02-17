@@ -3,6 +3,8 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: 85%;
+  margin: 0 auto;
 
   &__encabezado {
     display: flex;
@@ -10,9 +12,55 @@
     gap: 0.25rem;
   }
 
+  &__toolbar {
+    display: flex;
+    justify-content: flex-end;
+  }
+
   &__tabla {
     width: 100%;
     overflow-x: auto;
+
+    .mat-mdc-row,
+    .mat-mdc-header-row {
+      align-items: center;
+      min-height: 56px;
+    }
+
+    .mat-mdc-cell,
+    .mat-mdc-header-cell {
+      padding: 0.75rem 1rem;
+      vertical-align: middle;
+    }
+  }
+
+  &__header-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__filter {
+    width: 100%;
+
+    .mat-mdc-text-field-wrapper {
+      height: 1.8rem;
+      border-radius: 0.4rem;
+    }
+
+    .mat-mdc-form-field-infix {
+      padding: 0;
+      min-height: unset;
+    }
+
+    .mat-mdc-form-field-flex {
+      align-items: center;
+    }
+
+    input {
+      font-size: 0.85rem;
+      padding: 0;
+    }
   }
 
   &__acciones {

@@ -595,7 +595,38 @@
     "item": "Ítem",
     "evaluar": "Evaluar"
   },
+  "ERROR": {
+    "rol_insuficiente_titulo": "Rol insuficiente"
+  },
+  "HISTORIAL_SOLICITUDES": {
+    "title": "Historial de solicitudes",
+    "description": "Bienvenido al módulo principal de seguimiento.",
+    "tableAriaLabel": "Tabla de historial de solicitudes",
+    "columns": {
+      "id": "ID",
+      "fechaRadicado": "Fecha radicado",
+      "estado": "Estado solicitud",
+      "gestion": "Gestión"
+    },
+    "actions": {
+      "add": "Agregar solicitud"
+    },
+    "filters": {
+      "id": "Filtrar por ID",
+      "fechaRadicadoDesde": "Fecha desde",
+      "fechaRadicadoHasta": "Fecha hasta",
+      "estado": "Filtrar por estado",
+      "gestion": "Filtrar por gestión"
+    },
+    "status": {
+      "pending": "Pendiente",
+      "review": "En revisión",
+      "approved": "Aprobada",
+      "rejected": "Rechazada"
+    }
+  },
   "gestion_horarios": {
+
     "encabezado": "Módulo para la Disponibilidad de cupos",
     "label": "Disponibilidad de cupos",
     "mensaje_inicial": "Por favor seleccione el proyecto curricular, el periodo académico y el semestre que desea consultar la disponibilidad de cupos por espacio académico",
