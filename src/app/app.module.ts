@@ -17,11 +17,14 @@ import { environment } from '../environments/environment';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
+import { MatCardModule } from '@angular/material/card';
 
 import { HistorialSolicitudesComponent } from './components/historial-solicitudes/historial-solicitudes.component';
 
@@ -44,16 +47,19 @@ export function createTranslateLoader(http: HttpClient) {
     BrowserAnimationsModule,
     RouterModule,
     AppRoutingModule,
+    SpinnerUtilModule,
+    HttpClientModule,
     MatButtonModule,
     MatDatepickerModule,
     MatFormFieldModule,
     MatInputModule,
+    MatIconModule,
     MatNativeDateModule,
+    MatPaginatorModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatTableModule,
-    SpinnerUtilModule,
-    HttpClientModule,
+    MatCardModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

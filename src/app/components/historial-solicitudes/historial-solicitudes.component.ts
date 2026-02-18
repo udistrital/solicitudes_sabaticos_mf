@@ -1,6 +1,7 @@
 import { Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDateRangeInput } from '@angular/material/datepicker';
+import { PageEvent } from '@angular/material/paginator';
 import { TranslateService } from '@ngx-translate/core';
 
 type EstadoSolicitud = 'Pendiente' | 'En revisión' | 'Aprobada' | 'Rechazada';
@@ -15,6 +16,13 @@ interface HistorialSolicitud {
 interface FechaFiltro {
   start: Date | null;
   end: Date | null;
+}
+
+interface DocenteInfo {
+  nombre: string;
+  cedula: string;
+  correo: string;
+  estadoKey: string;
 }
 
 @Component({
@@ -33,6 +41,13 @@ export class HistorialSolicitudesComponent {
     Rechazada: 'HISTORIAL_SOLICITUDES.status.rejected'
   };
 
+  readonly docenteInfo: DocenteInfo = {
+    nombre: 'Ana María López',
+    cedula: '1.234.567.890',
+    correo: 'ana.lopez@udistrital.edu.co',
+    estadoKey: 'GLOBAL.activo'
+  };
+
   readonly solicitudes: HistorialSolicitud[] = [
     {
       id: 'SOL-001',
@@ -48,10 +63,54 @@ export class HistorialSolicitudesComponent {
       id: 'SOL-003',
       fechaRadicado: '2026-01-25',
       estado: 'Aprobada'
-    }
+    },
+    {
+      id: 'SOL-004',
+      fechaRadicado: '2026-02-25',
+      estado: 'Aprobada'
+    },
+    {
+      id: 'SOL-005',
+      fechaRadicado: '2026-03-02',
+      estado: 'En revisión'
+    },
+    {
+      id: 'SOL-006',
+      fechaRadicado: '2026-05-14',
+      estado: 'Aprobada'
+    },
+    {
+      id: 'SOL-007',
+      fechaRadicado: '2026-06-10',
+      estado: 'Pendiente'
+    },
+    {
+      id: 'SOL-008',
+      fechaRadicado: '2026-11-25',
+      estado: 'En revisión'
+    },
+    {
+      id: 'SOL-009',
+      fechaRadicado: '2026-07-07',
+      estado: 'En revisión'
+    },
+    {
+      id: 'SOL-010',
+      fechaRadicado: '2026-02-06',
+      estado: 'Pendiente'
+    },
   ];
 
   filteredSolicitudes: HistorialSolicitud[] = [...this.solicitudes];
+
+  readonly pageSizeOptions = [5, 10, 25];
+  pageSize = 5;
+  pageIndex = 0;
+
+  get paginatedSolicitudes(): HistorialSolicitud[] {
+    const start = this.pageIndex * this.pageSize;
+    return this.filteredSolicitudes.slice(start, start + this.pageSize);
+  }
 
   columnFilters: Record<FilterColumn, string> = {
     id: '',
@@ -123,6 +182,11 @@ export class HistorialSolicitudesComponent {
     this.applyFilters();
   }
 
+  onPageChange(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    this.pageIndex = event.pageIndex;
+  }
+
   private applyFilters(): void {
     this.filteredSolicitudes = this.solicitudes.filter((solicitud) => {
       const estadoTraducido = this.translate.instant(this.getEstadoTranslation(solicitud.estado));
@@ -135,6 +199,7 @@ export class HistorialSolicitudesComponent {
 
       return matchesId && matchesEstado && matchesFecha;
     });
+    this.pageIndex = 0;
   }
 
   private matchesFilter(value: string, filterValue: string): boolean {
@@ -173,9 +238,9 @@ export class HistorialSolicitudesComponent {
   private normalize(value: string): string {
     return value
       ? value
-          .normalize('NFD')
-          .replace(/\p{Diacritic}/gu, '')
-          .toLowerCase()
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '')
+        .toLowerCase()
       : '';
   }
 

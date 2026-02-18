@@ -1,122 +1,185 @@
-<section class="historial-solicitudes">
-  <header class="historial-solicitudes__encabezado">
-    <h1>{{ 'HISTORIAL_SOLICITUDES.title' | translate }}</h1>
-    <p>{{ 'HISTORIAL_SOLICITUDES.description' | translate }}</p>
-  </header>
+<mat-card class="historial-solicitudes">
+  <mat-card-header class="historial-solicitudes__encabezado">
+    <mat-card-title>{{ 'HISTORIAL_SOLICITUDES.title' | translate }}</mat-card-title>
+    <mat-card-subtitle>{{ 'HISTORIAL_SOLICITUDES.description' | translate }}</mat-card-subtitle>
+  </mat-card-header>
 
-  <div class="historial-solicitudes__toolbar">
-    <button
-      mat-raised-button
-      color="primary"
-      type="button"
-      (click)="onCrearSolicitud()"
-    >
-      {{ 'HISTORIAL_SOLICITUDES.actions.add' | translate }}
-    </button>
-  </div>
-
-  <table
-    mat-table
-    [dataSource]="filteredSolicitudes"
-    [trackBy]="trackBySolicitud"
-    class="historial-solicitudes__tabla mat-elevation-z2"
-    [attr.aria-label]="'HISTORIAL_SOLICITUDES.tableAriaLabel' | translate"
-  >
-    <ng-container matColumnDef="id">
-      <th mat-header-cell *matHeaderCellDef>
-        <div class="historial-solicitudes__header-cell">
-          <span>{{ 'HISTORIAL_SOLICITUDES.columns.id' | translate }}</span>
-          <mat-form-field appearance="outline" class="historial-solicitudes__filter">
-            <input
-              matInput
-              [placeholder]="'HISTORIAL_SOLICITUDES.filters.id' | translate"
-              [value]="columnFilters.id"
-              (input)="onFilterChange('id', $any($event.target).value)"
-            />
-          </mat-form-field>
+  <mat-card-content class="historial-solicitudes__contenido">
+    <section class="historial-solicitudes__docente">
+      <div class="historial-solicitudes__docente-header">
+        <mat-icon color="primary">school</mat-icon>
+        <span>{{ 'HISTORIAL_SOLICITUDES.docente.titulo' | translate }}</span>
+      </div>
+      <div class="historial-solicitudes__docente-grid">
+        <div class="historial-solicitudes__docente-item">
+          <span class="historial-solicitudes__docente-label">
+            {{ 'HISTORIAL_SOLICITUDES.docente.nombre' | translate }}
+          </span>
+          <span class="historial-solicitudes__docente-value">{{ docenteInfo.nombre }}</span>
         </div>
-      </th>
-      <td mat-cell *matCellDef="let solicitud">{{ solicitud.id }}</td>
-    </ng-container>
+        <div class="historial-solicitudes__docente-item">
+          <span class="historial-solicitudes__docente-label">
+            {{ 'HISTORIAL_SOLICITUDES.docente.cedula' | translate }}
+          </span>
+          <span class="historial-solicitudes__docente-value">{{ docenteInfo.cedula }}</span>
+        </div>
+        <div class="historial-solicitudes__docente-item">
+          <span class="historial-solicitudes__docente-label">
+            {{ 'HISTORIAL_SOLICITUDES.docente.correo' | translate }}
+          </span>
+          <span class="historial-solicitudes__docente-value">{{ docenteInfo.correo }}</span>
+        </div>
+        <div class="historial-solicitudes__docente-item">
+          <span class="historial-solicitudes__docente-label">
+            {{ 'HISTORIAL_SOLICITUDES.docente.estado' | translate }}
+          </span>
+          <span class="historial-solicitudes__docente-value estado estado--aprobada">
+            {{ docenteInfo.estadoKey | translate }}
+          </span>
+        </div>
+      </div>
+    </section>
 
-    <ng-container matColumnDef="fechaRadicado">
-      <th mat-header-cell *matHeaderCellDef>
-        <div class="historial-solicitudes__header-cell">
-          <span>{{ 'HISTORIAL_SOLICITUDES.columns.fechaRadicado' | translate }}</span>
-          <mat-form-field appearance="outline" class="historial-solicitudes__filter">
-            <mat-date-range-input
-              [rangePicker]="fechaRadicadoPicker"
-              #fechaRadicadoRange="matDateRangeInput"
+    <div class="historial-solicitudes__toolbar">
+      <button mat-raised-button color="primary" type="button" (click)="onCrearSolicitud()">
+        {{ 'HISTORIAL_SOLICITUDES.actions.add' | translate }}
+      </button>
+    </div>
+
+    <div class="historial-solicitudes__tabla-wrapper">
+      <table
+        mat-table
+        [dataSource]="paginatedSolicitudes"
+        [trackBy]="trackBySolicitud"
+        class="historial-solicitudes__tabla mat-elevation-z2"
+        [attr.aria-label]="'HISTORIAL_SOLICITUDES.tableAriaLabel' | translate"
+      >
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="historial-solicitudes__header-cell">
+              <span>{{ 'HISTORIAL_SOLICITUDES.columns.id' | translate }}</span>
+              <mat-form-field appearance="outline" class="historial-solicitudes__filter">
+                <input
+                  matInput
+                  [placeholder]="'HISTORIAL_SOLICITUDES.filters.id' | translate"
+                  [value]="columnFilters.id"
+                  (input)="onFilterChange('id', $any($event.target).value)"
+                />
+              </mat-form-field>
+            </div>
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let solicitud"
+            [attr.data-label]="'HISTORIAL_SOLICITUDES.columns.id' | translate"
+          >
+            {{ solicitud.id }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="fechaRadicado">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="historial-solicitudes__header-cell">
+              <span>{{ 'HISTORIAL_SOLICITUDES.columns.fechaRadicado' | translate }}</span>
+              <mat-form-field appearance="outline" class="historial-solicitudes__filter">
+                <mat-date-range-input [rangePicker]="fechaRadicadoPicker" #fechaRadicadoRange="matDateRangeInput">
+                  <input
+                    matStartDate
+                    matInput
+                    [placeholder]="'HISTORIAL_SOLICITUDES.filters.fechaRadicadoDesde' | translate"
+                    (dateChange)="onFechaRangeChange(fechaRadicadoRange)"
+                  />
+                  <input
+                    matEndDate
+                    matInput
+                    [placeholder]="'HISTORIAL_SOLICITUDES.filters.fechaRadicadoHasta' | translate"
+                    (dateChange)="onFechaRangeChange(fechaRadicadoRange)"
+                  />
+                </mat-date-range-input>
+                <mat-date-range-picker #fechaRadicadoPicker></mat-date-range-picker>
+                <mat-datepicker-toggle matIconSuffix [for]="fechaRadicadoPicker"></mat-datepicker-toggle>
+              </mat-form-field>
+            </div>
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let solicitud"
+            [attr.data-label]="'HISTORIAL_SOLICITUDES.columns.fechaRadicado' | translate"
+          >
+            {{ solicitud.fechaRadicado | date: 'longDate':undefined:currentLang }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="historial-solicitudes__header-cell">
+              <span>{{ 'HISTORIAL_SOLICITUDES.columns.estado' | translate }}</span>
+              <mat-form-field appearance="outline" class="historial-solicitudes__filter">
+                <input
+                  matInput
+                  [placeholder]="'HISTORIAL_SOLICITUDES.filters.estado' | translate"
+                  [value]="columnFilters.estado"
+                  (input)="onFilterChange('estado', $any($event.target).value)"
+                />
+              </mat-form-field>
+            </div>
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let solicitud"
+            [attr.data-label]="'HISTORIAL_SOLICITUDES.columns.estado' | translate"
+          >
+            <span [ngClass]="['estado', getEstadoClass(solicitud.estado)]">
+              {{ getEstadoTranslation(solicitud.estado) | translate }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="gestion">
+          <th mat-header-cell *matHeaderCellDef>
+            {{ 'HISTORIAL_SOLICITUDES.columns.gestion' | translate }}
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let solicitud"
+            class="historial-solicitudes__acciones"
+            [attr.data-label]="'HISTORIAL_SOLICITUDES.columns.gestion' | translate"
+          >
+            <button
+              mat-icon-button
+              color="primary"
+              type="button"
+              (click)="onEditar(solicitud.id)"
+              [attr.aria-label]="'HISTORIAL_SOLICITUDES.actions.editAria' | translate"
             >
-              <input
-                matStartDate
-                matInput
-                [placeholder]="'HISTORIAL_SOLICITUDES.filters.fechaRadicadoDesde' | translate"
-                (dateChange)="onFechaRangeChange(fechaRadicadoRange)"
-              />
-              <input
-                matEndDate
-                matInput
-                [placeholder]="'HISTORIAL_SOLICITUDES.filters.fechaRadicadoHasta' | translate"
-                (dateChange)="onFechaRangeChange(fechaRadicadoRange)"
-              />
-            </mat-date-range-input>
-            <mat-date-range-picker #fechaRadicadoPicker></mat-date-range-picker>
-            <mat-datepicker-toggle matIconSuffix [for]="fechaRadicadoPicker"></mat-datepicker-toggle>
-          </mat-form-field>
-        </div>
-      </th>
-      <td mat-cell *matCellDef="let solicitud">
-        {{ solicitud.fechaRadicado | date: 'longDate':undefined:currentLang }}
-      </td>
-    </ng-container>
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              color="accent"
+              type="button"
+              (click)="onEnviar(solicitud.id)"
+              [attr.aria-label]="'HISTORIAL_SOLICITUDES.actions.sendAria' | translate"
+            >
+              <mat-icon>send</mat-icon>
+            </button>
+          </td>
+        </ng-container>
 
-    <ng-container matColumnDef="estado">
-      <th mat-header-cell *matHeaderCellDef>
-        <div class="historial-solicitudes__header-cell">
-          <span>{{ 'HISTORIAL_SOLICITUDES.columns.estado' | translate }}</span>
-          <mat-form-field appearance="outline" class="historial-solicitudes__filter">
-            <input
-              matInput
-              [placeholder]="'HISTORIAL_SOLICITUDES.filters.estado' | translate"
-              [value]="columnFilters.estado"
-              (input)="onFilterChange('estado', $any($event.target).value)"
-            />
-          </mat-form-field>
-        </div>
-      </th>
-      <td mat-cell *matCellDef="let solicitud">
-        <span [ngClass]="['estado', getEstadoClass(solicitud.estado)]">
-          {{ getEstadoTranslation(solicitud.estado) | translate }}
-        </span>
-      </td>
-    </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </div>
+  </mat-card-content>
 
-    <ng-container matColumnDef="gestion">
-      <th mat-header-cell *matHeaderCellDef>
-        {{ 'HISTORIAL_SOLICITUDES.columns.gestion' | translate }}
-      </th>
-      <td mat-cell *matCellDef="let solicitud" class="historial-solicitudes__acciones">
-        <button
-          mat-stroked-button
-          color="primary"
-          type="button"
-          (click)="onEditar(solicitud.id)"
-        >
-          {{ 'GLOBAL.editar' | translate }}
-        </button>
-        <button
-          mat-flat-button
-          color="accent"
-          type="button"
-          (click)="onEnviar(solicitud.id)"
-        >
-          {{ 'GLOBAL.enviar' | translate }}
-        </button>
-      </td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-  </table>
-</section>
+  <mat-card-actions class="historial-solicitudes__paginador">
+    <mat-paginator
+      [length]="filteredSolicitudes.length"
+      [pageIndex]="pageIndex"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="pageSizeOptions"
+      showFirstLastButtons
+      (page)="onPageChange($event)"
+    ></mat-paginator>
+  </mat-card-actions>
+</mat-card>

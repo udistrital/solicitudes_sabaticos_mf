@@ -623,6 +623,18 @@
       "review": "En revisión",
       "approved": "Aprobada",
       "rejected": "Rechazada"
+    },
+    "docente": {
+      "titulo": "Información del docente",
+      "nombre": "Nombre",
+      "cedula": "Cédula",
+      "correo": "Correo",
+      "estado": "Estado"
+    },
+    "actions": {
+      "add": "Agregar solicitud",
+      "editAria": "Editar solicitud",
+      "sendAria": "Enviar solicitud"
     }
   },
   "gestion_horarios": {

@@ -580,7 +580,9 @@
       "gestion": "Management"
     },
     "actions": {
-      "add": "Add request"
+      "add": "Add request",
+      "editAria": "Edit request",
+      "sendAria": "Send request"
     },
     "filters": {
       "id": "Filter by ID",
@@ -594,6 +596,13 @@
       "review": "Under review",
       "approved": "Approved",
       "rejected": "Rejected"
+    },
+    "docente": {
+      "titulo": "Instructor information",
+      "nombre": "Name",
+      "cedula": "ID",
+      "correo": "Email",
+      "estado": "Status"
     }
   },
   "gestion_horarios": {
