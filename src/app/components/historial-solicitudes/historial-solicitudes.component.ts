@@ -5,7 +5,21 @@ import { MatDateRangeInput } from '@angular/material/datepicker';
 import { PageEvent } from '@angular/material/paginator';
 import { TranslateService } from '@ngx-translate/core';
 
-type EstadoSolicitud = 'Pendiente' | 'En revisión' | 'Aprobada' | 'Rechazada';
+type EstadoSolicitud =
+  | 'Borrador'
+  | 'Radicada / Enviada a SA'
+  | 'Recepcionada a SA'
+  | 'En verificación de SA'
+  | 'Subsanación solicitada'
+  | 'Trámite externo CF'
+  | 'Respuesta CF registrada'
+  | 'Enviada a SG'
+  | 'Recepcionada a SG'
+  | 'Trámite externo CA'
+  | 'Decisión CA registrada'
+  | 'Finalizada No aprobada'
+  | 'Aprobada pendiente Resolución'
+  | 'Finalizada Aprobada con Resolución';
 type FilterColumn = 'id' | 'estado';
 
 interface HistorialSolicitud {
@@ -44,10 +58,20 @@ export class HistorialSolicitudesComponent {
   currentLang = 'es';
 
   readonly estadoTraducciones: Record<EstadoSolicitud, string> = {
-    Pendiente: 'HISTORIAL_SOLICITUDES.status.pending',
-    'En revisión': 'HISTORIAL_SOLICITUDES.status.review',
-    Aprobada: 'HISTORIAL_SOLICITUDES.status.approved',
-    Rechazada: 'HISTORIAL_SOLICITUDES.status.rejected'
+    Borrador: 'HISTORIAL_SOLICITUDES.status.draft',
+    'Radicada / Enviada a SA': 'HISTORIAL_SOLICITUDES.status.filedSentSa',
+    'Recepcionada a SA': 'HISTORIAL_SOLICITUDES.status.receivedSa',
+    'En verificación de SA': 'HISTORIAL_SOLICITUDES.status.verificationSa',
+    'Subsanación solicitada': 'HISTORIAL_SOLICITUDES.status.correctionRequested',
+    'Trámite externo CF': 'HISTORIAL_SOLICITUDES.status.externalProcessCf',
+    'Respuesta CF registrada': 'HISTORIAL_SOLICITUDES.status.responseCfRecorded',
+    'Enviada a SG': 'HISTORIAL_SOLICITUDES.status.sentSg',
+    'Recepcionada a SG': 'HISTORIAL_SOLICITUDES.status.receivedSg',
+    'Trámite externo CA': 'HISTORIAL_SOLICITUDES.status.externalProcessCa',
+    'Decisión CA registrada': 'HISTORIAL_SOLICITUDES.status.decisionCaRecorded',
+    'Finalizada No aprobada': 'HISTORIAL_SOLICITUDES.status.finishedNotApproved',
+    'Aprobada pendiente Resolución': 'HISTORIAL_SOLICITUDES.status.approvedPendingResolution',
+    'Finalizada Aprobada con Resolución': 'HISTORIAL_SOLICITUDES.status.finishedApprovedResolution'
   };
 
   readonly docenteInfo: DocenteInfo = {
@@ -69,53 +93,73 @@ export class HistorialSolicitudesComponent {
     {
       id: 'SOL-001',
       fechaRadicado: '2026-01-15',
-      estado: 'Pendiente'
+      estado: 'Borrador'
     },
     {
       id: 'SOL-002',
       fechaRadicado: '2026-01-20',
-      estado: 'En revisión'
+      estado: 'Radicada / Enviada a SA'
     },
     {
       id: 'SOL-003',
       fechaRadicado: '2026-01-25',
-      estado: 'Aprobada'
+      estado: 'Recepcionada a SA'
     },
     {
       id: 'SOL-004',
       fechaRadicado: '2026-02-25',
-      estado: 'Aprobada'
+      estado: 'En verificación de SA'
     },
     {
       id: 'SOL-005',
       fechaRadicado: '2026-03-02',
-      estado: 'En revisión'
+      estado: 'Subsanación solicitada'
     },
     {
       id: 'SOL-006',
       fechaRadicado: '2026-05-14',
-      estado: 'Aprobada'
+      estado: 'Trámite externo CF'
     },
     {
       id: 'SOL-007',
       fechaRadicado: '2026-06-10',
-      estado: 'Pendiente'
+      estado: 'Respuesta CF registrada'
     },
     {
       id: 'SOL-008',
       fechaRadicado: '2026-11-25',
-      estado: 'En revisión'
+      estado: 'Enviada a SG'
     },
     {
       id: 'SOL-009',
       fechaRadicado: '2026-07-07',
-      estado: 'En revisión'
+      estado: 'Recepcionada a SG'
     },
     {
       id: 'SOL-010',
-      fechaRadicado: '2026-02-06',
-      estado: 'Pendiente'
+      fechaRadicado: '2026-08-06',
+      estado: 'Trámite externo CA'
     },
+    {
+      id: 'SOL-011',
+      fechaRadicado: '2026-09-12',
+      estado: 'Decisión CA registrada'
+    },
+    {
+      id: 'SOL-012',
+      fechaRadicado: '2026-10-01',
+      estado: 'Finalizada No aprobada'
+    },
+    {
+      id: 'SOL-013',
+      fechaRadicado: '2026-11-18',
+      estado: 'Aprobada pendiente Resolución'
+    },
+    {
+      id: 'SOL-014',
+      fechaRadicado: '2026-12-05',
+      estado: 'Finalizada Aprobada con Resolución'
+    }
   ];
 
   filteredSolicitudes: HistorialSolicitud[] = [...this.solicitudes];
@@ -159,13 +203,28 @@ export class HistorialSolicitudesComponent {
 
   getEstadoClass(estado: EstadoSolicitud): string {
     switch (estado) {
-      case 'Pendiente':
-        return 'estado--pendiente';
-      case 'En revisión':
-        return 'estado--en-revision';
-      case 'Aprobada':
+      case 'Borrador':
+        return 'estado--borrador';
+      case 'Radicada / Enviada a SA':
+      case 'Recepcionada a SA':
+      case 'En verificación de SA':
+        return 'estado--sa';
+      case 'Subsanación solicitada':
+        return 'estado--subsanacion';
+      case 'Trámite externo CF':
+      case 'Respuesta CF registrada':
+        return 'estado--cf';
+      case 'Enviada a SG':
+      case 'Recepcionada a SG':
+        return 'estado--sg';
+      case 'Trámite externo CA':
+      case 'Decisión CA registrada':
+        return 'estado--ca';
+      case 'Aprobada pendiente Resolución':
+        return 'estado--pendiente-resolucion';
+      case 'Finalizada Aprobada con Resolución':
         return 'estado--aprobada';
-      case 'Rechazada':
+      case 'Finalizada No aprobada':
         return 'estado--rechazada';
       default:
         return 'estado--pendiente';

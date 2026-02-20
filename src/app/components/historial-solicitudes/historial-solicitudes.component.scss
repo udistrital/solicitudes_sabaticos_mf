@@ -35,21 +35,30 @@
   }
 
 
-  &__docente {
+  &__info-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+  }
+
+  &__docente,
+  &__abreviaturas {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
     padding: 1rem;
-    margin-bottom: 2.5rem;
     border: 1px solid #e5e7eb;
     border-radius: 0.75rem;
     background-color: #f9fafb;
     width: fit-content;
     max-width: 100%;
-    align-self: flex-start;
   }
 
-  &__docente-header {
+  &__docente-header,
+  &__abreviaturas-header {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -98,6 +107,31 @@
     color: #111827;
     word-break: break-word;
     line-height: 1.3;
+  }
+
+  &__abreviaturas-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__abreviaturas-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  &__abreviaturas-key {
+    font-weight: 600;
+    color: #03678f;
+    min-width: 2.25rem;
+  }
+
+  &__abreviaturas-value {
+    color: #111827;
   }
 
 
@@ -220,14 +254,44 @@
     color: #a36300;
   }
 
-  &--en-revision {
+  &--borrador {
+    background-color: #eef2f6;
+    color: #52606d;
+  }
+
+  &--sa {
     background-color: #e0f2ff;
     color: #00528c;
   }
 
+  &--subsanacion {
+    background-color: #fff1db;
+    color: #b25800;
+  }
+
+  &--cf {
+    background-color: #ece8ff;
+    color: #4b2fa6;
+  }
+
+  &--sg {
+    background-color: #f5efe6;
+    color: #5a4632;
+  }
+
+  &--ca {
+    background-color: #fff4d6;
+    color: #7a4f01;
+  }
+
+  &--pendiente-resolucion {
+    background-color: #e7f0ff;
+    color: #1e429f;
+  }
+
   &--aprobada {
-    background-color: #e6f4ea;
-    color: #1b6b36;
+    background-color: #e9f7f3;
+    color: #0f766e;
   }
 
   &--rechazada {
@@ -269,6 +333,16 @@
 
 @media (max-width: 900px) {
   .historial-solicitudes {
+    &__info-wrapper {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__docente,
+    &__abreviaturas {
+      width: 100%;
+    }
+
     &__docente-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }

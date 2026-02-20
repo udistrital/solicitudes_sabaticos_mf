@@ -628,10 +628,20 @@
       "gestion": "Filtrar por gestión"
     },
     "status": {
-      "pending": "Pendiente",
-      "review": "En revisión",
-      "approved": "Aprobada",
-      "rejected": "Rechazada"
+      "draft": "Borrador",
+      "filedSentSa": "Radicada / Enviada a SA",
+      "receivedSa": "Recepcionada a SA",
+      "verificationSa": "En verificación de SA",
+      "correctionRequested": "Subsanación solicitada",
+      "externalProcessCf": "Trámite externo CF",
+      "responseCfRecorded": "Respuesta CF registrada",
+      "sentSg": "Enviada a SG",
+      "receivedSg": "Recepcionada a SG",
+      "externalProcessCa": "Trámite externo CA",
+      "decisionCaRecorded": "Decisión CA registrada",
+      "finishedNotApproved": "Finalizada No aprobada",
+      "approvedPendingResolution": "Aprobada pendiente Resolución",
+      "finishedApprovedResolution": "Finalizada Aprobada con Resolución"
     },
     "docente": {
       "titulo": "Información del docente",
@@ -651,6 +661,13 @@
     "tableSection": {
       "title": "Historial de solicitudes",
       "subtitle": "Sección para visualizar las solicitudes en curso"
+    },
+    "abreviaturas": {
+      "titulo": "Definición de abreviaturas",
+      "sa": "Secretaría Académica",
+      "sg": "Secretaría General",
+      "cf": "Consejo de Facultad",
+      "ca": "Consejo Académico"
     },
     "actions": {
       "add": "Agregar solicitud",

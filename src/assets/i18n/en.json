@@ -601,10 +601,20 @@
       "gestion": "Filter by management"
     },
     "status": {
-      "pending": "Pending",
-      "review": "Under review",
-      "approved": "Approved",
-      "rejected": "Rejected"
+      "draft": "Draft",
+      "filedSentSa": "Filed / Sent to SA",
+      "receivedSa": "Received by SA",
+      "verificationSa": "Under SA verification",
+      "correctionRequested": "Correction requested",
+      "externalProcessCf": "External CF process",
+      "responseCfRecorded": "CF response recorded",
+      "sentSg": "Sent to SG",
+      "receivedSg": "Received by SG",
+      "externalProcessCa": "External CA process",
+      "decisionCaRecorded": "CA decision recorded",
+      "finishedNotApproved": "Completed not approved",
+      "approvedPendingResolution": "Approved pending resolution",
+      "finishedApprovedResolution": "Completed approved with resolution"
     },
     "docente": {
       "titulo": "Instructor information",
@@ -624,6 +634,13 @@
     "tableSection": {
       "title": "Request history",
       "subtitle": "Section to view ongoing requests"
+    },
+    "abreviaturas": {
+      "titulo": "Abbreviations",
+      "sa": "Academic Secretariat",
+      "sg": "General Secretariat",
+      "cf": "Faculty Council",
+      "ca": "Academic Council"
     }
   },
   "gestion_horarios": {

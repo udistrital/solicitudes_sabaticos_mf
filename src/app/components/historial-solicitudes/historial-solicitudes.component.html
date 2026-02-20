@@ -5,86 +5,122 @@
   </mat-card-header>
 
   <mat-card-content class="historial-solicitudes__contenido">
-    <section class="historial-solicitudes__docente">
-      <div class="historial-solicitudes__docente-header">
-        <mat-icon color="primary">school</mat-icon>
-        <span>{{ 'HISTORIAL_SOLICITUDES.docente.titulo' | translate }}</span>
-      </div>
-      <div class="historial-solicitudes__docente-grid">
-        <div class="historial-solicitudes__docente-item">
-          <span class="historial-solicitudes__docente-label">
-            {{ 'HISTORIAL_SOLICITUDES.docente.nombre' | translate }}
-          </span>
-          <span class="historial-solicitudes__docente-value">{{ docenteInfo.nombre }}</span>
+    <div class="historial-solicitudes__info-wrapper">
+      <section class="historial-solicitudes__docente">
+        <div class="historial-solicitudes__docente-header">
+          <mat-icon color="primary">school</mat-icon>
+          <span>{{ 'HISTORIAL_SOLICITUDES.docente.titulo' | translate }}</span>
         </div>
-        <div class="historial-solicitudes__docente-item">
-          <span class="historial-solicitudes__docente-label">
-            {{ 'HISTORIAL_SOLICITUDES.docente.facultad' | translate }}
-          </span>
-          <span class="historial-solicitudes__docente-value">{{ docenteInfo.facultad }}</span>
+        <div class="historial-solicitudes__docente-grid">
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.nombre' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.nombre }}</span>
+          </div>
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.facultad' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.facultad }}</span>
+          </div>
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.documentoIdentificacion' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.documentoIdentificacion }}</span>
+          </div>
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.edad' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.edad }}</span>
+          </div>
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.correoElectronico' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.correoElectronico }}</span>
+          </div>
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.proyectoCurricular' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.proyectoCurricular }}</span>
+          </div>
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.telefono' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.telefono }}</span>
+          </div>
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.celular' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.celular }}</span>
+          </div>
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.fechaIngreso' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.fechaIngreso }}</span>
+          </div>
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.numeroResolucion' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.numeroResolucion }}</span>
+          </div>
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.categoriaIngreso' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.categoriaIngreso }}</span>
+          </div>
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.categoriaActual' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.categoriaActual }}</span>
+          </div>
         </div>
-        <div class="historial-solicitudes__docente-item">
-          <span class="historial-solicitudes__docente-label">
-            {{ 'HISTORIAL_SOLICITUDES.docente.documentoIdentificacion' | translate }}
-          </span>
-          <span class="historial-solicitudes__docente-value">{{ docenteInfo.documentoIdentificacion }}</span>
+      </section>
+
+      <section class="historial-solicitudes__abreviaturas">
+        <div class="historial-solicitudes__abreviaturas-header">
+          <mat-icon color="primary">info</mat-icon>
+          <span>{{ 'HISTORIAL_SOLICITUDES.abreviaturas.titulo' | translate }}</span>
         </div>
-        <div class="historial-solicitudes__docente-item">
-          <span class="historial-solicitudes__docente-label">
-            {{ 'HISTORIAL_SOLICITUDES.docente.edad' | translate }}
-          </span>
-          <span class="historial-solicitudes__docente-value">{{ docenteInfo.edad }}</span>
-        </div>
-        <div class="historial-solicitudes__docente-item">
-          <span class="historial-solicitudes__docente-label">
-            {{ 'HISTORIAL_SOLICITUDES.docente.correoElectronico' | translate }}
-          </span>
-          <span class="historial-solicitudes__docente-value">{{ docenteInfo.correoElectronico }}</span>
-        </div>
-        <div class="historial-solicitudes__docente-item">
-          <span class="historial-solicitudes__docente-label">
-            {{ 'HISTORIAL_SOLICITUDES.docente.proyectoCurricular' | translate }}
-          </span>
-          <span class="historial-solicitudes__docente-value">{{ docenteInfo.proyectoCurricular }}</span>
-        </div>
-        <div class="historial-solicitudes__docente-item">
-          <span class="historial-solicitudes__docente-label">
-            {{ 'HISTORIAL_SOLICITUDES.docente.telefono' | translate }}
-          </span>
-          <span class="historial-solicitudes__docente-value">{{ docenteInfo.telefono }}</span>
-        </div>
-        <div class="historial-solicitudes__docente-item">
-          <span class="historial-solicitudes__docente-label">
-            {{ 'HISTORIAL_SOLICITUDES.docente.celular' | translate }}
-          </span>
-          <span class="historial-solicitudes__docente-value">{{ docenteInfo.celular }}</span>
-        </div>
-        <div class="historial-solicitudes__docente-item">
-          <span class="historial-solicitudes__docente-label">
-            {{ 'HISTORIAL_SOLICITUDES.docente.fechaIngreso' | translate }}
-          </span>
-          <span class="historial-solicitudes__docente-value">{{ docenteInfo.fechaIngreso }}</span>
-        </div>
-        <div class="historial-solicitudes__docente-item">
-          <span class="historial-solicitudes__docente-label">
-            {{ 'HISTORIAL_SOLICITUDES.docente.numeroResolucion' | translate }}
-          </span>
-          <span class="historial-solicitudes__docente-value">{{ docenteInfo.numeroResolucion }}</span>
-        </div>
-        <div class="historial-solicitudes__docente-item">
-          <span class="historial-solicitudes__docente-label">
-            {{ 'HISTORIAL_SOLICITUDES.docente.categoriaIngreso' | translate }}
-          </span>
-          <span class="historial-solicitudes__docente-value">{{ docenteInfo.categoriaIngreso }}</span>
-        </div>
-        <div class="historial-solicitudes__docente-item">
-          <span class="historial-solicitudes__docente-label">
-            {{ 'HISTORIAL_SOLICITUDES.docente.categoriaActual' | translate }}
-          </span>
-          <span class="historial-solicitudes__docente-value">{{ docenteInfo.categoriaActual }}</span>
-        </div>
-      </div>
-    </section>
+        <ul class="historial-solicitudes__abreviaturas-list">
+          <li class="historial-solicitudes__abreviaturas-item">
+            <span class="historial-solicitudes__abreviaturas-key">SA</span>
+            <span class="historial-solicitudes__abreviaturas-value">
+              {{ 'HISTORIAL_SOLICITUDES.abreviaturas.sa' | translate }}
+            </span>
+          </li>
+          <li class="historial-solicitudes__abreviaturas-item">
+            <span class="historial-solicitudes__abreviaturas-key">SG</span>
+            <span class="historial-solicitudes__abreviaturas-value">
+              {{ 'HISTORIAL_SOLICITUDES.abreviaturas.sg' | translate }}
+            </span>
+          </li>
+          <li class="historial-solicitudes__abreviaturas-item">
+            <span class="historial-solicitudes__abreviaturas-key">CF</span>
+            <span class="historial-solicitudes__abreviaturas-value">
+              {{ 'HISTORIAL_SOLICITUDES.abreviaturas.cf' | translate }}
+            </span>
+          </li>
+          <li class="historial-solicitudes__abreviaturas-item">
+            <span class="historial-solicitudes__abreviaturas-key">CA</span>
+            <span class="historial-solicitudes__abreviaturas-value">
+              {{ 'HISTORIAL_SOLICITUDES.abreviaturas.ca' | translate }}
+            </span>
+          </li>
+        </ul>
+      </section>
+    </div>
+
 
     <div class="historial-solicitudes__toolbar">
       <div class="historial-solicitudes__toolbar-text">
