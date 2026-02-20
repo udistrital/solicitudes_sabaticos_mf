@@ -77,7 +77,16 @@
     "filtrar": "Filter",
     "Limpiar": "Clean",
     "confirmar": "Confirm",
+    "paginator": {
+      "itemsPerPage": "Requests per page",
+      "nextPage": "Next page",
+      "previousPage": "Previous page",
+      "firstPage": "First page",
+      "lastPage": "Last page",
+      "range": "{{start}} - {{end}} of {{length}}"
+    },
     "fecha_inicio": "Start date",
+
     "informacion_contacto": "Contact data",
     "placeholder_fecha_inicio": "E.g.: 24/12/2016",
     "fecha_fin": "End date",
@@ -570,8 +579,8 @@
     "rol_insuficiente_titulo": "Insufficient role"
   },
   "HISTORIAL_SOLICITUDES": {
-    "title": "Request history",
-    "description": "Welcome to the main tracking module.",
+    "title": "Sabbatical Requests",
+    "description": "Module for managing sabbatical requests",
     "tableAriaLabel": "Request history table",
     "columns": {
       "id": "ID",
@@ -600,9 +609,21 @@
     "docente": {
       "titulo": "Instructor information",
       "nombre": "Name",
-      "cedula": "ID",
-      "correo": "Email",
-      "estado": "Status"
+      "facultad": "Faculty",
+      "documentoIdentificacion": "Identification document",
+      "edad": "Age",
+      "correoElectronico": "Email",
+      "proyectoCurricular": "Curricular project",
+      "telefono": "Phone number",
+      "celular": "Mobile number",
+      "fechaIngreso": "Admission date",
+      "numeroResolucion": "Resolution number",
+      "categoriaIngreso": "Entry category",
+      "categoriaActual": "Current category"
+    },
+    "tableSection": {
+      "title": "Request history",
+      "subtitle": "Section to view ongoing requests"
     }
   },
   "gestion_horarios": {

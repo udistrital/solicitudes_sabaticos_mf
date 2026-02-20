@@ -1,5 +1,6 @@
 import { Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DateAdapter } from '@angular/material/core';
 import { MatDateRangeInput } from '@angular/material/datepicker';
 import { PageEvent } from '@angular/material/paginator';
 import { TranslateService } from '@ngx-translate/core';
@@ -20,9 +21,17 @@ interface FechaFiltro {
 
 interface DocenteInfo {
   nombre: string;
-  cedula: string;
-  correo: string;
-  estadoKey: string;
+  facultad: string;
+  documentoIdentificacion: string;
+  edad: string;
+  correoElectronico: string;
+  proyectoCurricular: string;
+  telefono: string;
+  celular: string;
+  fechaIngreso: string;
+  numeroResolucion: string;
+  categoriaIngreso: string;
+  categoriaActual: string;
 }
 
 @Component({
@@ -43,9 +52,17 @@ export class HistorialSolicitudesComponent {
 
   readonly docenteInfo: DocenteInfo = {
     nombre: 'Ana María López',
-    cedula: '1.234.567.890',
-    correo: 'ana.lopez@udistrital.edu.co',
-    estadoKey: 'GLOBAL.activo'
+    facultad: 'Facultad de Ingeniería',
+    documentoIdentificacion: '1.234.567.890',
+    edad: '42',
+    correoElectronico: 'ana.lopez@udistrital.edu.co',
+    proyectoCurricular: 'Ingeniería de Sistemas',
+    telefono: '601 323 9300',
+    celular: '300 123 4567',
+    fechaIngreso: '2012-08-15',
+    numeroResolucion: 'RES-2020-045',
+    categoriaIngreso: 'Asistente',
+    categoriaActual: 'Asociado'
   };
 
   readonly solicitudes: HistorialSolicitud[] = [
@@ -121,14 +138,17 @@ export class HistorialSolicitudesComponent {
 
   constructor(
     private readonly translate: TranslateService,
+    private readonly dateAdapter: DateAdapter<Date>,
     private readonly destroyRef: DestroyRef
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
+    this.dateAdapter.setLocale(this.currentLang);
 
     this.translate.onLangChange
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(({ lang }) => {
         this.currentLang = lang;
+        this.dateAdapter.setLocale(lang);
         this.applyFilters();
       });
   }
@@ -215,8 +235,8 @@ export class HistorialSolicitudesComponent {
       return true;
     }
 
-    const fecha = new Date(fechaRadicado);
-    if (Number.isNaN(fecha.getTime())) {
+    const fecha = this.parseLocalDate(fechaRadicado);
+    if (!fecha) {
       return false;
     }
 
@@ -242,6 +262,20 @@ export class HistorialSolicitudesComponent {
         .replace(/\p{Diacritic}/gu, '')
         .toLowerCase()
       : '';
+  }
+
+  private parseLocalDate(value: string): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const [year, month, day] = value.split('-').map(Number);
+    if (!year || !month || !day) {
+      return null;
+    }
+
+    const parsed = new Date(year, month - 1, day);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 
   private stripTime(date: Date): number {

@@ -89,7 +89,16 @@
     "confirmar": "Confirmar",
     "filtrar": "Filtrar",
     "Limpiar": "Limpiar",
+    "paginator": {
+      "itemsPerPage": "Solicitudes por página",
+      "nextPage": "Siguiente página",
+      "previousPage": "Página anterior",
+      "firstPage": "Primera página",
+      "lastPage": "Última página",
+      "range": "{{start}} - {{end}} de {{length}}"
+    },
     "fecha_inicio": "Fecha de inicio",
+
     "placeholder_fecha_inicio": "Ej: 24/12/2016",
     "fecha_fin": "Fecha de finalización",
     "informacion_contacto": "Información de contacto",
@@ -599,8 +608,8 @@
     "rol_insuficiente_titulo": "Rol insuficiente"
   },
   "HISTORIAL_SOLICITUDES": {
-    "title": "Historial de solicitudes",
-    "description": "Bienvenido al módulo principal de seguimiento.",
+    "title": "Solicitudes de Sabáticos",
+    "description": "Módulo para la gestión de las solicitudes de sabáticos",
     "tableAriaLabel": "Tabla de historial de solicitudes",
     "columns": {
       "id": "ID",
@@ -627,9 +636,21 @@
     "docente": {
       "titulo": "Información del docente",
       "nombre": "Nombre",
-      "cedula": "Cédula",
-      "correo": "Correo",
-      "estado": "Estado"
+      "facultad": "Facultad",
+      "documentoIdentificacion": "Documento de identificación",
+      "edad": "Edad",
+      "correoElectronico": "Correo electrónico",
+      "proyectoCurricular": "Proyecto curricular",
+      "telefono": "Número telefónico",
+      "celular": "Número de celular",
+      "fechaIngreso": "Fecha de ingreso",
+      "numeroResolucion": "Número de resolución",
+      "categoriaIngreso": "Categoría de ingreso",
+      "categoriaActual": "Categoría actual"
+    },
+    "tableSection": {
+      "title": "Historial de solicitudes",
+      "subtitle": "Sección para visualizar las solicitudes en curso"
     },
     "actions": {
       "add": "Agregar solicitud",

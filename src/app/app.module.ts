@@ -10,7 +10,7 @@ import localeEn from '@angular/common/locales/en';
 import { SpinnerUtilInterceptor, SpinnerUtilModule } from 'spinner-util';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { environment } from '../environments/environment';
 
@@ -20,7 +20,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
@@ -39,6 +39,40 @@ export function createTranslateLoader(http: HttpClient) {
   );
 }
 
+export function createPaginatorIntl(translate: TranslateService): MatPaginatorIntl {
+  const paginatorIntl = new MatPaginatorIntl();
+
+  const setLabels = () => {
+    paginatorIntl.itemsPerPageLabel = translate.instant('GLOBAL.paginator.itemsPerPage');
+    paginatorIntl.nextPageLabel = translate.instant('GLOBAL.paginator.nextPage');
+    paginatorIntl.previousPageLabel = translate.instant('GLOBAL.paginator.previousPage');
+    paginatorIntl.firstPageLabel = translate.instant('GLOBAL.paginator.firstPage');
+    paginatorIntl.lastPageLabel = translate.instant('GLOBAL.paginator.lastPage');
+    paginatorIntl.getRangeLabel = (page: number, pageSize: number, length: number) => {
+      if (length === 0 || pageSize === 0) {
+        return translate.instant('GLOBAL.paginator.range', {
+          start: 0,
+          end: 0,
+          length
+        });
+      }
+
+      const startIndex = page * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, length);
+      return translate.instant('GLOBAL.paginator.range', {
+        start: startIndex + 1,
+        end: endIndex,
+        length
+      });
+    };
+    paginatorIntl.changes.next();
+  };
+
+  setLabels();
+  translate.onLangChange.subscribe(() => setLabels());
+
+  return paginatorIntl;
+}
 
 @NgModule({
   declarations: [AppComponent, HistorialSolicitudesComponent],
@@ -73,6 +107,11 @@ export function createTranslateLoader(http: HttpClient) {
       provide: HTTP_INTERCEPTORS,
       useClass: SpinnerUtilInterceptor,
       multi: true,
+    },
+    {
+      provide: MatPaginatorIntl,
+      useFactory: createPaginatorIntl,
+      deps: [TranslateService]
     }
   ],
   bootstrap: [AppComponent],

@@ -1,3 +1,7 @@
+*:not(mat-icon) {
+  font-family: Open Sans, "Helvetica Neue", sans-serif !important;
+}
+
 .historial-solicitudes {
   padding: 2rem;
   display: flex;
@@ -14,17 +18,35 @@
 
   &__toolbar {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
   }
+
+  &__toolbar-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  &__toolbar-text mat-card-title,
+  &__toolbar-text mat-card-subtitle {
+    margin: 0;
+  }
+
 
   &__docente {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
     padding: 1rem;
+    margin-bottom: 2.5rem;
     border: 1px solid #e5e7eb;
     border-radius: 0.75rem;
     background-color: #f9fafb;
+    width: fit-content;
+    max-width: 100%;
+    align-self: flex-start;
   }
 
   &__docente-header {
@@ -37,18 +59,35 @@
 
   &__docente-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 0.75rem 1rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem 1.5rem;
   }
 
   &__docente-item {
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
+    gap: 0.35rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  &__docente-item:nth-last-child(-n + 4) {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+
+
+  &__docente-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
   }
 
   &__docente-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
     color: #6b7280;
     letter-spacing: 0.04em;
@@ -58,7 +97,9 @@
     font-size: 0.95rem;
     color: #111827;
     word-break: break-word;
+    line-height: 1.3;
   }
+
 
   &__contenido {
 
@@ -125,10 +166,36 @@
     }
   }
 
+  &__gestion-header {
+    text-align: center;
+  }
+
   &__acciones {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    justify-content: center;
+  }
+
+  &__accion {
+    border-radius: 999px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  &__accion--edit {
+    color: #03678f;
+
+    &:hover {
+      background-color: rgba(3, 103, 143, 0.05);
+    }
+  }
+
+  &__accion--send {
+    color: #9EB7E5;
+
+    &:hover {
+      background-color: rgba(158, 183, 229, 0.05);
+    }
   }
 }
 
@@ -184,9 +251,32 @@
 }
 
 
+
 @media (max-width: 1200px) {
   .historial-solicitudes {
     width: 90%;
+
+    &__docente-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    &__docente-item:nth-last-child(-n + 3) {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .historial-solicitudes {
+    &__docente-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    &__docente-item:nth-last-child(-n + 2) {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
   }
 }
 
@@ -196,7 +286,8 @@
     padding: 1rem;
 
     &__toolbar {
-      justify-content: stretch;
+      flex-direction: column;
+      align-items: flex-start;
 
       button {
         width: 100%;
@@ -205,10 +296,11 @@
 
     &__docente {
       padding: 0.75rem;
+      width: 100%;
     }
 
     &__docente-grid {
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.75rem;
     }
 
     &__tabla {
@@ -247,6 +339,19 @@
       button {
         width: 100%;
       }
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .historial-solicitudes {
+    &__docente-grid {
+      grid-template-columns: 1fr;
+    }
+
+    &__docente-item:nth-last-child(-n + 1) {
+      border-bottom: none;
+      padding-bottom: 0;
     }
   }
 }
