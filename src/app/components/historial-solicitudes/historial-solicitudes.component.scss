@@ -314,6 +314,17 @@
   }
 }
 
+:host ::ng-deep .historial-solicitudes__filter--estado {
+  .mat-mdc-floating-label {
+    font-size: 0.75rem;
+  }
+
+  .mat-mdc-select-value,
+  .mat-mdc-select-placeholder {
+    font-size: 0.8rem;
+  }
+}
+
 
 
 @media (max-width: 1200px) {

@@ -3,8 +3,10 @@ import { RouterModule, Routes, provideRouter } from '@angular/router';
 import { APP_BASE_HREF } from '@angular/common';
 import { getSingleSpaExtraProviders } from 'single-spa-angular';
 import { provideHttpClient, withFetch } from '@angular/common/http';
+import { EditarSolicitudComponent } from './components/editar-solicitud/editar-solicitud.component';
 import { HistorialSolicitudesComponent } from './components/historial-solicitudes/historial-solicitudes.component';
 import { AuthGuard } from '../_guards/auth.guard';
+
 
 
 const routes: Routes = [
@@ -24,24 +26,32 @@ const routes: Routes = [
   //   component: GestionHorarioComponent
   // },
   {
-    path: "",
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'solicitudes'
+  },
+  {
+    path: 'solicitudes',
     canActivate: [AuthGuard],
     component: HistorialSolicitudesComponent
   },
   {
-    path: "**",
+    path: 'solicitudes/editar',
     canActivate: [AuthGuard],
-    component: HistorialSolicitudesComponent
+    component: EditarSolicitudComponent
+  },
+  {
+    path: '**',
+    redirectTo: 'solicitudes'
   }
 ];
-
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule],
   providers: [
     provideRouter(routes),
-    { provide: APP_BASE_HREF, useValue: '' },
+    { provide: APP_BASE_HREF, useValue: '/sabaticos/' },
     getSingleSpaExtraProviders(),
     provideHttpClient(withFetch())]
 })

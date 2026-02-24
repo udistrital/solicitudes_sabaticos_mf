@@ -21,11 +21,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatPaginatorIntl, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 
+import { EditarSolicitudComponent } from './components/editar-solicitud/editar-solicitud.component';
 import { HistorialSolicitudesComponent } from './components/historial-solicitudes/historial-solicitudes.component';
 
 registerLocaleData(localeEs);
@@ -75,7 +77,7 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
 }
 
 @NgModule({
-  declarations: [AppComponent, HistorialSolicitudesComponent],
+  declarations: [AppComponent, EditarSolicitudComponent, HistorialSolicitudesComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -90,6 +92,7 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
     MatIconModule,
     MatNativeDateModule,
     MatPaginatorModule,
+    MatSelectModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatTableModule,

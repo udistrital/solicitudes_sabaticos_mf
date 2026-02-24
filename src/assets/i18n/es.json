@@ -669,6 +669,10 @@
       "cf": "Consejo de Facultad",
       "ca": "Consejo Académico"
     },
+    "edit": {
+      "title": "Editar solicitud",
+      "subtitle": "Detalle de la solicitud seleccionada"
+    },
     "actions": {
       "add": "Agregar solicitud",
       "editAria": "Editar solicitud",

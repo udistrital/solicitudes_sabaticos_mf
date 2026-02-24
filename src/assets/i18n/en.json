@@ -641,6 +641,10 @@
       "sg": "General Secretariat",
       "cf": "Faculty Council",
       "ca": "Academic Council"
+    },
+    "edit": {
+      "title": "Edit request",
+      "subtitle": "Selected request details"
     }
   },
   "gestion_horarios": {

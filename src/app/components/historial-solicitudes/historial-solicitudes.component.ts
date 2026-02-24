@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateAdapter } from '@angular/material/core';
 import { MatDateRangeInput } from '@angular/material/datepicker';
 import { PageEvent } from '@angular/material/paginator';
+import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 
 type EstadoSolicitud =
@@ -20,12 +21,17 @@ type EstadoSolicitud =
   | 'Finalizada No aprobada'
   | 'Aprobada pendiente Resolución'
   | 'Finalizada Aprobada con Resolución';
-type FilterColumn = 'id' | 'estado';
+type FilterColumn = 'id';
 
 interface HistorialSolicitud {
   id: string;
   fechaRadicado: string;
   estado: EstadoSolicitud;
+}
+
+interface ColumnFilters {
+  id: string;
+  estado: EstadoSolicitud[];
 }
 
 interface FechaFiltro {
@@ -73,6 +79,23 @@ export class HistorialSolicitudesComponent {
     'Aprobada pendiente Resolución': 'HISTORIAL_SOLICITUDES.status.approvedPendingResolution',
     'Finalizada Aprobada con Resolución': 'HISTORIAL_SOLICITUDES.status.finishedApprovedResolution'
   };
+
+  readonly estadoOptions: EstadoSolicitud[] = [
+    'Borrador',
+    'Radicada / Enviada a SA',
+    'Recepcionada a SA',
+    'En verificación de SA',
+    'Subsanación solicitada',
+    'Trámite externo CF',
+    'Respuesta CF registrada',
+    'Enviada a SG',
+    'Recepcionada a SG',
+    'Trámite externo CA',
+    'Decisión CA registrada',
+    'Finalizada No aprobada',
+    'Aprobada pendiente Resolución',
+    'Finalizada Aprobada con Resolución'
+  ];
 
   readonly docenteInfo: DocenteInfo = {
     nombre: 'Ana María López',
@@ -173,9 +196,9 @@ export class HistorialSolicitudesComponent {
     return this.filteredSolicitudes.slice(start, start + this.pageSize);
   }
 
-  columnFilters: Record<FilterColumn, string> = {
+  columnFilters: ColumnFilters = {
     id: '',
-    estado: ''
+    estado: []
   };
 
   fechaFiltro: FechaFiltro = { start: null, end: null };
@@ -183,6 +206,7 @@ export class HistorialSolicitudesComponent {
   constructor(
     private readonly translate: TranslateService,
     private readonly dateAdapter: DateAdapter<Date>,
+    private readonly router: Router,
     private readonly destroyRef: DestroyRef
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
@@ -235,8 +259,16 @@ export class HistorialSolicitudesComponent {
     return solicitud.id;
   }
 
-  onEditar(id: string): void {
-    console.log(`Editar solicitud ${id}`);
+  onEditar(solicitud: HistorialSolicitud): void {
+    this.router.navigate(['solicitudes/editar'], {
+      state: {
+        solicitud: {
+          id: solicitud.id,
+          fechaRadicado: solicitud.fechaRadicado,
+          estado: solicitud.estado
+        }
+      }
+    });
   }
 
   onEnviar(id: string): void {
@@ -249,6 +281,11 @@ export class HistorialSolicitudesComponent {
 
   onFilterChange(column: FilterColumn, value: string): void {
     this.columnFilters[column] = value;
+    this.applyFilters();
+  }
+
+  onEstadoFilterChange(estados: EstadoSolicitud[]): void {
+    this.columnFilters.estado = estados ?? [];
     this.applyFilters();
   }
 
@@ -268,12 +305,8 @@ export class HistorialSolicitudesComponent {
 
   private applyFilters(): void {
     this.filteredSolicitudes = this.solicitudes.filter((solicitud) => {
-      const estadoTraducido = this.translate.instant(this.getEstadoTranslation(solicitud.estado));
       const matchesId = this.matchesFilter(solicitud.id, this.columnFilters.id);
-      const matchesEstado = this.matchesFilter(
-        `${solicitud.estado} ${estadoTraducido}`,
-        this.columnFilters.estado
-      );
+      const matchesEstado = this.matchesEstadoFilter(solicitud.estado);
       const matchesFecha = this.matchesFechaRange(solicitud.fechaRadicado);
 
       return matchesId && matchesEstado && matchesFecha;
@@ -286,6 +319,13 @@ export class HistorialSolicitudesComponent {
       return true;
     }
     return this.normalize(value).includes(this.normalize(filterValue));
+  }
+
+  private matchesEstadoFilter(estado: EstadoSolicitud): boolean {
+    if (!this.columnFilters.estado.length) {
+      return true;
+    }
+    return this.columnFilters.estado.includes(estado);
   }
 
   private matchesFechaRange(fechaRadicado: string): boolean {

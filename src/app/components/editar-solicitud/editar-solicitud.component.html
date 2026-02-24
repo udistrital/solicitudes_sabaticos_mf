@@ -1,0 +1,41 @@
+<mat-card class="editar-solicitud">
+  <mat-card-header class="editar-solicitud__header">
+    <div class="editar-solicitud__header-content">
+      <div class="editar-solicitud__titles">
+        <mat-card-title>{{ 'HISTORIAL_SOLICITUDES.edit.title' | translate }}</mat-card-title>
+        <mat-card-subtitle>{{ 'HISTORIAL_SOLICITUDES.edit.subtitle' | translate }}</mat-card-subtitle>
+      </div>
+      <button mat-raised-button color="primary" class="editar-solicitud__back" routerLink="/solicitudes">
+        <mat-icon>arrow_back</mat-icon>
+        {{ 'GLOBAL.regresar' | translate }}
+      </button>
+    </div>
+  </mat-card-header>
+  <mat-card-content>
+    <ng-container *ngIf="solicitud; else noData">
+      <div class="editar-solicitud__grid">
+        <div class="editar-solicitud__item">
+          <span class="editar-solicitud__label">{{ 'HISTORIAL_SOLICITUDES.columns.id' | translate }}</span>
+          <span class="editar-solicitud__value">{{ solicitud.id }}</span>
+        </div>
+        <div class="editar-solicitud__item">
+          <span class="editar-solicitud__label">
+            {{ 'HISTORIAL_SOLICITUDES.columns.fechaRadicado' | translate }}
+          </span>
+          <span class="editar-solicitud__value">
+            {{ solicitud.fechaRadicado | date: 'longDate':undefined:currentLang }}
+          </span>
+        </div>
+        <div class="editar-solicitud__item">
+          <span class="editar-solicitud__label">{{ 'HISTORIAL_SOLICITUDES.columns.estado' | translate }}</span>
+          <span class="editar-solicitud__value">
+            {{ getEstadoTranslation(solicitud.estado) | translate }}
+          </span>
+        </div>
+      </div>
+    </ng-container>
+    <ng-template #noData>
+      <p class="editar-solicitud__empty">{{ 'GLOBAL.no_informacion_registrada' | translate }}</p>
+    </ng-template>
+  </mat-card-content>
+</mat-card>
