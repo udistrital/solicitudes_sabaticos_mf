@@ -2,9 +2,11 @@ import { Component, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DateAdapter } from '@angular/material/core';
 import { MatDateRangeInput } from '@angular/material/datepicker';
+import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { CrearSolicitudModalComponent } from '../crear-solicitud-modal/crear-solicitud-modal.component';
 
 type EstadoSolicitud =
   | 'Borrador'
@@ -112,7 +114,7 @@ export class HistorialSolicitudesComponent {
     categoriaActual: 'Asociado'
   };
 
-  readonly solicitudes: HistorialSolicitud[] = [
+  solicitudes: HistorialSolicitud[] = [
     {
       id: 'SOL-001',
       fechaRadicado: '2026-01-15',
@@ -206,6 +208,7 @@ export class HistorialSolicitudesComponent {
   constructor(
     private readonly translate: TranslateService,
     private readonly dateAdapter: DateAdapter<Date>,
+    private readonly dialog: MatDialog,
     private readonly router: Router,
     private readonly destroyRef: DestroyRef
   ) {
@@ -276,7 +279,39 @@ export class HistorialSolicitudesComponent {
   }
 
   onCrearSolicitud(): void {
-    console.log('Crear nueva solicitud');
+    const dialogRef = this.dialog.open(CrearSolicitudModalComponent, {
+      width: '90vw',
+      maxWidth: '90vw',
+      height: '90vh',
+      maxHeight: '90vh',
+      disableClose: true,
+      data: {
+        docente: {
+          nombre: this.docenteInfo.nombre,
+          documentoIdentificacion: this.docenteInfo.documentoIdentificacion,
+          facultad: this.docenteInfo.facultad,
+          proyectoCurricular: this.docenteInfo.proyectoCurricular
+        }
+      }
+    });
+
+    dialogRef.afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (!result) {
+          return;
+        }
+
+        this.solicitudes = [
+          ...this.solicitudes,
+          {
+            id: this.getNextSolicitudId(),
+            fechaRadicado: this.formatLocalDate(new Date()),
+            estado: 'Borrador'
+          }
+        ];
+        this.applyFilters();
+      });
   }
 
   onFilterChange(column: FilterColumn, value: string): void {
@@ -361,6 +396,25 @@ export class HistorialSolicitudesComponent {
         .replace(/\p{Diacritic}/gu, '')
         .toLowerCase()
       : '';
+  }
+
+  private getNextSolicitudId(): string {
+    const maxId = this.solicitudes
+      .map((solicitud) => {
+        const match = solicitud.id.match(/\d+/);
+        return match ? Number(match[0]) : 0;
+      })
+      .reduce((max, value) => (value > max ? value : max), 0);
+
+    const nextId = maxId + 1;
+    return `SOL-${String(nextId).padStart(3, '0')}`;
+  }
+
+  private formatLocalDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private parseLocalDate(value: string): Date | null {

@@ -673,6 +673,38 @@
       "title": "Editar solicitud",
       "subtitle": "Detalle de la solicitud seleccionada"
     },
+    "modal": {
+      "title": "Agregar solicitud",
+      "sectionDocente": "Datos del docente",
+      "sectionSolicitud": "Información de la solicitud",
+      "nombreDocente": "Nombre del docente",
+      "identificacionDocente": "Número de identificación",
+      "facultadDocente": "Facultad",
+      "proyectoDocente": "Proyecto curricular",
+      "periodoEjecucion": "Periodo de ejecución del plan (año sabático)",
+      "periodoUltimoSabatico": "Periodo de ejecución del último año sabático",
+      "productoUltimoSabatico": "Producto entregado en el último año sabático",
+      "sectionModalidad": "Modalidad",
+      "sectionObjetivos": "Objetivos",
+      "sectionJustificacion": "Justificación",
+      "objetivoGeneral": "Objetivo general del año sabático",
+      "objetivosEspecificos": "Objetivos específicos",
+      "justificacion": "Justificación",
+      "justificacionHint": "Basada en las necesidades del programa académico, y sustentar la relación con el ámbito de conocimientos por el que ingresó el docente a la Universidad.",
+      "modalidad": {
+        "label": "Modalidad",
+        "hint": "Identifique la solicitud (conforme al Acuerdo 011 de 2002 - Consejo Superior Universitario. Acuerdo 07 de 2005 – Consejo Académico).",
+        "opcion1": "Labores de investigación en los campos de las ciencias, las tecnologías, humanidades y las artes, afines al ámbito de su desempeño académico.",
+        "opcion2": "Participación en intercambios docentes o de investigación con otras instituciones de orden nacional o internacional legalmente conocidas.",
+        "opcion3": "Elaboración de libros de texto o de ensayo, notas de clase, resultados de investigación u otras actividades derivadas del quehacer docente.",
+        "opcion4": "Producción de videos, obras o cualquier otro producto vinculado con el desempeño docente y que tenga relación con la actividad que el profesor realiza en la Universidad.",
+        "opcion5": "Producción o creación de obras en el campo de la tecnología, la ingeniería, las ciencias o las artes y que tengan relación con la actividad que el profesor realiza en la Universidad.",
+        "opcion6": "Actualización de conocimientos en campos afines al área de desempeño del docente.",
+        "opcion7": "Actualización para el dominio de lenguas diferentes a la lengua materna."
+      },
+      "cancelar": "Cancelar",
+      "guardar": "Guardar"
+    },
     "actions": {
       "add": "Agregar solicitud",
       "editAria": "Editar solicitud",

@@ -645,6 +645,38 @@
     "edit": {
       "title": "Edit request",
       "subtitle": "Selected request details"
+    },
+    "modal": {
+      "title": "Add request",
+      "sectionDocente": "Instructor details",
+      "sectionSolicitud": "Request information",
+      "nombreDocente": "Instructor name",
+      "identificacionDocente": "Identification number",
+      "facultadDocente": "Faculty",
+      "proyectoDocente": "Curricular project",
+      "periodoEjecucion": "Execution period (sabbatical year)",
+      "periodoUltimoSabatico": "Last sabbatical execution period",
+      "productoUltimoSabatico": "Product delivered in the last sabbatical",
+      "sectionModalidad": "Modality",
+      "sectionObjetivos": "Objectives",
+      "sectionJustificacion": "Justification",
+      "objetivoGeneral": "Overall objective of the sabbatical year",
+      "objetivosEspecificos": "Specific objectives",
+      "justificacion": "Justification",
+      "justificacionHint": "Based on the needs of the academic program, and justify the relationship with the knowledge area by which the instructor entered the University.",
+      "modalidad": {
+        "label": "Modality",
+        "hint": "Identify the request (per Agreement 011 of 2002 - University Superior Council. Agreement 07 of 2005 - Academic Council).",
+        "opcion1": "Research activities in the fields of science, technology, humanities, and arts related to the instructor's academic performance.",
+        "opcion2": "Participation in teaching or research exchanges with other nationally or internationally recognized institutions.",
+        "opcion3": "Preparation of textbooks or essays, class notes, research results, or other activities derived from teaching duties.",
+        "opcion4": "Production of videos, works, or any other product linked to teaching performance and related to the professor's activity at the University.",
+        "opcion5": "Production or creation of works in the field of technology, engineering, sciences, or arts related to the professor's activity at the University.",
+        "opcion6": "Updating knowledge in areas related to the instructor's field of performance.",
+        "opcion7": "Updating for mastery of languages other than the mother tongue."
+      },
+      "cancelar": "Cancel",
+      "guardar": "Save"
     }
   },
   "gestion_horarios": {

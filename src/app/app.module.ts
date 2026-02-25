@@ -12,10 +12,12 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { ReactiveFormsModule } from '@angular/forms';
 import { environment } from '../environments/environment';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -27,6 +29,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 
+import { CrearSolicitudModalComponent } from './components/crear-solicitud-modal/crear-solicitud-modal.component';
 import { EditarSolicitudComponent } from './components/editar-solicitud/editar-solicitud.component';
 import { HistorialSolicitudesComponent } from './components/historial-solicitudes/historial-solicitudes.component';
 
@@ -77,7 +80,12 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
 }
 
 @NgModule({
-  declarations: [AppComponent, EditarSolicitudComponent, HistorialSolicitudesComponent],
+  declarations: [
+    AppComponent,
+    CrearSolicitudModalComponent,
+    EditarSolicitudComponent,
+    HistorialSolicitudesComponent
+  ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -85,8 +93,10 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
     AppRoutingModule,
     SpinnerUtilModule,
     HttpClientModule,
+    ReactiveFormsModule,
     MatButtonModule,
     MatDatepickerModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,

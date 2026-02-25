@@ -1,0 +1,112 @@
+<h2 mat-dialog-title class="crear-solicitud-modal__title">
+  {{ 'HISTORIAL_SOLICITUDES.modal.title' | translate }}
+</h2>
+<mat-dialog-content class="crear-solicitud-modal__content">
+  <form [formGroup]="form" class="crear-solicitud-modal__form">
+    <div class="crear-solicitud-modal__section">
+      <h3 class="crear-solicitud-modal__section-title">
+        {{ 'HISTORIAL_SOLICITUDES.modal.sectionDocente' | translate }}
+      </h3>
+      <div class="crear-solicitud-modal__grid">
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.nombreDocente' | translate }}</mat-label>
+          <input matInput formControlName="docenteNombre" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.identificacionDocente' | translate }}</mat-label>
+          <input matInput formControlName="docenteIdentificacion" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.facultadDocente' | translate }}</mat-label>
+          <input matInput formControlName="docenteFacultad" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.proyectoDocente' | translate }}</mat-label>
+          <input matInput formControlName="docenteProyecto" />
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="crear-solicitud-modal__section">
+      <h3 class="crear-solicitud-modal__section-title">
+        {{ 'HISTORIAL_SOLICITUDES.modal.sectionSolicitud' | translate }}
+      </h3>
+      <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--solicitud">
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.periodoEjecucion' | translate }}</mat-label>
+          <input matInput formControlName="periodoEjecucion" />
+        </mat-form-field>
+        <div class="crear-solicitud-modal__field">
+          <mat-form-field appearance="outline" class="crear-solicitud-modal__field-full">
+            <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.periodoUltimoSabatico' | translate }}</mat-label>
+            <mat-date-range-input [rangePicker]="ultimoSabaticoPicker" formGroupName="ultimoSabatico">
+              <input matStartDate formControlName="start" />
+              <input matEndDate formControlName="end" />
+            </mat-date-range-input>
+            <mat-date-range-picker #ultimoSabaticoPicker></mat-date-range-picker>
+            <mat-datepicker-toggle matIconSuffix [for]="ultimoSabaticoPicker"></mat-datepicker-toggle>
+          </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.productoUltimoSabatico' | translate }}</mat-label>
+          <input matInput formControlName="productoUltimo" />
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="crear-solicitud-modal__section">
+      <h3 class="crear-solicitud-modal__section-title">
+        {{ 'HISTORIAL_SOLICITUDES.modal.sectionModalidad' | translate }}
+      </h3>
+      <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--modalidad">
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.modalidad.hint' | translate }}</mat-label>
+          <mat-select formControlName="modalidad" panelClass="crear-solicitud-modal__modalidad-panel">
+            <mat-option *ngFor="let modalidad of modalidadOptions" [value]="modalidad">
+              <span class="crear-solicitud-modal__modalidad-option">{{ modalidad | translate }}</span>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="crear-solicitud-modal__section">
+      <h3 class="crear-solicitud-modal__section-title">
+        {{ 'HISTORIAL_SOLICITUDES.modal.sectionObjetivos' | translate }}
+      </h3>
+      <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--objetivos">
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.objetivoGeneral' | translate }}</mat-label>
+          <textarea matInput rows="2" formControlName="objetivoGeneral"
+            class="crear-solicitud-modal__textarea"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.objetivosEspecificos' | translate }}</mat-label>
+          <textarea matInput rows="2" formControlName="objetivosEspecificos"
+            class="crear-solicitud-modal__textarea"></textarea>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="crear-solicitud-modal__section">
+      <h3 class="crear-solicitud-modal__section-title">
+        {{ 'HISTORIAL_SOLICITUDES.modal.sectionJustificacion' | translate }}
+      </h3>
+      <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--justificacion">
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.justificacionHint' | translate }}</mat-label>
+          <textarea matInput rows="2" formControlName="justificacion"
+            class="crear-solicitud-modal__textarea"></textarea>
+        </mat-form-field>
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="center" class="crear-solicitud-modal__actions">
+  <button mat-raised-button type="button" class="crear-solicitud-modal__cancel" (click)="onCancelar()">
+    {{ 'HISTORIAL_SOLICITUDES.modal.cancelar' | translate }}
+  </button>
+  <button mat-raised-button color="primary" type="button" (click)="onGuardar()" [disabled]="form.invalid">
+    {{ 'HISTORIAL_SOLICITUDES.modal.guardar' | translate }}
+  </button>
+</mat-dialog-actions>
