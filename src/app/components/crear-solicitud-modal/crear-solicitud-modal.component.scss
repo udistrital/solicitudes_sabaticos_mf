@@ -3,26 +3,45 @@
 }
 
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .crear-solicitud-modal {
+  &__header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+  }
+
+  &__back {
+    position: absolute;
+    top: 1rem;
+    left: 1.5rem;
+    min-width: unset;
+  }
+
   &__title {
     text-align: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0;
   }
 
   &__content {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    max-height: 75vh;
+    flex: 1;
+    overflow: auto;
   }
 
   &__form {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    flex: 1;
   }
 
   &__section {
@@ -60,6 +79,30 @@
     grid-template-columns: 1fr;
   }
 
+  &__grid--articulacion {
+    grid-template-columns: 1fr;
+  }
+
+  &__grid--entregable {
+    grid-template-columns: 1fr;
+  }
+
+  &__grid--impacto {
+    grid-template-columns: 1fr;
+  }
+
+  &__grid--metodologia {
+    grid-template-columns: 1fr;
+  }
+
+  &__grid--cronograma {
+    grid-template-columns: 1fr;
+  }
+
+  &__grid--presupuesto {
+    grid-template-columns: 1fr;
+  }
+
   &__field {
     width: 100%;
   }
@@ -73,14 +116,29 @@
     justify-content: center;
     gap: 1rem;
     padding-bottom: 1rem;
+    margin-top: auto;
   }
 
   &__cancel {
-    background-color: #9f1d1d;
+    background-color: #bc4749;
     color: #ffffff;
 
     &:hover {
-      background-color: #7f1717;
+      background-color: #A53B3D;
+    }
+  }
+
+  &__save {
+    background-color: #6a994e;
+    color: #ffffff;
+
+    &:hover {
+      background-color: #5D8745;
+    }
+
+    &:disabled {
+      background-color: #d1d5db;
+      color: #6b7280;
     }
   }
 }
@@ -92,6 +150,48 @@
   min-height: 45px;
   max-height: 150px;
   resize: vertical;
+}
+
+.crear-solicitud-modal__textarea--large {
+  height: 70px;
+  min-height: 70px;
+  max-height: 200px;
+}
+
+.crear-solicitud-modal__textarea--medium {
+  height: 55px;
+  min-height: 55px;
+  max-height: 160px;
+}
+
+:host ::ng-deep .crear-solicitud-modal__cronograma-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: none;
+  margin-bottom: 0.75rem;
+  background-color: transparent;
+}
+
+:host ::ng-deep .crear-solicitud-modal__cronograma-panel--filled {
+  border-color: #03678f;
+}
+
+:host ::ng-deep .crear-solicitud-modal__cronograma-panel--filled .mat-expansion-panel-header {
+  background-color: #e6f4ea;
+}
+
+:host ::ng-deep .crear-solicitud-modal__cronograma-panel .mat-expansion-panel-header {
+  font-weight: 600;
+  background-color: #f3f4f6;
+}
+
+:host ::ng-deep .crear-solicitud-modal__cronograma-panel .mat-expansion-panel-header:hover,
+:host ::ng-deep .crear-solicitud-modal__cronograma-panel .mat-expansion-panel-header.mat-expanded:hover {
+  background-color: #e0f2ff !important;
+}
+
+:host ::ng-deep .crear-solicitud-modal__cronograma-panel.mat-expansion-panel-spacing {
+  margin: 0 0 0.75rem;
 }
 
 :host ::ng-deep .crear-solicitud-modal__modalidad-panel .mat-mdc-option {

@@ -1,9 +1,16 @@
-<h2 mat-dialog-title class="crear-solicitud-modal__title">
-  {{ 'HISTORIAL_SOLICITUDES.modal.title' | translate }}
-</h2>
+<div class="crear-solicitud-modal__header">
+  <button mat-raised-button color="primary" type="button" class="crear-solicitud-modal__back"
+    (click)="onRegresar()" *ngIf="!isFirstStep">
+    <mat-icon>arrow_back</mat-icon>
+    {{ 'GLOBAL.regresar' | translate }}
+  </button>
+  <h2 mat-dialog-title class="crear-solicitud-modal__title">
+    {{ 'HISTORIAL_SOLICITUDES.modal.title' | translate }}
+  </h2>
+</div>
 <mat-dialog-content class="crear-solicitud-modal__content">
   <form [formGroup]="form" class="crear-solicitud-modal__form">
-    <div class="crear-solicitud-modal__section">
+    <div class="crear-solicitud-modal__section" *ngIf="currentStep === 0">
       <h3 class="crear-solicitud-modal__section-title">
         {{ 'HISTORIAL_SOLICITUDES.modal.sectionDocente' | translate }}
       </h3>
@@ -27,7 +34,7 @@
       </div>
     </div>
 
-    <div class="crear-solicitud-modal__section">
+    <div class="crear-solicitud-modal__section" *ngIf="currentStep === 0">
       <h3 class="crear-solicitud-modal__section-title">
         {{ 'HISTORIAL_SOLICITUDES.modal.sectionSolicitud' | translate }}
       </h3>
@@ -39,7 +46,8 @@
         <div class="crear-solicitud-modal__field">
           <mat-form-field appearance="outline" class="crear-solicitud-modal__field-full">
             <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.periodoUltimoSabatico' | translate }}</mat-label>
-            <mat-date-range-input [rangePicker]="ultimoSabaticoPicker" formGroupName="ultimoSabatico">
+            <mat-date-range-input [rangePicker]="ultimoSabaticoPicker" formGroupName="ultimoSabatico"
+              (focusin)="ultimoSabaticoPicker.open()">
               <input matStartDate formControlName="start" />
               <input matEndDate formControlName="end" />
             </mat-date-range-input>
@@ -54,7 +62,7 @@
       </div>
     </div>
 
-    <div class="crear-solicitud-modal__section">
+    <div class="crear-solicitud-modal__section" *ngIf="currentStep === 0">
       <h3 class="crear-solicitud-modal__section-title">
         {{ 'HISTORIAL_SOLICITUDES.modal.sectionModalidad' | translate }}
       </h3>
@@ -70,7 +78,7 @@
       </div>
     </div>
 
-    <div class="crear-solicitud-modal__section">
+    <div class="crear-solicitud-modal__section" *ngIf="currentStep === 1">
       <h3 class="crear-solicitud-modal__section-title">
         {{ 'HISTORIAL_SOLICITUDES.modal.sectionObjetivos' | translate }}
       </h3>
@@ -88,25 +96,130 @@
       </div>
     </div>
 
-    <div class="crear-solicitud-modal__section">
+    <div class="crear-solicitud-modal__section" *ngIf="currentStep === 1">
       <h3 class="crear-solicitud-modal__section-title">
         {{ 'HISTORIAL_SOLICITUDES.modal.sectionJustificacion' | translate }}
       </h3>
       <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--justificacion">
         <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
-          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.justificacionHint' | translate }}</mat-label>
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.justificacion' | translate }}</mat-label>
           <textarea matInput rows="2" formControlName="justificacion"
+            class="crear-solicitud-modal__textarea"
+            [placeholder]="'HISTORIAL_SOLICITUDES.modal.justificacionHint' | translate"></textarea>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="crear-solicitud-modal__section" *ngIf="currentStep === 2">
+      <h3 class="crear-solicitud-modal__section-title">
+        {{ 'HISTORIAL_SOLICITUDES.modal.sectionArticulacion' | translate }}
+      </h3>
+      <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--articulacion">
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.planDesarrolloInstitucional' | translate }}</mat-label>
+          <textarea matInput rows="2" formControlName="planDesarrolloInstitucional"
+            class="crear-solicitud-modal__textarea"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.proyectoEducativoFacultad' | translate }}</mat-label>
+          <textarea matInput rows="2" formControlName="proyectoEducativoFacultad"
+            class="crear-solicitud-modal__textarea"></textarea>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.proyectoEducativoProgramas' | translate }}</mat-label>
+          <textarea matInput rows="2" formControlName="proyectoEducativoProgramas"
+            class="crear-solicitud-modal__textarea"></textarea>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="crear-solicitud-modal__section" *ngIf="currentStep === 3">
+      <h3 class="crear-solicitud-modal__section-title">
+        {{ 'HISTORIAL_SOLICITUDES.modal.sectionProductoEntregable' | translate }}
+      </h3>
+      <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--entregable">
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.productoEntregable' | translate }}</mat-label>
+          <textarea matInput rows="3" formControlName="productoEntregable"
+            class="crear-solicitud-modal__textarea crear-solicitud-modal__textarea--large"></textarea>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="crear-solicitud-modal__section" *ngIf="currentStep === 3">
+      <h3 class="crear-solicitud-modal__section-title">
+        {{ 'HISTORIAL_SOLICITUDES.modal.sectionImpactoAlcance' | translate }}
+      </h3>
+      <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--impacto">
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.impactoAlcance' | translate }}</mat-label>
+          <textarea matInput rows="3" formControlName="impactoAlcance"
+            class="crear-solicitud-modal__textarea crear-solicitud-modal__textarea--large"></textarea>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="crear-solicitud-modal__section" *ngIf="currentStep === 4">
+      <h3 class="crear-solicitud-modal__section-title">
+        {{ 'HISTORIAL_SOLICITUDES.modal.sectionMetodologia' | translate }}
+      </h3>
+      <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--metodologia">
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.metodologia' | translate }}</mat-label>
+          <textarea matInput rows="3" formControlName="metodologia"
+            class="crear-solicitud-modal__textarea crear-solicitud-modal__textarea--large"></textarea>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="crear-solicitud-modal__section" *ngIf="currentStep === 4">
+      <h3 class="crear-solicitud-modal__section-title">
+        {{ 'HISTORIAL_SOLICITUDES.modal.sectionCronograma' | translate }}
+      </h3>
+      <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--cronograma" formGroupName="cronograma">
+        <mat-accordion class="crear-solicitud-modal__cronograma" multi>
+          <mat-expansion-panel class="crear-solicitud-modal__cronograma-panel"
+            [class.crear-solicitud-modal__cronograma-panel--filled]="hasCronogramaValue(mes.key)"
+            *ngFor="let mes of cronogramaMeses">
+            <mat-expansion-panel-header>
+              <mat-panel-title>{{ mes.label | translate }}</mat-panel-title>
+            </mat-expansion-panel-header>
+            <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.cronograma.actividad' | translate }}</mat-label>
+              <textarea matInput rows="2" [formControlName]="mes.key"
+                class="crear-solicitud-modal__textarea crear-solicitud-modal__textarea--medium"></textarea>
+            </mat-form-field>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
+    </div>
+
+    <div class="crear-solicitud-modal__section" *ngIf="currentStep === 5">
+      <h3 class="crear-solicitud-modal__section-title">
+        {{ 'HISTORIAL_SOLICITUDES.modal.sectionPresupuesto' | translate }}
+      </h3>
+      <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--presupuesto">
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.presupuesto' | translate }}</mat-label>
+          <textarea matInput rows="2" formControlName="presupuesto"
             class="crear-solicitud-modal__textarea"></textarea>
         </mat-form-field>
       </div>
     </div>
   </form>
+
+
 </mat-dialog-content>
 <mat-dialog-actions align="center" class="crear-solicitud-modal__actions">
   <button mat-raised-button type="button" class="crear-solicitud-modal__cancel" (click)="onCancelar()">
     {{ 'HISTORIAL_SOLICITUDES.modal.cancelar' | translate }}
   </button>
-  <button mat-raised-button color="primary" type="button" (click)="onGuardar()" [disabled]="form.invalid">
+  <button mat-raised-button color="primary" type="button" class="crear-solicitud-modal__next"
+    (click)="onSiguiente()" *ngIf="!isLastStep" [disabled]="!isCurrentStepValid()">
+    {{ 'GLOBAL.siguiente' | translate }}
+  </button>
+  <button mat-raised-button type="button" class="crear-solicitud-modal__save"
+    (click)="onGuardar()" [disabled]="form.invalid" *ngIf="isLastStep">
     {{ 'HISTORIAL_SOLICITUDES.modal.guardar' | translate }}
   </button>
 </mat-dialog-actions>
