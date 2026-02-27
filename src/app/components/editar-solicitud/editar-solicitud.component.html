@@ -12,27 +12,258 @@
     </div>
   </mat-card-header>
   <mat-card-content>
-    <ng-container *ngIf="solicitud; else noData">
-      <div class="editar-solicitud__grid">
-        <div class="editar-solicitud__item">
-          <span class="editar-solicitud__label">{{ 'HISTORIAL_SOLICITUDES.columns.id' | translate }}</span>
-          <span class="editar-solicitud__value">{{ solicitud.id }}</span>
-        </div>
-        <div class="editar-solicitud__item">
-          <span class="editar-solicitud__label">
-            {{ 'HISTORIAL_SOLICITUDES.columns.fechaRadicado' | translate }}
-          </span>
-          <span class="editar-solicitud__value">
-            {{ solicitud.fechaRadicado | date: 'longDate':undefined:currentLang }}
-          </span>
-        </div>
-        <div class="editar-solicitud__item">
-          <span class="editar-solicitud__label">{{ 'HISTORIAL_SOLICITUDES.columns.estado' | translate }}</span>
-          <span class="editar-solicitud__value">
-            {{ getEstadoTranslation(solicitud.estado) | translate }}
-          </span>
+    <ng-container *ngIf="solicitud && form; else noData">
+      <div class="editar-solicitud__summary">
+        <div class="editar-solicitud__summary-grid">
+          <div class="editar-solicitud__summary-item">
+            <span class="editar-solicitud__summary-label">
+              {{ 'HISTORIAL_SOLICITUDES.columns.id' | translate }}
+            </span>
+            <span class="editar-solicitud__summary-value">{{ solicitud.id }}</span>
+          </div>
+          <div class="editar-solicitud__summary-item">
+            <span class="editar-solicitud__summary-label">
+              {{ 'HISTORIAL_SOLICITUDES.columns.fechaRadicado' | translate }}
+            </span>
+            <span class="editar-solicitud__summary-value">
+              {{ solicitud.fechaRadicado | date: 'longDate':undefined:currentLang }}
+            </span>
+          </div>
+          <div class="editar-solicitud__summary-item">
+            <span class="editar-solicitud__summary-label">
+              {{ 'HISTORIAL_SOLICITUDES.columns.estado' | translate }}
+            </span>
+            <span class="editar-solicitud__summary-value">
+              {{ getEstadoTranslation(solicitud.estado) | translate }}
+            </span>
+          </div>
         </div>
       </div>
+
+      <form class="editar-solicitud__form" [formGroup]="form">
+        <div class="editar-solicitud__section">
+          <h3 class="editar-solicitud__section-title">
+            {{ 'HISTORIAL_SOLICITUDES.modal.sectionDocente' | translate }}
+          </h3>
+          <div class="editar-solicitud__grid">
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.nombreDocente' | translate }}</mat-label>
+              <input matInput formControlName="docenteNombre" [disabled]="true" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.identificacionDocente' | translate }}</mat-label>
+              <input matInput formControlName="docenteIdentificacion" [disabled]="true" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.facultadDocente' | translate }}</mat-label>
+              <input matInput formControlName="docenteFacultad" [disabled]="true" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.proyectoDocente' | translate }}</mat-label>
+              <input matInput formControlName="docenteProyecto" [disabled]="true" />
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="editar-solicitud__section">
+          <h3 class="editar-solicitud__section-title">
+            {{ 'HISTORIAL_SOLICITUDES.modal.sectionSolicitud' | translate }}
+          </h3>
+          <div class="editar-solicitud__grid editar-solicitud__grid--solicitud">
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.periodoEjecucion' | translate }}</mat-label>
+              <input matInput formControlName="periodoEjecucion" />
+            </mat-form-field>
+            <div class="editar-solicitud__field">
+              <mat-form-field appearance="outline" class="editar-solicitud__field-full">
+                <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.periodoUltimoSabatico' | translate }}</mat-label>
+                <mat-date-range-input [rangePicker]="ultimoSabaticoPicker" formGroupName="ultimoSabatico">
+                  <input matStartDate formControlName="start" />
+                  <input matEndDate formControlName="end" />
+                </mat-date-range-input>
+                <mat-date-range-picker #ultimoSabaticoPicker></mat-date-range-picker>
+                <mat-datepicker-toggle matIconSuffix [for]="ultimoSabaticoPicker"></mat-datepicker-toggle>
+              </mat-form-field>
+            </div>
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.productoUltimoSabatico' | translate }}</mat-label>
+              <input matInput formControlName="productoUltimo" />
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="editar-solicitud__section">
+          <h3 class="editar-solicitud__section-title">
+            {{ 'HISTORIAL_SOLICITUDES.modal.sectionModalidad' | translate }}
+          </h3>
+          <div class="editar-solicitud__grid editar-solicitud__grid--modalidad">
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.modalidad.hint' | translate }}</mat-label>
+              <mat-select formControlName="modalidad">
+                <mat-option *ngFor="let modalidad of modalidadOptions" [value]="modalidad">
+                  {{ modalidad | translate }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="editar-solicitud__section">
+          <h3 class="editar-solicitud__section-title">
+            {{ 'HISTORIAL_SOLICITUDES.modal.sectionObjetivos' | translate }}
+          </h3>
+          <div class="editar-solicitud__grid editar-solicitud__grid--objetivos">
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.objetivoGeneral' | translate }}</mat-label>
+              <textarea matInput rows="2" formControlName="objetivoGeneral" class="editar-solicitud__textarea"></textarea>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.objetivosEspecificos' | translate }}</mat-label>
+              <textarea matInput rows="2" formControlName="objetivosEspecificos"
+                class="editar-solicitud__textarea"></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="editar-solicitud__section">
+          <h3 class="editar-solicitud__section-title">
+            {{ 'HISTORIAL_SOLICITUDES.modal.sectionJustificacion' | translate }}
+          </h3>
+          <div class="editar-solicitud__grid editar-solicitud__grid--justificacion">
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.justificacion' | translate }}</mat-label>
+              <textarea matInput rows="2" formControlName="justificacion"
+                class="editar-solicitud__textarea"></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="editar-solicitud__section">
+          <h3 class="editar-solicitud__section-title">
+            {{ 'HISTORIAL_SOLICITUDES.modal.sectionArticulacion' | translate }}
+          </h3>
+          <div class="editar-solicitud__grid editar-solicitud__grid--articulacion">
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.planDesarrolloInstitucional' | translate }}</mat-label>
+              <textarea matInput rows="2" formControlName="planDesarrolloInstitucional"
+                class="editar-solicitud__textarea"></textarea>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.proyectoEducativoFacultad' | translate }}</mat-label>
+              <textarea matInput rows="2" formControlName="proyectoEducativoFacultad"
+                class="editar-solicitud__textarea"></textarea>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.proyectoEducativoProgramas' | translate }}</mat-label>
+              <textarea matInput rows="2" formControlName="proyectoEducativoProgramas"
+                class="editar-solicitud__textarea"></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="editar-solicitud__section">
+          <h3 class="editar-solicitud__section-title">
+            {{ 'HISTORIAL_SOLICITUDES.modal.sectionProductoEntregable' | translate }}
+          </h3>
+          <div class="editar-solicitud__grid editar-solicitud__grid--entregable">
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.productoEntregable' | translate }}</mat-label>
+              <textarea matInput rows="3" formControlName="productoEntregable"
+                class="editar-solicitud__textarea editar-solicitud__textarea--large"></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="editar-solicitud__section">
+          <h3 class="editar-solicitud__section-title">
+            {{ 'HISTORIAL_SOLICITUDES.modal.sectionImpactoAlcance' | translate }}
+          </h3>
+          <div class="editar-solicitud__grid editar-solicitud__grid--impacto">
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.impactoAlcance' | translate }}</mat-label>
+              <textarea matInput rows="3" formControlName="impactoAlcance"
+                class="editar-solicitud__textarea editar-solicitud__textarea--large"></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="editar-solicitud__section">
+          <h3 class="editar-solicitud__section-title">
+            {{ 'HISTORIAL_SOLICITUDES.modal.sectionMetodologia' | translate }}
+          </h3>
+          <div class="editar-solicitud__grid editar-solicitud__grid--metodologia">
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.metodologia' | translate }}</mat-label>
+              <textarea matInput rows="3" formControlName="metodologia"
+                class="editar-solicitud__textarea editar-solicitud__textarea--large"></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="editar-solicitud__section">
+          <h3 class="editar-solicitud__section-title">
+            {{ 'HISTORIAL_SOLICITUDES.modal.sectionCronograma' | translate }}
+          </h3>
+          <div class="editar-solicitud__grid editar-solicitud__grid--cronograma" formGroupName="cronograma">
+            <mat-accordion class="editar-solicitud__cronograma" multi>
+              <mat-expansion-panel class="editar-solicitud__cronograma-panel"
+                [class.editar-solicitud__cronograma-panel--filled]="hasCronogramaValue(mes.key)"
+                *ngFor="let mes of cronogramaMeses">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>{{ mes.label | translate }}</mat-panel-title>
+                </mat-expansion-panel-header>
+                <mat-form-field appearance="outline" class="editar-solicitud__field">
+                  <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.cronograma.actividad' | translate }}</mat-label>
+                  <textarea matInput rows="2" [formControlName]="mes.key"
+                    class="editar-solicitud__textarea editar-solicitud__textarea--medium"></textarea>
+                </mat-form-field>
+              </mat-expansion-panel>
+            </mat-accordion>
+          </div>
+        </div>
+
+        <div class="editar-solicitud__section">
+          <h3 class="editar-solicitud__section-title">
+            {{ 'HISTORIAL_SOLICITUDES.modal.sectionPresupuesto' | translate }}
+          </h3>
+          <div class="editar-solicitud__grid editar-solicitud__grid--presupuesto">
+            <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.presupuesto' | translate }}</mat-label>
+              <textarea matInput rows="2" formControlName="presupuesto"
+                class="editar-solicitud__textarea"></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="editar-solicitud__section">
+          <h3 class="editar-solicitud__section-title">
+            {{ 'HISTORIAL_SOLICITUDES.modal.sectionDocumentos' | translate }}
+          </h3>
+          <div class="editar-solicitud__documentos">
+            <div class="editar-solicitud__documento" *ngFor="let documento of documentoOptions; trackBy: trackDocumento">
+              <div class="editar-solicitud__documento-info">
+                <span class="editar-solicitud__documento-title">{{ documento.label | translate }}</span>
+                <span class="editar-solicitud__documento-file">
+                  {{ getDocumentoNombre(documento.key) || ('HISTORIAL_SOLICITUDES.modal.documentos.sinArchivo' | translate) }}
+                </span>
+              </div>
+              <label class="editar-solicitud__documento-action" mat-stroked-button>
+                {{ 'HISTORIAL_SOLICITUDES.modal.documentos.cargar' | translate }}
+                <input type="file" (change)="onDocumentoChange(documento.key, $event)" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="editar-solicitud__actions">
+          <button mat-raised-button color="primary" type="button" class="editar-solicitud__save" (click)="onGuardar()">
+            {{ 'HISTORIAL_SOLICITUDES.edit.save' | translate }}
+          </button>
+          <button mat-stroked-button type="button" class="editar-solicitud__send" (click)="onEnviarRevision()">
+            {{ 'HISTORIAL_SOLICITUDES.edit.sendReview' | translate }}
+          </button>
+        </div>
+      </form>
     </ng-container>
     <ng-template #noData>
       <p class="editar-solicitud__empty">{{ 'GLOBAL.no_informacion_registrada' | translate }}</p>

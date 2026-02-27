@@ -103,6 +103,67 @@
     grid-template-columns: 1fr;
   }
 
+  &__documentos {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  &__documento {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    background-color: #f9fafb;
+  }
+
+  &__documento-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  &__documento-title {
+    font-weight: 600;
+    color: #1f2933;
+  }
+
+  &__documento-file {
+    color: #6b7280;
+    font-size: 0.85rem;
+  }
+
+  &__documento-action {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    border: 1px solid #03678f;
+    background-color: #03678f;
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+      background-color: #02547c;
+      border-color: #02547c;
+    }
+
+    input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+  }
+
   &__field {
     width: 100%;
   }
@@ -162,6 +223,65 @@
   height: 55px;
   min-height: 55px;
   max-height: 160px;
+}
+
+:host ::ng-deep .crear-solicitud-modal__stepper {
+  background: transparent;
+  margin: 0 1.5rem 1rem;
+}
+
+:host ::ng-deep .crear-solicitud-modal__stepper .mat-step-header {
+  pointer-events: none;
+}
+
+:host ::ng-deep .crear-solicitud-modal__stepper .mat-step-header .mat-step-icon {
+  background-color: #d1d5db;
+  color: #6b7280;
+}
+
+:host ::ng-deep .crear-solicitud-modal__stepper .mat-step-header .mat-step-icon-state-done {
+  background-color: #d6e6ef;
+  color: #03678f;
+}
+
+:host ::ng-deep .crear-solicitud-modal__stepper .mat-step-header .mat-step-icon-selected {
+  background-color: #03678f;
+  color: #ffffff;
+}
+
+:host ::ng-deep .crear-solicitud-modal__stepper .mat-step-header .mat-step-label {
+  color: #9ca3af;
+}
+
+:host ::ng-deep .crear-solicitud-modal__stepper .mat-step-header.mat-active .mat-step-label {
+  color: #03678f;
+  font-weight: 600;
+}
+
+:host ::ng-deep .crear-solicitud-modal__stepper .mat-step-header .mat-step-label.mat-step-label-selected {
+  color: #03678f;
+}
+
+:host ::ng-deep .crear-solicitud-modal__stepper .mat-step-header .mat-step-label.mat-step-label-done {
+  color: #6c90a0;
+}
+
+:host ::ng-deep .crear-solicitud-modal__stepper .mat-stepper-horizontal-line {
+  border-top-color: #d1d5db;
+}
+
+:host ::ng-deep .crear-solicitud-modal__stepper .mat-step-header.mat-active+.mat-stepper-horizontal-line {
+  border-top-color: #03678f;
+}
+
+:host ::ng-deep .crear-solicitud-modal__stepper .mat-step-header.mat-step-label-done+.mat-stepper-horizontal-line {
+  border-top-color: #d6e6ef;
+}
+
+:host ::ng-deep .crear-solicitud-modal__stepper .mat-step-header:focus,
+:host ::ng-deep .crear-solicitud-modal__stepper .mat-step-header:focus-visible {
+  background-color: transparent;
+  box-shadow: none;
 }
 
 :host ::ng-deep .crear-solicitud-modal__cronograma-panel {

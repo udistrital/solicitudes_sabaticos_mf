@@ -43,6 +43,21 @@ export class CrearSolicitudModalComponent {
     { key: 'noviembre', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.noviembre' },
     { key: 'diciembre', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.diciembre' }
   ];
+  readonly documentoOptions = [
+    { key: 'avalConsejo', label: 'HISTORIAL_SOLICITUDES.modal.documentos.avalConsejo' },
+    { key: 'cronogramaMensual', label: 'HISTORIAL_SOLICITUDES.modal.documentos.cronogramaMensual' },
+    { key: 'presupuestoProyectado', label: 'HISTORIAL_SOLICITUDES.modal.documentos.presupuestoProyectado' },
+    { key: 'certificacionLaboral', label: 'HISTORIAL_SOLICITUDES.modal.documentos.certificacionLaboral' },
+    { key: 'pazSalvoAcademico', label: 'HISTORIAL_SOLICITUDES.modal.documentos.pazSalvoAcademico' },
+    { key: 'pazSalvoInvestigaciones', label: 'HISTORIAL_SOLICITUDES.modal.documentos.pazSalvoInvestigaciones' },
+    { key: 'pazSalvoExtension', label: 'HISTORIAL_SOLICITUDES.modal.documentos.pazSalvoExtension' },
+    { key: 'pazSalvoAlmacen', label: 'HISTORIAL_SOLICITUDES.modal.documentos.pazSalvoAlmacen' },
+    { key: 'pazSalvoFinanciero', label: 'HISTORIAL_SOLICITUDES.modal.documentos.pazSalvoFinanciero' },
+    { key: 'financiacion', label: 'HISTORIAL_SOLICITUDES.modal.documentos.financiacion' },
+    { key: 'pazSalvoConsejoFacultad', label: 'HISTORIAL_SOLICITUDES.modal.documentos.pazSalvoConsejoFacultad' },
+    { key: 'otros', label: 'HISTORIAL_SOLICITUDES.modal.documentos.otros' }
+  ];
+  readonly documentoArchivos: Record<string, string | null> = {};
   currentStep = 0;
   readonly stepControlPaths: string[][] = [
     [
@@ -157,7 +172,10 @@ export class CrearSolicitudModalComponent {
       return;
     }
 
-    this.dialogRef.close(this.form.getRawValue());
+    this.dialogRef.close({
+      ...this.form.getRawValue(),
+      documentos: this.documentoArchivos
+    });
   }
 
   isCurrentStepValid(): boolean {
@@ -167,6 +185,20 @@ export class CrearSolicitudModalComponent {
   hasCronogramaValue(key: string): boolean {
     const value = this.form.get(`cronograma.${key}`)?.value as string | null | undefined;
     return Boolean(value && value.trim());
+  }
+
+  getDocumentoNombre(key: string): string | null {
+    return this.documentoArchivos[key] ?? null;
+  }
+
+  onDocumentoChange(key: string, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.documentoArchivos[key] = file ? file.name : null;
+  }
+
+  trackDocumento(_: number, item: { key: string }): string {
+    return item.key;
   }
 
   private isStepValid(step: number): boolean {

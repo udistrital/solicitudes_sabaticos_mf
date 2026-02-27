@@ -20,6 +20,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatStepperModule } from '@angular/material/stepper';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -100,6 +101,7 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
     MatDialogModule,
     MatExpansionModule,
     MatFormFieldModule,
+    MatStepperModule,
     MatInputModule,
     MatIconModule,
     MatNativeDateModule,

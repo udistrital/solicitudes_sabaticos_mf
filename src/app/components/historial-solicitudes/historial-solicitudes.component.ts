@@ -25,10 +25,52 @@ type EstadoSolicitud =
   | 'Finalizada Aprobada con Resolución';
 type FilterColumn = 'id';
 
+interface CronogramaActividad {
+  enero: string;
+  febrero: string;
+  marzo: string;
+  abril: string;
+  mayo: string;
+  junio: string;
+  julio: string;
+  agosto: string;
+  septiembre: string;
+  octubre: string;
+  noviembre: string;
+  diciembre: string;
+}
+
+interface SolicitudDetalle {
+  docenteNombre: string;
+  docenteIdentificacion: string;
+  docenteFacultad: string;
+  docenteProyecto: string;
+  periodoEjecucion: string;
+  ultimoSabatico: {
+    start: Date | null;
+    end: Date | null;
+  };
+  productoUltimo: string;
+  modalidad: string;
+  objetivoGeneral: string;
+  objetivosEspecificos: string;
+  justificacion: string;
+  planDesarrolloInstitucional: string;
+  proyectoEducativoFacultad: string;
+  proyectoEducativoProgramas: string;
+  productoEntregable: string;
+  impactoAlcance: string;
+  metodologia: string;
+  cronograma: CronogramaActividad;
+  presupuesto: string;
+  documentos: Record<string, string | null>;
+}
+
 interface HistorialSolicitud {
   id: string;
   fechaRadicado: string;
   estado: EstadoSolicitud;
+  detalle?: SolicitudDetalle;
 }
 
 interface ColumnFilters {
@@ -265,11 +307,18 @@ export class HistorialSolicitudesComponent {
   onEditar(solicitud: HistorialSolicitud): void {
     this.router.navigate(['solicitudes/editar'], {
       state: {
-        solicitud: {
-          id: solicitud.id,
-          fechaRadicado: solicitud.fechaRadicado,
-          estado: solicitud.estado
-        }
+        solicitud: solicitud.detalle
+          ? {
+            ...solicitud.detalle,
+            id: solicitud.id,
+            fechaRadicado: solicitud.fechaRadicado,
+            estado: solicitud.estado
+          }
+          : {
+            id: solicitud.id,
+            fechaRadicado: solicitud.fechaRadicado,
+            estado: solicitud.estado
+          }
       }
     });
   }
@@ -302,12 +351,20 @@ export class HistorialSolicitudesComponent {
           return;
         }
 
+        const nuevaId = this.getNextSolicitudId();
+        const fechaRadicado = this.formatLocalDate(new Date());
+        const detalle = result as SolicitudDetalle;
+
         this.solicitudes = [
           ...this.solicitudes,
           {
-            id: this.getNextSolicitudId(),
-            fechaRadicado: this.formatLocalDate(new Date()),
-            estado: 'Borrador'
+            id: nuevaId,
+            fechaRadicado,
+            estado: 'Borrador',
+            detalle: {
+              ...detalle,
+              documentos: detalle.documentos ?? {}
+            }
           }
         ];
         this.applyFilters();

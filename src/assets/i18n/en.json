@@ -86,7 +86,6 @@
       "range": "{{start}} - {{end}} of {{length}}"
     },
     "fecha_inicio": "Start date",
-
     "informacion_contacto": "Contact data",
     "placeholder_fecha_inicio": "E.g.: 24/12/2016",
     "fecha_fin": "End date",
@@ -644,7 +643,9 @@
     },
     "edit": {
       "title": "Edit request",
-      "subtitle": "Selected request details"
+      "subtitle": "Selected request details",
+      "save": "Save changes",
+      "sendReview": "Send for review"
     },
     "modal": {
       "title": "Add request",
@@ -666,6 +667,7 @@
       "sectionMetodologia": "Methodology",
       "sectionCronograma": "Schedule",
       "sectionPresupuesto": "Budget (Economic identification of the request)",
+      "sectionDocumentos": "Supporting documents",
       "objetivoGeneral": "Overall objective of the sabbatical year",
       "objetivosEspecificos": "Specific objectives",
       "justificacion": "Justification",
@@ -677,6 +679,22 @@
       "impactoAlcance": "Across the three mission axes",
       "metodologia": "Describe the methodology to follow",
       "presupuesto": "Provide details of the economic conditions required to carry out this Work Plan and the funding source.",
+      "documentos": {
+        "cargar": "Upload",
+        "sinArchivo": "No file",
+        "avalConsejo": "Curricular Council approval.",
+        "cronogramaMensual": "Monthly activity schedule.",
+        "presupuestoProyectado": "Projected budget.",
+        "certificacionLaboral": "Employment certification with tenure (Human Resources, indicating escalafon registration date).",
+        "pazSalvoAcademico": "Academic clearance (Curricular Project/Academic Program).",
+        "pazSalvoInvestigaciones": "Research clearance (CIDC / Faculty Research Unit).",
+        "pazSalvoExtension": "Extension/social outreach clearance (IDEXUD / Faculty Extension Unit).",
+        "pazSalvoAlmacen": "Warehouse and inventory clearance.",
+        "pazSalvoFinanciero": "Financial clearance (Finance Office).",
+        "financiacion": "Documents supporting external or internal funding of the proposal (if applicable).",
+        "pazSalvoConsejoFacultad": "Faculty Council clearance regarding compliance/results of previous sabbaticals (when applicable).",
+        "otros": "Other (additional supporting documents as applicable)."
+      },
       "cronograma": {
         "actividad": "Monthly activity",
         "enero": "January",
@@ -691,6 +709,14 @@
         "octubre": "October",
         "noviembre": "November",
         "diciembre": "December"
+      },
+      "stepper": {
+        "datos": "Data",
+        "objetivos": "Objectives",
+        "articulacion": "Alignment",
+        "entregable": "Deliverable",
+        "metodologia": "Methodology",
+        "presupuesto": "Budget"
       },
       "modalidad": {
         "label": "Modality",
@@ -708,7 +734,6 @@
     }
   },
   "gestion_horarios": {
-
     "encabezado": "Module for the Availability of quotas",
     "label": "Availability of places",
     "mensaje_inicial": "Please select the curricular project, the academic period and the semester that is to consult the availability of places by academic space",
@@ -1068,3 +1093,4 @@
     "descripcion_asignar_docente": "Please enter the document in the corresponding field and press Enter to fill in the remaining fields."
   }
 }
+

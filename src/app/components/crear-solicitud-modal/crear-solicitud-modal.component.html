@@ -8,6 +8,14 @@
     {{ 'HISTORIAL_SOLICITUDES.modal.title' | translate }}
   </h2>
 </div>
+<mat-stepper class="crear-solicitud-modal__stepper" [selectedIndex]="currentStep">
+  <mat-step [editable]="false" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.datos' | translate"></mat-step>
+  <mat-step [editable]="false" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.objetivos' | translate"></mat-step>
+  <mat-step [editable]="false" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.articulacion' | translate"></mat-step>
+  <mat-step [editable]="false" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.entregable' | translate"></mat-step>
+  <mat-step [editable]="false" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.metodologia' | translate"></mat-step>
+  <mat-step [editable]="false" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.presupuesto' | translate"></mat-step>
+</mat-stepper>
 <mat-dialog-content class="crear-solicitud-modal__content">
   <form [formGroup]="form" class="crear-solicitud-modal__form">
     <div class="crear-solicitud-modal__section" *ngIf="currentStep === 0">
@@ -204,6 +212,24 @@
           <textarea matInput rows="2" formControlName="presupuesto"
             class="crear-solicitud-modal__textarea"></textarea>
         </mat-form-field>
+      </div>
+
+      <h3 class="crear-solicitud-modal__section-title">
+        {{ 'HISTORIAL_SOLICITUDES.modal.sectionDocumentos' | translate }}
+      </h3>
+      <div class="crear-solicitud-modal__documentos">
+        <div class="crear-solicitud-modal__documento" *ngFor="let documento of documentoOptions; trackBy: trackDocumento">
+          <div class="crear-solicitud-modal__documento-info">
+            <span class="crear-solicitud-modal__documento-title">{{ documento.label | translate }}</span>
+            <span class="crear-solicitud-modal__documento-file">
+              {{ getDocumentoNombre(documento.key) || ('HISTORIAL_SOLICITUDES.modal.documentos.sinArchivo' | translate) }}
+            </span>
+          </div>
+          <label class="crear-solicitud-modal__documento-action" mat-stroked-button>
+            {{ 'HISTORIAL_SOLICITUDES.modal.documentos.cargar' | translate }}
+            <input type="file" (change)="onDocumentoChange(documento.key, $event)" />
+          </label>
+        </div>
       </div>
     </div>
   </form>
