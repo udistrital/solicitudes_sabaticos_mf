@@ -217,18 +217,40 @@
       <h3 class="crear-solicitud-modal__section-title">
         {{ 'HISTORIAL_SOLICITUDES.modal.sectionDocumentos' | translate }}
       </h3>
+      <div class="crear-solicitud-modal__documento-selector">
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.documentos.seleccionar' | translate }}</mat-label>
+          <mat-select [(value)]="documentoSeleccionado">
+            <mat-option *ngFor="let documento of documentosDisponibles; trackBy: trackDocumento"
+              [value]="documento.key">
+              {{ documento.label | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="button" class="crear-solicitud-modal__documento-add"
+          (click)="onAgregarDocumento()" [disabled]="!documentoSeleccionado">
+          {{ 'GLOBAL.agregar' | translate }}
+        </button>
+      </div>
       <div class="crear-solicitud-modal__documentos">
-        <div class="crear-solicitud-modal__documento" *ngFor="let documento of documentoOptions; trackBy: trackDocumento">
+        <div class="crear-solicitud-modal__documento"
+          *ngFor="let documento of documentosSeleccionadosDetalle; trackBy: trackDocumento">
           <div class="crear-solicitud-modal__documento-info">
             <span class="crear-solicitud-modal__documento-title">{{ documento.label | translate }}</span>
             <span class="crear-solicitud-modal__documento-file">
               {{ getDocumentoNombre(documento.key) || ('HISTORIAL_SOLICITUDES.modal.documentos.sinArchivo' | translate) }}
             </span>
           </div>
-          <label class="crear-solicitud-modal__documento-action" mat-stroked-button>
-            {{ 'HISTORIAL_SOLICITUDES.modal.documentos.cargar' | translate }}
-            <input type="file" (change)="onDocumentoChange(documento.key, $event)" />
-          </label>
+          <div class="crear-solicitud-modal__documento-actions">
+            <label class="crear-solicitud-modal__documento-action" mat-stroked-button>
+              {{ 'HISTORIAL_SOLICITUDES.modal.documentos.cargar' | translate }}
+              <input type="file" (change)="onDocumentoChange(documento.key, $event)" />
+            </label>
+            <button mat-icon-button type="button" class="crear-solicitud-modal__documento-remove"
+              (click)="onEliminarDocumento(documento.key)" [attr.aria-label]="'GLOBAL.eliminar' | translate">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
     </div>

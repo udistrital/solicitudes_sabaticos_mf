@@ -13,6 +13,11 @@ interface CrearSolicitudModalData {
   docente: DocenteBasico;
 }
 
+interface DocumentoOption {
+  key: string;
+  label: string;
+}
+
 @Component({
   selector: 'app-crear-solicitud-modal',
   templateUrl: './crear-solicitud-modal.component.html',
@@ -43,7 +48,7 @@ export class CrearSolicitudModalComponent {
     { key: 'noviembre', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.noviembre' },
     { key: 'diciembre', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.diciembre' }
   ];
-  readonly documentoOptions = [
+  readonly documentoOptions: DocumentoOption[] = [
     { key: 'avalConsejo', label: 'HISTORIAL_SOLICITUDES.modal.documentos.avalConsejo' },
     { key: 'cronogramaMensual', label: 'HISTORIAL_SOLICITUDES.modal.documentos.cronogramaMensual' },
     { key: 'presupuestoProyectado', label: 'HISTORIAL_SOLICITUDES.modal.documentos.presupuestoProyectado' },
@@ -58,6 +63,8 @@ export class CrearSolicitudModalComponent {
     { key: 'otros', label: 'HISTORIAL_SOLICITUDES.modal.documentos.otros' }
   ];
   readonly documentoArchivos: Record<string, string | null> = {};
+  documentoSeleccionado: string | null = null;
+  documentosSeleccionados: string[] = [];
   currentStep = 0;
   readonly stepControlPaths: string[][] = [
     [
@@ -185,6 +192,43 @@ export class CrearSolicitudModalComponent {
   hasCronogramaValue(key: string): boolean {
     const value = this.form.get(`cronograma.${key}`)?.value as string | null | undefined;
     return Boolean(value && value.trim());
+  }
+
+  get documentosDisponibles(): DocumentoOption[] {
+    return this.documentoOptions.filter(
+      (documento) => !this.documentosSeleccionados.includes(documento.key)
+    );
+  }
+
+  get documentosSeleccionadosDetalle(): DocumentoOption[] {
+    return this.documentosSeleccionados
+      .map((key) => this.documentoOptions.find((documento) => documento.key === key))
+      .filter((documento): documento is DocumentoOption => Boolean(documento));
+  }
+
+  onAgregarDocumento(): void {
+    if (!this.documentoSeleccionado) {
+      return;
+    }
+
+    if (!this.documentosSeleccionados.includes(this.documentoSeleccionado)) {
+      this.documentosSeleccionados = [
+        ...this.documentosSeleccionados,
+        this.documentoSeleccionado
+      ];
+      if (!(this.documentoSeleccionado in this.documentoArchivos)) {
+        this.documentoArchivos[this.documentoSeleccionado] = null;
+      }
+    }
+
+    this.documentoSeleccionado = null;
+  }
+
+  onEliminarDocumento(key: string): void {
+    this.documentosSeleccionados = this.documentosSeleccionados.filter(
+      (documento) => documento !== key
+    );
+    delete this.documentoArchivos[key];
   }
 
   getDocumentoNombre(key: string): string | null {

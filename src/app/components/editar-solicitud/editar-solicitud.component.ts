@@ -62,7 +62,13 @@ interface SolicitudDetalle {
   metodologia?: string;
   cronograma?: CronogramaActividad;
   presupuesto?: string;
+  observaciones?: string;
   documentos?: Record<string, string | null>;
+}
+
+interface DocumentoOption {
+  key: string;
+  label: string;
 }
 
 @Component({
@@ -75,6 +81,8 @@ export class EditarSolicitudComponent {
   solicitud: SolicitudDetalle | null = null;
   form: FormGroup | null = null;
   documentoArchivos: Record<string, string | null> = {};
+  documentoSeleccionado: string | null = null;
+  documentosSeleccionados: string[] = [];
 
   readonly modalidadOptions = [
     'HISTORIAL_SOLICITUDES.modal.modalidad.opcion1',
@@ -101,7 +109,7 @@ export class EditarSolicitudComponent {
     { key: 'diciembre', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.diciembre' }
   ];
 
-  readonly documentoOptions = [
+  readonly documentoOptions: DocumentoOption[] = [
     { key: 'avalConsejo', label: 'HISTORIAL_SOLICITUDES.modal.documentos.avalConsejo' },
     { key: 'cronogramaMensual', label: 'HISTORIAL_SOLICITUDES.modal.documentos.cronogramaMensual' },
     { key: 'presupuestoProyectado', label: 'HISTORIAL_SOLICITUDES.modal.documentos.presupuestoProyectado' },
@@ -172,6 +180,9 @@ export class EditarSolicitudComponent {
     this.solicitud = this.parseSolicitud(stateSolicitud);
     if (this.solicitud) {
       this.documentoArchivos = { ...(this.solicitud.documentos ?? {}) };
+      this.documentosSeleccionados = Object.entries(this.documentoArchivos)
+        .filter(([, nombre]) => Boolean(nombre))
+        .map(([key]) => key);
       this.form = this.formBuilder.group({
         docenteNombre: [{ value: this.solicitud.docenteNombre ?? '', disabled: true }],
         docenteIdentificacion: [{ value: this.solicitud.docenteIdentificacion ?? '', disabled: true }],
@@ -194,6 +205,7 @@ export class EditarSolicitudComponent {
         impactoAlcance: [this.solicitud.impactoAlcance ?? ''],
         metodologia: [this.solicitud.metodologia ?? ''],
         presupuesto: [this.solicitud.presupuesto ?? ''],
+        observaciones: [this.solicitud.observaciones ?? ''],
         cronograma: this.formBuilder.group({
           enero: [this.solicitud.cronograma?.enero ?? ''],
           febrero: [this.solicitud.cronograma?.febrero ?? ''],
@@ -214,6 +226,43 @@ export class EditarSolicitudComponent {
 
   getEstadoTranslation(estado: EstadoSolicitud): string {
     return this.estadoTraducciones[estado];
+  }
+
+  get documentosDisponibles(): DocumentoOption[] {
+    return this.documentoOptions.filter(
+      (documento) => !this.documentosSeleccionados.includes(documento.key)
+    );
+  }
+
+  get documentosSeleccionadosDetalle(): DocumentoOption[] {
+    return this.documentosSeleccionados
+      .map((key) => this.documentoOptions.find((documento) => documento.key === key))
+      .filter((documento): documento is DocumentoOption => Boolean(documento));
+  }
+
+  onAgregarDocumento(): void {
+    if (!this.documentoSeleccionado) {
+      return;
+    }
+
+    if (!this.documentosSeleccionados.includes(this.documentoSeleccionado)) {
+      this.documentosSeleccionados = [
+        ...this.documentosSeleccionados,
+        this.documentoSeleccionado
+      ];
+      if (!(this.documentoSeleccionado in this.documentoArchivos)) {
+        this.documentoArchivos[this.documentoSeleccionado] = null;
+      }
+    }
+
+    this.documentoSeleccionado = null;
+  }
+
+  onEliminarDocumento(key: string): void {
+    this.documentosSeleccionados = this.documentosSeleccionados.filter(
+      (documento) => documento !== key
+    );
+    delete this.documentoArchivos[key];
   }
 
   getDocumentoNombre(key: string): string | null {

@@ -645,8 +645,13 @@
       "title": "Edit request",
       "subtitle": "Selected request details",
       "save": "Save changes",
-      "sendReview": "Send for review"
+      "sendReview": "Send for review",
+      "observaciones": {
+        "title": "Observations",
+        "label": "Comments or observations to consider"
+      }
     },
+
     "modal": {
       "title": "Add request",
       "sectionDocente": "Instructor details",
@@ -681,19 +686,21 @@
       "presupuesto": "Provide details of the economic conditions required to carry out this Work Plan and the funding source.",
       "documentos": {
         "cargar": "Upload",
+        "seleccionar": "Select document",
         "sinArchivo": "No file",
-        "avalConsejo": "Curricular Council approval.",
-        "cronogramaMensual": "Monthly activity schedule.",
-        "presupuestoProyectado": "Projected budget.",
-        "certificacionLaboral": "Employment certification with tenure (Human Resources, indicating escalafon registration date).",
-        "pazSalvoAcademico": "Academic clearance (Curricular Project/Academic Program).",
-        "pazSalvoInvestigaciones": "Research clearance (CIDC / Faculty Research Unit).",
-        "pazSalvoExtension": "Extension/social outreach clearance (IDEXUD / Faculty Extension Unit).",
-        "pazSalvoAlmacen": "Warehouse and inventory clearance.",
-        "pazSalvoFinanciero": "Financial clearance (Finance Office).",
-        "financiacion": "Documents supporting external or internal funding of the proposal (if applicable).",
-        "pazSalvoConsejoFacultad": "Faculty Council clearance regarding compliance/results of previous sabbaticals (when applicable).",
-        "otros": "Other (additional supporting documents as applicable)."
+        "avalConsejo": "Curricular Council approval",
+
+        "cronogramaMensual": "Monthly activity schedule",
+        "presupuestoProyectado": "Projected budget",
+        "certificacionLaboral": "Employment certification with tenure (Human Resources, indicating escalafon registration date)",
+        "pazSalvoAcademico": "Academic clearance (Curricular Project/Academic Program)",
+        "pazSalvoInvestigaciones": "Research clearance (CIDC / Faculty Research Unit)",
+        "pazSalvoExtension": "Extension/social outreach clearance (IDEXUD / Faculty Extension Unit)",
+        "pazSalvoAlmacen": "Warehouse and inventory clearance",
+        "pazSalvoFinanciero": "Financial clearance (Finance Office)",
+        "financiacion": "Documents supporting external or internal funding of the proposal (if applicable)",
+        "pazSalvoConsejoFacultad": "Faculty Council clearance regarding compliance/results of previous sabbaticals (when applicable)",
+        "otros": "Other (additional supporting documents as applicable)"
       },
       "cronograma": {
         "actividad": "Monthly activity",

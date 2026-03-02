@@ -129,10 +129,51 @@
     width: 100%;
   }
 
+  &__documento-selector &__field {
+    flex: 1;
+  }
+
   &__form {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+  }
+
+  &__documento-selector {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+
+  :host ::ng-deep &__documento-selector .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+
+  &__documento-add {
+    white-space: nowrap;
+    align-self: center;
+  }
+
+  &__documento-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  &__documento-remove {
+    background-color: #fee2e2;
+    color: #bc4749;
+  }
+
+  &__save {
+    background-color: #6a994e;
+    color: #ffffff;
+
+    &:hover {
+      background-color: #5d8745;
+    }
   }
 
   &__documentos {
@@ -198,8 +239,8 @@
 
   &__actions {
     display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
+    justify-content: center;
+    gap: 2rem;
     flex-wrap: wrap;
     margin-top: 1rem;
   }
