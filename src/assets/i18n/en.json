@@ -626,6 +626,9 @@
       "telefono": "Phone number",
       "celular": "Mobile number",
       "fechaIngreso": "Admission date",
+      "resolucionFechaIngreso": "Admission date resolution",
+      "fechaInscripcionEscalafon": "Escalafon enrollment date",
+      "resolucionInscripcionEscalafon": "Escalafon enrollment resolution",
       "numeroResolucion": "Resolution number",
       "categoriaIngreso": "Entry category",
       "categoriaActual": "Current category"
@@ -656,6 +659,7 @@
       "title": "Add request",
       "sectionDocente": "Instructor details",
       "sectionSolicitud": "Request information",
+      "sectionUltimaSolicitud": "Last request information",
       "nombreDocente": "Instructor name",
       "identificacionDocente": "Identification number",
       "facultadDocente": "Faculty",

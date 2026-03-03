@@ -93,7 +93,9 @@ interface DocenteInfo {
   telefono: string;
   celular: string;
   fechaIngreso: string;
-  numeroResolucion: string;
+  resolucionFechaIngreso: string;
+  fechaInscripcionEscalafon: string;
+  resolucionInscripcionEscalafon: string;
   categoriaIngreso: string;
   categoriaActual: string;
 }
@@ -151,7 +153,9 @@ export class HistorialSolicitudesComponent {
     telefono: '601 323 9300',
     celular: '300 123 4567',
     fechaIngreso: '2012-08-15',
-    numeroResolucion: 'RES-2020-045',
+    resolucionFechaIngreso: 'Resolución 015 de 2012',
+    fechaInscripcionEscalafon: '2015-03-10',
+    resolucionInscripcionEscalafon: 'Resolución 042 de 2015',
     categoriaIngreso: 'Asistente',
     categoriaActual: 'Asociado'
   };

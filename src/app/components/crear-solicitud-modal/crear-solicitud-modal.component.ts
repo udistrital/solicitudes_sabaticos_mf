@@ -1,6 +1,7 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatStepper } from '@angular/material/stepper';
 
 interface DocenteBasico {
   nombre: string;
@@ -24,6 +25,7 @@ interface DocumentoOption {
   styleUrl: './crear-solicitud-modal.component.scss'
 })
 export class CrearSolicitudModalComponent {
+  @ViewChild('stepper') stepper!: MatStepper;
   readonly form: FormGroup;
   readonly modalidadOptions = [
     'HISTORIAL_SOLICITUDES.modal.modalidad.opcion1',
@@ -159,6 +161,7 @@ export class CrearSolicitudModalComponent {
   onRegresar(): void {
     if (!this.isFirstStep) {
       this.currentStep -= 1;
+      this.stepper.selectedIndex = this.currentStep;
     }
   }
 
@@ -170,6 +173,7 @@ export class CrearSolicitudModalComponent {
 
     if (!this.isLastStep) {
       this.currentStep += 1;
+      this.stepper.selectedIndex = this.currentStep;
     }
   }
 

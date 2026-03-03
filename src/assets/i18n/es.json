@@ -651,6 +651,9 @@
       "telefono": "Número telefónico",
       "celular": "Número de celular",
       "fechaIngreso": "Fecha de ingreso",
+      "resolucionFechaIngreso": "Resolución fecha de ingreso",
+      "fechaInscripcionEscalafon": "Fecha de inscripción en el escalafón",
+      "resolucionInscripcionEscalafon": "Resolución inscripción en el escalafón",
       "numeroResolucion": "Número de resolución",
       "categoriaIngreso": "Categoría de ingreso",
       "categoriaActual": "Categoría actual"
@@ -681,6 +684,7 @@
       "title": "Agregar solicitud",
       "sectionDocente": "Datos del docente",
       "sectionSolicitud": "Información de la solicitud",
+      "sectionUltimaSolicitud": "Información de la última solicitud",
       "nombreDocente": "Nombre del docente",
       "identificacionDocente": "Número de identificación",
       "facultadDocente": "Facultad",
