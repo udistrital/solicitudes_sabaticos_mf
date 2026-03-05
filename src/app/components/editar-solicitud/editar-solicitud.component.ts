@@ -22,18 +22,18 @@ type EstadoSolicitud =
   | 'Finalizada Aprobada con Resolución';
 
 interface CronogramaActividad {
-  enero: string;
-  febrero: string;
-  marzo: string;
-  abril: string;
-  mayo: string;
-  junio: string;
-  julio: string;
-  agosto: string;
-  septiembre: string;
-  octubre: string;
-  noviembre: string;
-  diciembre: string;
+  mes1: string;
+  mes2: string;
+  mes3: string;
+  mes4: string;
+  mes5: string;
+  mes6: string;
+  mes7: string;
+  mes8: string;
+  mes9: string;
+  mes10: string;
+  mes11: string;
+  mes12: string;
 }
 
 interface SolicitudDetalle {
@@ -95,18 +95,18 @@ export class EditarSolicitudComponent {
   ];
 
   readonly cronogramaMeses = [
-    { key: 'enero', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.enero' },
-    { key: 'febrero', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.febrero' },
-    { key: 'marzo', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.marzo' },
-    { key: 'abril', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.abril' },
-    { key: 'mayo', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mayo' },
-    { key: 'junio', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.junio' },
-    { key: 'julio', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.julio' },
-    { key: 'agosto', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.agosto' },
-    { key: 'septiembre', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.septiembre' },
-    { key: 'octubre', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.octubre' },
-    { key: 'noviembre', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.noviembre' },
-    { key: 'diciembre', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.diciembre' }
+    { key: 'mes1', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes1' },
+    { key: 'mes2', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes2' },
+    { key: 'mes3', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes3' },
+    { key: 'mes4', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes4' },
+    { key: 'mes5', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes5' },
+    { key: 'mes6', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes6' },
+    { key: 'mes7', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes7' },
+    { key: 'mes8', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes8' },
+    { key: 'mes9', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes9' },
+    { key: 'mes10', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes10' },
+    { key: 'mes11', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes11' },
+    { key: 'mes12', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes12' }
   ];
 
   readonly documentoOptions: DocumentoOption[] = [
@@ -207,18 +207,18 @@ export class EditarSolicitudComponent {
         presupuesto: [this.solicitud.presupuesto ?? ''],
         observaciones: [this.solicitud.observaciones ?? ''],
         cronograma: this.formBuilder.group({
-          enero: [this.solicitud.cronograma?.enero ?? ''],
-          febrero: [this.solicitud.cronograma?.febrero ?? ''],
-          marzo: [this.solicitud.cronograma?.marzo ?? ''],
-          abril: [this.solicitud.cronograma?.abril ?? ''],
-          mayo: [this.solicitud.cronograma?.mayo ?? ''],
-          junio: [this.solicitud.cronograma?.junio ?? ''],
-          julio: [this.solicitud.cronograma?.julio ?? ''],
-          agosto: [this.solicitud.cronograma?.agosto ?? ''],
-          septiembre: [this.solicitud.cronograma?.septiembre ?? ''],
-          octubre: [this.solicitud.cronograma?.octubre ?? ''],
-          noviembre: [this.solicitud.cronograma?.noviembre ?? ''],
-          diciembre: [this.solicitud.cronograma?.diciembre ?? '']
+          mes1: [this.solicitud.cronograma?.mes1 ?? ''],
+          mes2: [this.solicitud.cronograma?.mes2 ?? ''],
+          mes3: [this.solicitud.cronograma?.mes3 ?? ''],
+          mes4: [this.solicitud.cronograma?.mes4 ?? ''],
+          mes5: [this.solicitud.cronograma?.mes5 ?? ''],
+          mes6: [this.solicitud.cronograma?.mes6 ?? ''],
+          mes7: [this.solicitud.cronograma?.mes7 ?? ''],
+          mes8: [this.solicitud.cronograma?.mes8 ?? ''],
+          mes9: [this.solicitud.cronograma?.mes9 ?? ''],
+          mes10: [this.solicitud.cronograma?.mes10 ?? ''],
+          mes11: [this.solicitud.cronograma?.mes11 ?? ''],
+          mes12: [this.solicitud.cronograma?.mes12 ?? '']
         })
       });
     }
@@ -343,18 +343,18 @@ export class EditarSolicitudComponent {
       cronograma: data.cronograma
         ? { ...data.cronograma }
         : {
-          enero: '',
-          febrero: '',
-          marzo: '',
-          abril: '',
-          mayo: '',
-          junio: '',
-          julio: '',
-          agosto: '',
-          septiembre: '',
-          octubre: '',
-          noviembre: '',
-          diciembre: ''
+          mes1: '',
+          mes2: '',
+          mes3: '',
+          mes4: '',
+          mes5: '',
+          mes6: '',
+          mes7: '',
+          mes8: '',
+          mes9: '',
+          mes10: '',
+          mes11: '',
+          mes12: ''
         }
     };
   }
