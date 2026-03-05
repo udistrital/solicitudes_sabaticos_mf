@@ -12,9 +12,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { environment } from '../environments/environment';
-
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -34,6 +33,7 @@ import { MatCardModule } from '@angular/material/card';
 import { CrearSolicitudModalComponent } from './components/crear-solicitud-modal/crear-solicitud-modal.component';
 import { EditarSolicitudComponent } from './components/editar-solicitud/editar-solicitud.component';
 import { HistorialSolicitudesComponent } from './components/historial-solicitudes/historial-solicitudes.component';
+import { PruebaComponent } from './prueba/prueba.component';
 
 registerLocaleData(localeEs);
 registerLocaleData(localeEn);
@@ -86,7 +86,8 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
     AppComponent,
     CrearSolicitudModalComponent,
     EditarSolicitudComponent,
-    HistorialSolicitudesComponent
+    HistorialSolicitudesComponent,
+    PruebaComponent
   ],
   imports: [
     BrowserModule,
@@ -95,6 +96,7 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
     AppRoutingModule,
     SpinnerUtilModule,
     HttpClientModule,
+    FormsModule,
     ReactiveFormsModule,
     MatButtonModule,
     MatDatepickerModule,

@@ -1,0 +1,75 @@
+<div class="soporte-solicitud-container">
+  <h2>Enviar Soporte de Solicitud</h2>
+  
+  <form class="material-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Tercero ID</mat-label>
+      <input
+        matInput
+        type="number"
+        id="terceroId"
+        [(ngModel)]="terceroId"
+        name="terceroId"
+        required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Solicitud ID</mat-label>
+      <input
+        matInput
+        type="number"
+        id="solicitudId"
+        [(ngModel)]="solicitudId"
+        name="solicitudId"
+        required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Rol Usuario</mat-label>
+      <input
+        matInput
+        type="text"
+        id="rolUsuario"
+        [(ngModel)]="rolUsuario"
+        name="rolUsuario"
+        placeholder="Ej: DOCENTE"
+        required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Estado Soporte</mat-label>
+      <input
+        matInput
+        type="text"
+        id="estadoSoporteSolicitud"
+        [(ngModel)]="estadoSoporteSolicitud"
+        name="estadoSoporteSolicitud"
+        placeholder="Ej: ACTIVO"
+        required>
+    </mat-form-field>
+
+    <div class="form-group full-width">
+      <label for="documentos">Documentos:</label>
+      <input
+        type="file"
+        id="documentos"
+        (change)="onFileSelected($event)"
+        class="form-control"
+        multiple
+        accept=".pdf,.doc,.docx,.jpg,.png"
+        required>
+      <small class="form-text text-muted" *ngIf="selectedFiles.length > 0">
+        Archivos seleccionados: {{ obtenerNombresArchivos() }}
+      </small>
+    </div>
+
+    <button
+      mat-raised-button
+      color="primary"
+      type="button"
+      (click)="enviarSoporte()"
+      [disabled]="isLoading">
+      {{ isLoading ? 'Enviando...' : 'Enviar Soporte' }}
+    </button>
+  </form>
+</div>
