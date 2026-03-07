@@ -12,12 +12,12 @@
       },
       "root": "",
       "sourceRoot": "src",
-      "prefix": "solicitudes-sabaticos-mf",
+      "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-builders/custom-webpack:browser",
           "options": {
-            "outputPath": "dist/solicitudes-sabaticos-mf",
+            "outputPath": "dist",
             "index": "src/index.html",
             "main": "src/main.single-spa.ts",
             "polyfills": [
@@ -30,6 +30,7 @@
               "src/assets"
             ],
             "styles": [
+              "src/assets/styles/sga-theme-angular-material.scss",
               "src/styles.scss"
             ],
             "scripts": [],
@@ -37,45 +38,68 @@
               "path": "extra-webpack.config.js",
               "libraryName": "solicitudes-sabaticos-mf",
               "libraryTarget": "umd"
-            },
-            "deployUrl": "http://localhost:4219/"
+            }
           },
           "configurations": {
             "production": {
-              "budgets": [
+              "optimization":true,
+              "outputHashing": "none",
+              "sourceMap": false,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "buildOptimizer": true,
+              "fileReplacements": [
                 {
-                  "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "5mb"
-                },
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "5mb"
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.production.ts"
                 }
               ],
-              "outputHashing": "none"
+              "deployUrl": "https://solicitudessabaticos.portaloas.udistrital.edu.co/"
             },
             "development": {
+              "optimization": true,
+              "outputHashing": "none",
+              "sourceMap": false,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "buildOptimizer": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
+                }
+              ],
+              "deployUrl": "https://pruebassolicitudessabaticos.portaloas.udistrital.edu.co/"
+            },
+            "local": {
+              "buildOptimizer": false,
               "optimization": false,
+              "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
-              "outputHashing": "none"
+              "namedChunks": true,
+              "outputHashing": "none",
+              "deployUrl": "http://localhost:4219/"
             }
           },
-          "defaultConfiguration": "production"
+          "defaultConfiguration": "local"
         },
         "serve": {
           "builder": "@angular-builders/custom-webpack:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "solicitudes-sabaticos-mf:build:production"
+              "browserTarget": "solicitudes-sabaticos-mf:build:production"
             },
             "development": {
-              "buildTarget": "solicitudes-sabaticos-mf:build:development"
+              "browserTarget": "solicitudes-sabaticos-mf:build:development"
+            },
+            "local": {
+              "browserTarget": "solicitudes-sabaticos-mf:build:local"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "local"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
@@ -106,6 +130,6 @@
     }
   },
   "cli": {
-    "analytics": "61d6c5fc-2a1a-4d56-a3a2-a899b118d0bd"
+    "analytics": false
   }
 }
