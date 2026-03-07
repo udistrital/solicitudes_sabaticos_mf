@@ -8,13 +8,13 @@
     {{ 'HISTORIAL_SOLICITUDES.modal.title' | translate }}
   </h2>
 </div>
-<mat-stepper class="crear-solicitud-modal__stepper" [selectedIndex]="currentStep">
-  <mat-step [editable]="false" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.datos' | translate"></mat-step>
-  <mat-step [editable]="false" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.objetivos' | translate"></mat-step>
-  <mat-step [editable]="false" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.articulacion' | translate"></mat-step>
-  <mat-step [editable]="false" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.entregable' | translate"></mat-step>
-  <mat-step [editable]="false" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.metodologia' | translate"></mat-step>
-  <mat-step [editable]="false" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.presupuesto' | translate"></mat-step>
+<mat-stepper #stepper class="crear-solicitud-modal__stepper" [selectedIndex]="currentStep">
+  <mat-step [editable]="true" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.datos' | translate"></mat-step>
+  <mat-step [editable]="true" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.objetivos' | translate"></mat-step>
+  <mat-step [editable]="true" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.articulacion' | translate"></mat-step>
+  <mat-step [editable]="true" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.entregable' | translate"></mat-step>
+  <mat-step [editable]="true" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.metodologia' | translate"></mat-step>
+  <mat-step [editable]="true" [label]="'HISTORIAL_SOLICITUDES.modal.stepper.presupuesto' | translate"></mat-step>
 </mat-stepper>
 <mat-dialog-content class="crear-solicitud-modal__content">
   <form [formGroup]="form" class="crear-solicitud-modal__form">
@@ -46,28 +46,10 @@
       <h3 class="crear-solicitud-modal__section-title">
         {{ 'HISTORIAL_SOLICITUDES.modal.sectionSolicitud' | translate }}
       </h3>
-      <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--solicitud">
-        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
-          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.periodoEjecucion' | translate }}</mat-label>
-          <input matInput formControlName="periodoEjecucion" />
-        </mat-form-field>
-        <div class="crear-solicitud-modal__field">
-          <mat-form-field appearance="outline" class="crear-solicitud-modal__field-full">
-            <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.periodoUltimoSabatico' | translate }}</mat-label>
-            <mat-date-range-input [rangePicker]="ultimoSabaticoPicker" formGroupName="ultimoSabatico"
-              (focusin)="ultimoSabaticoPicker.open()">
-              <input matStartDate formControlName="start" />
-              <input matEndDate formControlName="end" />
-            </mat-date-range-input>
-            <mat-date-range-picker #ultimoSabaticoPicker></mat-date-range-picker>
-            <mat-datepicker-toggle matIconSuffix [for]="ultimoSabaticoPicker"></mat-datepicker-toggle>
-          </mat-form-field>
-        </div>
-        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
-          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.productoUltimoSabatico' | translate }}</mat-label>
-          <input matInput formControlName="productoUltimo" />
-        </mat-form-field>
-      </div>
+      <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+        <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.periodoEjecucion' | translate }}</mat-label>
+        <input matInput formControlName="periodoEjecucion" />
+      </mat-form-field>
     </div>
 
     <div class="crear-solicitud-modal__section" *ngIf="currentStep === 0">
@@ -82,6 +64,30 @@
               <span class="crear-solicitud-modal__modalidad-option">{{ modalidad | translate }}</span>
             </mat-option>
           </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="crear-solicitud-modal__section" *ngIf="currentStep === 0">
+      <h3 class="crear-solicitud-modal__section-title">
+        {{ 'HISTORIAL_SOLICITUDES.modal.sectionUltimaSolicitud' | translate }}
+      </h3>
+      <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--ultima-solicitud">
+        <div class="crear-solicitud-modal__field">
+          <mat-form-field appearance="outline" class="crear-solicitud-modal__field-full">
+            <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.periodoUltimoSabatico' | translate }}</mat-label>
+            <mat-date-range-input [rangePicker]="ultimoSabaticoPicker" formGroupName="ultimoSabatico"
+              (focusin)="ultimoSabaticoPicker.open()">
+              <input matStartDate formControlName="start" />
+              <input matEndDate formControlName="end" />
+            </mat-date-range-input>
+            <mat-date-range-picker #ultimoSabaticoPicker panelClass="sga-sabaticos-datepicker"></mat-date-range-picker>
+            <mat-datepicker-toggle matIconSuffix [for]="ultimoSabaticoPicker"></mat-datepicker-toggle>
+          </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.productoUltimoSabatico' | translate }}</mat-label>
+          <input matInput formControlName="productoUltimo" />
         </mat-form-field>
       </div>
     </div>
@@ -217,18 +223,40 @@
       <h3 class="crear-solicitud-modal__section-title">
         {{ 'HISTORIAL_SOLICITUDES.modal.sectionDocumentos' | translate }}
       </h3>
+      <div class="crear-solicitud-modal__documento-selector">
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.documentos.seleccionar' | translate }}</mat-label>
+          <mat-select [(value)]="documentoSeleccionado">
+            <mat-option *ngFor="let documento of documentosDisponibles; trackBy: trackDocumento"
+              [value]="documento.key">
+              {{ documento.label | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="button" class="crear-solicitud-modal__documento-add"
+          (click)="onAgregarDocumento()" [disabled]="!documentoSeleccionado">
+          {{ 'GLOBAL.agregar' | translate }}
+        </button>
+      </div>
       <div class="crear-solicitud-modal__documentos">
-        <div class="crear-solicitud-modal__documento" *ngFor="let documento of documentoOptions; trackBy: trackDocumento">
+        <div class="crear-solicitud-modal__documento"
+          *ngFor="let documento of documentosSeleccionadosDetalle; trackBy: trackDocumento">
           <div class="crear-solicitud-modal__documento-info">
             <span class="crear-solicitud-modal__documento-title">{{ documento.label | translate }}</span>
             <span class="crear-solicitud-modal__documento-file">
               {{ getDocumentoNombre(documento.key) || ('HISTORIAL_SOLICITUDES.modal.documentos.sinArchivo' | translate) }}
             </span>
           </div>
-          <label class="crear-solicitud-modal__documento-action" mat-stroked-button>
-            {{ 'HISTORIAL_SOLICITUDES.modal.documentos.cargar' | translate }}
-            <input type="file" (change)="onDocumentoChange(documento.key, $event)" />
-          </label>
+          <div class="crear-solicitud-modal__documento-actions">
+            <label class="crear-solicitud-modal__documento-action" mat-stroked-button>
+              {{ 'HISTORIAL_SOLICITUDES.modal.documentos.cargar' | translate }}
+              <input type="file" (change)="onDocumentoChange(documento.key, $event)" />
+            </label>
+            <button mat-icon-button type="button" class="crear-solicitud-modal__documento-remove"
+              (click)="onEliminarDocumento(documento.key)" [attr.aria-label]="'GLOBAL.eliminar' | translate">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -240,12 +268,12 @@
   <button mat-raised-button type="button" class="crear-solicitud-modal__cancel" (click)="onCancelar()">
     {{ 'HISTORIAL_SOLICITUDES.modal.cancelar' | translate }}
   </button>
+  <button mat-raised-button type="button" class="crear-solicitud-modal__save"
+    (click)="onGuardar()" [disabled]="!isCurrentStepValid()">
+    {{ 'HISTORIAL_SOLICITUDES.modal.guardar' | translate }}
+  </button>
   <button mat-raised-button color="primary" type="button" class="crear-solicitud-modal__next"
     (click)="onSiguiente()" *ngIf="!isLastStep" [disabled]="!isCurrentStepValid()">
     {{ 'GLOBAL.siguiente' | translate }}
-  </button>
-  <button mat-raised-button type="button" class="crear-solicitud-modal__save"
-    (click)="onGuardar()" [disabled]="form.invalid" *ngIf="isLastStep">
-    {{ 'HISTORIAL_SOLICITUDES.modal.guardar' | translate }}
   </button>
 </mat-dialog-actions>

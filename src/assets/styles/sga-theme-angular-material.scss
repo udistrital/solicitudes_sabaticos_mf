@@ -111,3 +111,32 @@ $light-theme: mat.define-light-theme((color: (primary: mat.define-palette($md-pr
     ));
 
 @include mat.all-component-themes($light-theme);
+
+.sga-sabaticos-datepicker {
+  --mat-datepicker-calendar-date-selected-state-background-color: #03678f;
+  --mat-datepicker-calendar-date-selected-state-text-color: #ffffff;
+  --mat-datepicker-calendar-date-selected-disabled-state-background-color: rgba(3, 103, 143, 0.4);
+  --mat-datepicker-calendar-date-today-selected-state-outline-color: #03678f;
+  --mat-datepicker-calendar-date-today-outline-color: #03678f;
+  --mat-datepicker-calendar-date-hover-state-background-color: rgba(3, 103, 143, 0.08);
+  --mat-datepicker-calendar-date-focus-state-background-color: rgba(3, 103, 143, 0.12);
+  --mat-datepicker-calendar-date-in-range-state-background-color: rgba(3, 103, 143, 0.2);
+  --mat-datepicker-calendar-date-in-range-hover-state-background-color: rgba(3, 103, 143, 0.3);
+  --mat-datepicker-calendar-date-in-preview-state-outline-color: #03678f;
+  --mat-datepicker-calendar-container-background-color: #ffffff;
+  --mat-datepicker-calendar-container-text-color: rgba(0, 0, 0, 0.87);
+  --mat-datepicker-calendar-date-text-color: rgba(0, 0, 0, 0.87);
+  --mat-datepicker-calendar-body-label-text-color: rgba(0, 0, 0, 0.54);
+  --mat-datepicker-calendar-period-button-text-color: rgba(0, 0, 0, 0.87);
+  --mat-datepicker-calendar-period-button-icon-color: rgba(0, 0, 0, 0.54);
+  --mat-datepicker-calendar-navigation-button-icon-color: rgba(0, 0, 0, 0.54);
+  --mat-datepicker-calendar-header-divider-color: rgba(0, 0, 0, 0.12);
+  --mat-datepicker-calendar-header-text-color: rgba(0, 0, 0, 0.54);
+
+  --mat-datepicker-calendar-text-font: "Open Sans", "Helvetica Neue", sans-serif;
+  --mat-datepicker-calendar-body-label-text-font: "Open Sans", "Helvetica Neue", sans-serif;
+  --mat-datepicker-calendar-period-button-text-font: "Open Sans", "Helvetica Neue", sans-serif;
+  --mat-datepicker-calendar-header-text-font: "Open Sans", "Helvetica Neue", sans-serif;
+
+  font-family: "Open Sans", "Helvetica Neue", sans-serif;
+}

@@ -68,9 +68,21 @@
           </div>
           <div class="historial-solicitudes__docente-item">
             <span class="historial-solicitudes__docente-label">
-              {{ 'HISTORIAL_SOLICITUDES.docente.numeroResolucion' | translate }}
+              {{ 'HISTORIAL_SOLICITUDES.docente.resolucionFechaIngreso' | translate }}
             </span>
-            <span class="historial-solicitudes__docente-value">{{ docenteInfo.numeroResolucion }}</span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.resolucionFechaIngreso }}</span>
+          </div>
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.fechaInscripcionEscalafon' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.fechaInscripcionEscalafon }}</span>
+          </div>
+          <div class="historial-solicitudes__docente-item">
+            <span class="historial-solicitudes__docente-label">
+              {{ 'HISTORIAL_SOLICITUDES.docente.resolucionInscripcionEscalafon' | translate }}
+            </span>
+            <span class="historial-solicitudes__docente-value">{{ docenteInfo.resolucionInscripcionEscalafon }}</span>
           </div>
           <div class="historial-solicitudes__docente-item">
             <span class="historial-solicitudes__docente-label">
@@ -161,7 +173,8 @@
             <div class="historial-solicitudes__header-cell">
               <span>{{ 'HISTORIAL_SOLICITUDES.columns.fechaRadicado' | translate }}</span>
               <mat-form-field appearance="outline" class="historial-solicitudes__filter">
-                <mat-date-range-input [rangePicker]="fechaRadicadoPicker" #fechaRadicadoRange="matDateRangeInput">
+                <mat-date-range-input [rangePicker]="fechaRadicadoPicker" #fechaRadicadoRange="matDateRangeInput"
+                  (focusin)="fechaRadicadoPicker.open()">
                   <input matStartDate matInput
                     [placeholder]="'HISTORIAL_SOLICITUDES.filters.fechaRadicadoDesde' | translate"
                     (dateChange)="onFechaRangeChange(fechaRadicadoRange)" />
@@ -169,7 +182,7 @@
                     [placeholder]="'HISTORIAL_SOLICITUDES.filters.fechaRadicadoHasta' | translate"
                     (dateChange)="onFechaRangeChange(fechaRadicadoRange)" />
                 </mat-date-range-input>
-                <mat-date-range-picker #fechaRadicadoPicker></mat-date-range-picker>
+                <mat-date-range-picker #fechaRadicadoPicker panelClass="sga-sabaticos-datepicker"></mat-date-range-picker>
 
                 <mat-datepicker-toggle matIconSuffix [for]="fechaRadicadoPicker"></mat-datepicker-toggle>
               </mat-form-field>

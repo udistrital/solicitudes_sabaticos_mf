@@ -617,9 +617,6 @@
       "estado": "Estado solicitud",
       "gestion": "Gestión"
     },
-    "actions": {
-      "add": "Agregar solicitud"
-    },
     "filters": {
       "id": "Filtrar por ID",
       "fechaRadicadoDesde": "Fecha desde",
@@ -654,6 +651,9 @@
       "telefono": "Número telefónico",
       "celular": "Número de celular",
       "fechaIngreso": "Fecha de ingreso",
+      "resolucionFechaIngreso": "Resolución fecha de ingreso",
+      "fechaInscripcionEscalafon": "Fecha de inscripción en el escalafón",
+      "resolucionInscripcionEscalafon": "Resolución inscripción en el escalafón",
       "numeroResolucion": "Número de resolución",
       "categoriaIngreso": "Categoría de ingreso",
       "categoriaActual": "Categoría actual"
@@ -673,12 +673,18 @@
       "title": "Editar solicitud",
       "subtitle": "Detalle de la solicitud seleccionada",
       "save": "Guardar cambios",
-      "sendReview": "Enviar a revisión"
+      "sendReview": "Enviar a revisión",
+      "observaciones": {
+        "title": "Observaciones",
+        "label": "Comentarios u observaciones a tener en cuenta"
+      }
     },
+
     "modal": {
       "title": "Agregar solicitud",
       "sectionDocente": "Datos del docente",
       "sectionSolicitud": "Información de la solicitud",
+      "sectionUltimaSolicitud": "Información de la última solicitud",
       "nombreDocente": "Nombre del docente",
       "identificacionDocente": "Número de identificación",
       "facultadDocente": "Facultad",
@@ -708,52 +714,38 @@
       "impactoAlcance": "En los 3 ejes misionales",
       "metodologia": "Describa la metodología a seguir",
       "presupuesto": "Presente el detalle de las condiciones económicas requeridas para la realización de este Plan de Trabajo y la fuente de financiación.",
-      "documentos": {
-        "cargar": "Cargar",
-        "sinArchivo": "Sin archivo",
-        "avalConsejo": "Aval del Consejo Curricular.",
-        "cronogramaMensual": "Cronograma mensual de actividades.",
-        "presupuestoProyectado": "Presupuesto proyectado.",
-        "certificacionLaboral": "Certificación laboral con tiempo de vinculación (Talento Humano/Recursos Humanos, indicando fecha de inscripción en escalafón).",
-        "pazSalvoAcademico": "Paz y salvo académico (Proyecto Curricular/Programa Académico).",
-        "pazSalvoInvestigaciones": "Paz y salvo de investigaciones (CIDC / Unidad de Investigaciones de Facultad).",
-        "pazSalvoExtension": "Paz y salvo de extensión / proyección social (IDEXUD / Unidad de Extensión de Facultad).",
-        "pazSalvoAlmacen": "Paz y salvo de almacén e inventarios.",
-        "pazSalvoFinanciero": "Paz y salvo financiero (Oficina Financiera).",
-        "financiacion": "Documentos que soportan financiación externa o interna de la propuesta (si aplica).",
-        "pazSalvoConsejoFacultad": "Paz y salvo del Consejo de Facultad respecto al cumplimiento/producto de años sabáticos anteriores (cuando aplique).",
-        "otros": "Otros (soportes adicionales que correspondan al caso)."
-      },
       "cronograma": {
         "actividad": "Actividad del mes",
-        "enero": "Enero",
-        "febrero": "Febrero",
-        "marzo": "Marzo",
-        "abril": "Abril",
-        "mayo": "Mayo",
-        "junio": "Junio",
-        "julio": "Julio",
-        "agosto": "Agosto",
-        "septiembre": "Septiembre",
-        "octubre": "Octubre",
-        "noviembre": "Noviembre",
-        "diciembre": "Diciembre"
+        "mes1": "Primer mes",
+        "mes2": "Segundo mes",
+        "mes3": "Tercer mes",
+        "mes4": "Cuarto mes",
+        "mes5": "Quinto mes",
+        "mes6": "Sexto mes",
+        "mes7": "Séptimo mes",
+        "mes8": "Octavo mes",
+        "mes9": "Noveno mes",
+        "mes10": "Décimo mes",
+        "mes11": "Undécimo mes",
+        "mes12": "Duodécimo mes"
       },
       "documentos": {
         "cargar": "Cargar",
+        "seleccionar": "Seleccionar documento",
         "sinArchivo": "Sin archivo",
-        "avalConsejo": "Aval del Consejo Curricular.",
-        "cronogramaMensual": "Cronograma mensual de actividades.",
-        "presupuestoProyectado": "Presupuesto proyectado.",
-        "certificacionLaboral": "Certificación laboral con tiempo de vinculación (Talento Humano/Recursos Humanos, indicando fecha de inscripción en escalafón).",
-        "pazSalvoAcademico": "Paz y salvo académico (Proyecto Curricular/Programa Académico).",
-        "pazSalvoInvestigaciones": "Paz y salvo de investigaciones (CIDC / Unidad de Investigaciones de Facultad).",
-        "pazSalvoExtension": "Paz y salvo de extensión / proyección social (IDEXUD / Unidad de Extensión de Facultad).",
-        "pazSalvoAlmacen": "Paz y salvo de almacén e inventarios.",
-        "pazSalvoFinanciero": "Paz y salvo financiero (Oficina Financiera).",
-        "financiacion": "Documentos que soportan financiación externa o interna de la propuesta (si aplica).",
-        "pazSalvoConsejoFacultad": "Paz y salvo del Consejo de Facultad respecto al cumplimiento/producto de años sabáticos anteriores (cuando aplique).",
-        "otros": "Otros (soportes adicionales que correspondan al caso)."
+        "avalConsejo": "Aval del Consejo Curricular",
+
+        "cronogramaMensual": "Cronograma mensual de actividades",
+        "presupuestoProyectado": "Presupuesto proyectado",
+        "certificacionLaboral": "Certificación laboral con tiempo de vinculación (Talento Humano/Recursos Humanos, indicando fecha de inscripción en escalafón)",
+        "pazSalvoAcademico": "Paz y salvo académico (Proyecto Curricular/Programa Académico)",
+        "pazSalvoInvestigaciones": "Paz y salvo de investigaciones (CIDC / Unidad de Investigaciones de Facultad)",
+        "pazSalvoExtension": "Paz y salvo de extensión / proyección social (IDEXUD / Unidad de Extensión de Facultad)",
+        "pazSalvoAlmacen": "Paz y salvo de almacén e inventarios",
+        "pazSalvoFinanciero": "Paz y salvo financiero (Oficina Financiera)",
+        "financiacion": "Documentos que soportan financiación externa o interna de la propuesta (si aplica)",
+        "pazSalvoConsejoFacultad": "Paz y salvo del Consejo de Facultad respecto al cumplimiento/producto de años sabáticos anteriores (cuando aplique)",
+        "otros": "Otros (soportes adicionales que correspondan al caso)"
       },
       "stepper": {
         "datos": "Datos",
