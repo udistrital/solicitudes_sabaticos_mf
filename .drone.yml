@@ -39,40 +39,6 @@ steps:
 #     event:
 #     - push
 
-# - name: prueba_unitarias
-#   image: node:12.22.7
-#   commands:
-#   - npm i
-#   - npm run test
-#   when:
-#     branch:
-#     - unitest
-#
-# - name:  pruebas_linter
-#   image: node:12.22.7
-#   commands:
-#   - npm i
-#   - npm run lint
-#   when:
-#     branch:
-#     - unitest
-
-- name: run_sonar_scanner
-  image: aosapps/drone-sonar-plugin
-  settings:
-    sonar_host:
-      from_secret: SONAR_HOST
-    sonar_token:
-      from_secret: SONAR_TOKEN
-    ver: 1.0
-    exclusions: "**/node_modules/**,**/*.spec.ts,documentation/**"
-  when:
-    branch:
-    - develop
-    - feature/*
-    - release/*
-    event:
-    - push
 
 - name: nodejs_develop
   image: node:lts-bullseye
