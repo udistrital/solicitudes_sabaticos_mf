@@ -614,6 +614,8 @@
     "columns": {
       "id": "ID",
       "fechaRadicado": "Fecha radicado",
+      "docenteIdentificacion": "Identificación docente",
+      "docenteNombre": "Nombre docente",
       "estado": "Estado solicitud",
       "gestion": "Gestión"
     },
@@ -621,6 +623,8 @@
       "id": "Filtrar por ID",
       "fechaRadicadoDesde": "Fecha desde",
       "fechaRadicadoHasta": "Fecha hasta",
+      "docenteIdentificacion": "Filtrar por identificación",
+      "docenteNombre": "Filtrar por nombre",
       "estado": "Filtrar por estado",
       "gestion": "Filtrar por gestión"
     },
@@ -772,7 +776,8 @@
     "actions": {
       "add": "Agregar solicitud",
       "editAria": "Editar solicitud",
-      "sendAria": "Enviar solicitud"
+      "sendAria": "Enviar solicitud",
+      "startSabaticoAria": "Iniciar sabático"
     }
   },
   "gestion_horarios": {

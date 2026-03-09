@@ -6,7 +6,7 @@
 
   <mat-card-content class="historial-solicitudes__contenido">
     <div class="historial-solicitudes__info-wrapper">
-      <section class="historial-solicitudes__docente">
+      <section class="historial-solicitudes__docente" *ngIf="isDocente">
         <div class="historial-solicitudes__docente-header">
           <mat-icon color="primary">school</mat-icon>
           <span>{{ 'HISTORIAL_SOLICITUDES.docente.titulo' | translate }}</span>
@@ -143,7 +143,7 @@
           {{ 'HISTORIAL_SOLICITUDES.tableSection.subtitle' | translate }}
         </mat-card-subtitle>
       </div>
-      <button mat-raised-button color="primary" type="button" (click)="onCrearSolicitud()">
+      <button mat-raised-button color="primary" type="button" (click)="onCrearSolicitud()" *ngIf="isDocente">
         {{ 'HISTORIAL_SOLICITUDES.actions.add' | translate }}
       </button>
     </div>
@@ -194,6 +194,40 @@
           </td>
         </ng-container>
 
+        <ng-container matColumnDef="docenteIdentificacion">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="historial-solicitudes__header-cell">
+              <span>{{ 'HISTORIAL_SOLICITUDES.columns.docenteIdentificacion' | translate }}</span>
+              <mat-form-field appearance="outline" class="historial-solicitudes__filter">
+                <input matInput [placeholder]="'HISTORIAL_SOLICITUDES.filters.docenteIdentificacion' | translate"
+                  [value]="columnFilters.docenteIdentificacion"
+                  (input)="onFilterChange('docenteIdentificacion', $any($event.target).value)" />
+              </mat-form-field>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let solicitud"
+            [attr.data-label]="'HISTORIAL_SOLICITUDES.columns.docenteIdentificacion' | translate">
+            {{ getDocenteIdentificacion(solicitud) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="docenteNombre">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="historial-solicitudes__header-cell">
+              <span>{{ 'HISTORIAL_SOLICITUDES.columns.docenteNombre' | translate }}</span>
+              <mat-form-field appearance="outline" class="historial-solicitudes__filter">
+                <input matInput [placeholder]="'HISTORIAL_SOLICITUDES.filters.docenteNombre' | translate"
+                  [value]="columnFilters.docenteNombre"
+                  (input)="onFilterChange('docenteNombre', $any($event.target).value)" />
+              </mat-form-field>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let solicitud"
+            [attr.data-label]="'HISTORIAL_SOLICITUDES.columns.docenteNombre' | translate">
+            {{ getDocenteNombre(solicitud) }}
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="estado">
           <th mat-header-cell *matHeaderCellDef>
             <div class="historial-solicitudes__header-cell">
@@ -229,9 +263,14 @@
               <mat-icon>edit</mat-icon>
             </button>
             <button mat-icon-button class="historial-solicitudes__accion historial-solicitudes__accion--send"
-              type="button" (click)="onEnviar(solicitud.id)"
+              type="button" (click)="onEnviar(solicitud.id)" *ngIf="!shouldShowIniciarSabatico(solicitud)"
               [attr.aria-label]="'HISTORIAL_SOLICITUDES.actions.sendAria' | translate">
               <mat-icon>send</mat-icon>
+            </button>
+            <button mat-icon-button class="historial-solicitudes__accion historial-solicitudes__accion--start"
+              type="button" (click)="onIniciarSabatico(solicitud.id)" *ngIf="shouldShowIniciarSabatico(solicitud)"
+              [attr.aria-label]="'HISTORIAL_SOLICITUDES.actions.startSabaticoAria' | translate">
+              <mat-icon>play_circle_filled</mat-icon>
             </button>
           </td>
         </ng-container>
