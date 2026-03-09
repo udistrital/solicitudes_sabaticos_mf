@@ -5,7 +5,7 @@
  */
 export const environment = {
   production: false,
-  apiUrl: 'https://pruebassgagestionhorario.portaloas.udistrital.edu.co/',
+  apiUrl: 'https://pruebassolicitudessabaticos.portaloas.udistrital.edu.co/',
   PROYECTO_ACADEMICO_SERVICE:
     'https://autenticacion.portaloas.udistrital.edu.co/apioas/proyecto_academico_crud/v1/',
   PARAMETROS_SERVICE:
