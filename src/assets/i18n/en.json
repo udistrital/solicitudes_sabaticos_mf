@@ -584,18 +584,23 @@
     "columns": {
       "id": "ID",
       "fechaRadicado": "Filing date",
+      "docenteIdentificacion": "Instructor identification",
+      "docenteNombre": "Instructor name",
       "estado": "Request status",
       "gestion": "Management"
     },
     "actions": {
       "add": "Add request",
       "editAria": "Edit request",
-      "sendAria": "Send request"
+      "sendAria": "Send request",
+      "startSabaticoAria": "Start sabbatical"
     },
     "filters": {
       "id": "Filter by ID",
       "fechaRadicadoDesde": "Start date",
       "fechaRadicadoHasta": "End date",
+      "docenteIdentificacion": "Filter by identification",
+      "docenteNombre": "Filter by name",
       "estado": "Filter by status",
       "gestion": "Filter by management"
     },
