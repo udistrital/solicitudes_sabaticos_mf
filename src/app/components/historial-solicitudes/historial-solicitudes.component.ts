@@ -7,6 +7,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { CrearSolicitudModalComponent } from '../crear-solicitud-modal/crear-solicitud-modal.component';
+import { ImplicitAutenticationService } from '../../services/implicit_authentication.service';
 
 type EstadoSolicitud =
   | 'Borrador'
@@ -23,7 +24,7 @@ type EstadoSolicitud =
   | 'Finalizada No aprobada'
   | 'Aprobada pendiente Resolución'
   | 'Finalizada Aprobada con Resolución';
-type FilterColumn = 'id';
+type FilterColumn = 'id' | 'docenteIdentificacion' | 'docenteNombre';
 
 interface CronogramaActividad {
   enero: string;
@@ -75,6 +76,8 @@ interface HistorialSolicitud {
 
 interface ColumnFilters {
   id: string;
+  docenteIdentificacion: string;
+  docenteNombre: string;
   estado: EstadoSolicitud[];
 }
 
@@ -106,7 +109,8 @@ interface DocenteInfo {
   styleUrl: './historial-solicitudes.component.scss'
 })
 export class HistorialSolicitudesComponent {
-  readonly displayedColumns = ['id', 'fechaRadicado', 'estado', 'gestion'];
+  readonly displayedColumnsDocente = ['id', 'fechaRadicado', 'estado', 'gestion'];
+  readonly displayedColumnsContratista = ['id', 'fechaRadicado', 'docenteIdentificacion', 'docenteNombre', 'estado', 'gestion'];
   currentLang = 'es';
 
   readonly estadoTraducciones: Record<EstadoSolicitud, string> = {
@@ -244,19 +248,43 @@ export class HistorialSolicitudesComponent {
     return this.filteredSolicitudes.slice(start, start + this.pageSize);
   }
 
+  get displayedColumns(): string[] {
+    return this.canViewDocenteColumns ? this.displayedColumnsContratista : this.displayedColumnsDocente;
+  }
+
   columnFilters: ColumnFilters = {
     id: '',
+    docenteIdentificacion: '',
+    docenteNombre: '',
     estado: []
   };
 
   fechaFiltro: FechaFiltro = { start: null, end: null };
+  rol!: string;
+
+  get isDocente(): boolean {
+    return this.rol === 'DOCENTE';
+  }
+
+  get isContratista(): boolean {
+    return this.rol === 'CONTRATISTA';
+  }
+
+  get isCoordinador(): boolean {
+    return this.rol === 'COORDINADOR';
+  }
+
+  get canViewDocenteColumns(): boolean {
+    return this.isContratista || this.isCoordinador;
+  }
 
   constructor(
     private readonly translate: TranslateService,
     private readonly dateAdapter: DateAdapter<Date>,
     private readonly dialog: MatDialog,
     private readonly router: Router,
-    private readonly destroyRef: DestroyRef
+    private readonly destroyRef: DestroyRef,
+    private readonly autenticationService: ImplicitAutenticationService,
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
     this.dateAdapter.setLocale(this.currentLang);
@@ -268,6 +296,26 @@ export class HistorialSolicitudesComponent {
         this.dateAdapter.setLocale(lang);
         this.applyFilters();
       });
+
+    let roles: any = this.autenticationService.getRole();
+
+    if (
+      roles.__zone_symbol__value.find(
+        (x: string) => x == 'COORDINADOR' || x == 'ADMIN_SGA' // utest => SEC GENERAL
+      )
+    ) {
+      this.rol = 'COORDINADOR';
+    } else if (
+      roles.__zone_symbol__value.find((x: string) => x == 'CONTRATISTA')  // correo_personal => SEC ACADEMICA
+    ) {
+      this.rol = 'CONTRATISTA';
+    } else if (
+      roles.__zone_symbol__value.find(
+        (x: string) => x == 'DOCENTE'
+      )
+    ) {
+      this.rol = 'DOCENTE';
+    }
   }
 
   getEstadoTranslation(estado: EstadoSolicitud): string {
@@ -308,6 +356,14 @@ export class HistorialSolicitudesComponent {
     return solicitud.id;
   }
 
+  getDocenteIdentificacion(solicitud: HistorialSolicitud): string {
+    return solicitud.detalle?.docenteIdentificacion || this.docenteInfo.documentoIdentificacion;
+  }
+
+  getDocenteNombre(solicitud: HistorialSolicitud): string {
+    return solicitud.detalle?.docenteNombre || this.docenteInfo.nombre;
+  }
+
   onEditar(solicitud: HistorialSolicitud): void {
     this.router.navigate(['solicitudes/editar'], {
       state: {
@@ -329,6 +385,14 @@ export class HistorialSolicitudesComponent {
 
   onEnviar(id: string): void {
     console.log(`Enviar solicitud ${id}`);
+  }
+
+  onIniciarSabatico(id: string): void {
+    console.log(`Iniciar sabático para solicitud ${id}`);
+  }
+
+  shouldShowIniciarSabatico(solicitud: HistorialSolicitud): boolean {
+    return this.isContratista && solicitud.estado === 'Finalizada Aprobada con Resolución';
   }
 
   onCrearSolicitud(): void {
@@ -402,10 +466,16 @@ export class HistorialSolicitudesComponent {
   private applyFilters(): void {
     this.filteredSolicitudes = this.solicitudes.filter((solicitud) => {
       const matchesId = this.matchesFilter(solicitud.id, this.columnFilters.id);
+      const matchesDocenteIdentificacion = this.canViewDocenteColumns
+        ? this.matchesFilter(this.getDocenteIdentificacion(solicitud), this.columnFilters.docenteIdentificacion)
+        : true;
+      const matchesDocenteNombre = this.canViewDocenteColumns
+        ? this.matchesFilter(this.getDocenteNombre(solicitud), this.columnFilters.docenteNombre)
+        : true;
       const matchesEstado = this.matchesEstadoFilter(solicitud.estado);
       const matchesFecha = this.matchesFechaRange(solicitud.fechaRadicado);
 
-      return matchesId && matchesEstado && matchesFecha;
+      return matchesId && matchesDocenteIdentificacion && matchesDocenteNombre && matchesEstado && matchesFecha;
     });
     this.pageIndex = 0;
   }

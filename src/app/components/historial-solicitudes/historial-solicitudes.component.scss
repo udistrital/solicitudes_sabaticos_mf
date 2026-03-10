@@ -212,8 +212,24 @@
   }
 
   &__accion {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    line-height: 1;
     border-radius: 999px;
     transition: background-color 0.2s ease, color 0.2s ease;
+
+    mat-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      line-height: 1;
+    }
   }
 
   &__accion--edit {
@@ -229,6 +245,14 @@
 
     &:hover {
       background-color: rgba(158, 183, 229, 0.05);
+    }
+  }
+
+  &__accion--start {
+    color: #5D8745;
+
+    &:hover {
+      background-color: rgba(93, 135, 69, 0.12);
     }
   }
 }
