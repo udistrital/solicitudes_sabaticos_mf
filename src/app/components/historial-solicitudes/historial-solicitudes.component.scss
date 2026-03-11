@@ -255,6 +255,14 @@
       background-color: rgba(93, 135, 69, 0.12);
     }
   }
+
+  &__accion--view {
+    color: #03678f;
+
+    &:hover {
+      background-color: rgba(3, 103, 143, 0.05);
+    }
+  }
 }
 
 .mat-mdc-header-cell {

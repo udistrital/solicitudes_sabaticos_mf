@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { CrearSolicitudModalComponent } from '../crear-solicitud-modal/crear-solicitud-modal.component';
 import { ImplicitAutenticationService } from '../../services/implicit_authentication.service';
+import { PopUpManager } from '../../../managers/popUpManager';
 
 type EstadoSolicitud =
   | 'Borrador'
@@ -285,6 +286,7 @@ export class HistorialSolicitudesComponent {
     private readonly router: Router,
     private readonly destroyRef: DestroyRef,
     private readonly autenticationService: ImplicitAutenticationService,
+    private readonly popUpManager: PopUpManager
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
     this.dateAdapter.setLocale(this.currentLang);
@@ -365,8 +367,82 @@ export class HistorialSolicitudesComponent {
   }
 
   onEditar(solicitud: HistorialSolicitud): void {
+    this.navigateToEditarSolicitud(solicitud, false);
+  }
+
+  onVisualizar(solicitud: HistorialSolicitud): void {
+    this.navigateToEditarSolicitud(solicitud, true);
+  }
+
+  shouldShowViewOnly(solicitud: HistorialSolicitud): boolean {
+    if (this.isDocente) {
+      return !this.isDocenteEditable(solicitud);
+    }
+    if (this.isContratista) {
+      return this.isContratistaViewOnly(solicitud);
+    }
+    if (this.isCoordinador) {
+      return this.isCoordinadorViewOnly(solicitud);
+    }
+    return false;
+  }
+
+  shouldShowEditButton(solicitud: HistorialSolicitud): boolean {
+    return !this.shouldShowViewOnly(solicitud);
+  }
+
+  shouldShowSendButton(solicitud: HistorialSolicitud): boolean {
+    if (this.shouldShowViewOnly(solicitud) || this.shouldShowIniciarSabatico(solicitud)) {
+      return false;
+    }
+
+    if (this.isDocente) {
+      return this.isDocenteEditable(solicitud);
+    }
+
+    return true;
+  }
+
+  getEditIcon(): string {
+    return (this.isContratista || this.isCoordinador) ? 'library_add_check' : 'edit';
+  }
+
+  getEditAriaKey(): string {
+    return (this.isContratista || this.isCoordinador)
+      ? 'HISTORIAL_SOLICITUDES.actions.reviewAria'
+      : 'HISTORIAL_SOLICITUDES.actions.editAria';
+  }
+
+  private isDocenteEditable(solicitud: HistorialSolicitud): boolean {
+    return solicitud.estado === 'Borrador' || solicitud.estado === 'Subsanación solicitada';
+  }
+
+  private isCoordinadorViewOnly(solicitud: HistorialSolicitud): boolean {
+    const viewOnlyStates: EstadoSolicitud[] = [
+      'Borrador',
+      'Radicada / Enviada a SA',
+      'Recepcionada a SA',
+      'En verificación de SA',
+      'Subsanación solicitada',
+      'Trámite externo CF',
+      'Respuesta CF registrada',
+      'Finalizada Aprobada con Resolución',
+    ];
+    return viewOnlyStates.includes(solicitud.estado);
+  }
+
+  private isContratistaViewOnly(solicitud: HistorialSolicitud): boolean {
+    return solicitud.estado === 'Borrador'
+      || solicitud.estado === 'Subsanación solicitada'
+      || solicitud.estado === 'Recepcionada a SG'
+      || solicitud.estado === 'Finalizada Aprobada con Resolución';
+  }
+
+  private navigateToEditarSolicitud(solicitud: HistorialSolicitud, readOnly: boolean): void {
     this.router.navigate(['solicitudes/editar'], {
       state: {
+        rol: this.rol,
+        readOnly,
         solicitud: solicitud.detalle
           ? {
             ...solicitud.detalle,
@@ -383,8 +459,22 @@ export class HistorialSolicitudesComponent {
     });
   }
 
-  onEnviar(id: string): void {
-    console.log(`Enviar solicitud ${id}`);
+  async onEnviar(solicitud: HistorialSolicitud): Promise<void> {
+    const isDocenteBorrador = this.isDocente && this.isDocenteEditable(solicitud);
+    const textKey = isDocenteBorrador
+      ? 'HISTORIAL_SOLICITUDES.actions.confirmSendDocenteDraft'
+      : 'HISTORIAL_SOLICITUDES.actions.confirmSendGeneral';
+
+    const result = await this.popUpManager.showConfirmAlert(
+      this.translate.instant(textKey),
+      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmSendTitle')
+    );
+
+    if (!result?.isConfirmed) {
+      return;
+    }
+
+    console.log(`Enviar solicitud ${solicitud.id}`);
   }
 
   onIniciarSabatico(id: string): void {
