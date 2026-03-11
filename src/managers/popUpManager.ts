@@ -76,6 +76,11 @@ export class PopUpManager {
       showCancelButton: true,
       confirmButtonText: this.translate.instant('GLOBAL.aceptar'),
       cancelButtonText: this.translate.instant('GLOBAL.cancelar'),
+      customClass: {
+        confirmButton: 'sga-swal2-confirm',
+        cancelButton: 'sga-swal2-cancel',
+        popup: 'sga-swal2-popup',
+      },
     });
   }
 

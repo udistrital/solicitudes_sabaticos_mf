@@ -592,8 +592,13 @@
     "actions": {
       "add": "Add request",
       "editAria": "Edit request",
+      "reviewAria": "Review request",
+      "viewAria": "View request",
       "sendAria": "Send request",
-      "startSabaticoAria": "Start sabbatical"
+      "startSabaticoAria": "Start sabbatical",
+      "confirmSendTitle": "Confirm submission",
+      "confirmSendDocenteDraft": "Are you sure you want to submit your sabbatical year request for review?",
+      "confirmSendGeneral": "Are you sure you want to send this request to the next review/approval phase?"
     },
     "filters": {
       "id": "Filter by ID",

@@ -776,8 +776,13 @@
     "actions": {
       "add": "Agregar solicitud",
       "editAria": "Editar solicitud",
+      "reviewAria": "Revisar solicitud",
+      "viewAria": "Ver solicitud",
       "sendAria": "Enviar solicitud",
-      "startSabaticoAria": "Iniciar sabático"
+      "startSabaticoAria": "Iniciar sabático",
+      "confirmSendTitle": "Confirmar envío",
+      "confirmSendDocenteDraft": "¿Está seguro/a de enviar a revisión su solicitud de año sabático?",
+      "confirmSendGeneral": "¿Está seguro/a de que desea enviar la solicitud a la siguiente fase de revisión/aprobación?"
     }
   },
   "gestion_horarios": {

@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { DateAdapter } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { PopUpManager } from '../../../managers/popUpManager';
 
 type EstadoSolicitud =
   | 'Borrador'
@@ -80,6 +81,8 @@ export class EditarSolicitudComponent {
   currentLang = 'es';
   solicitud: SolicitudDetalle | null = null;
   form: FormGroup | null = null;
+  isReadOnly = false;
+  rol = '';
   documentoArchivos: Record<string, string | null> = {};
   documentoSeleccionado: string | null = null;
   documentosSeleccionados: string[] = [];
@@ -163,7 +166,8 @@ export class EditarSolicitudComponent {
     private readonly dateAdapter: DateAdapter<Date>,
     private readonly formBuilder: FormBuilder,
     private readonly router: Router,
-    private readonly destroyRef: DestroyRef
+    private readonly destroyRef: DestroyRef,
+    private readonly popUpManager: PopUpManager
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
     this.dateAdapter.setLocale(this.currentLang);
@@ -177,6 +181,8 @@ export class EditarSolicitudComponent {
 
     const navigation = this.router.getCurrentNavigation();
     const stateSolicitud = navigation?.extras.state?.['solicitud'] ?? history.state?.solicitud;
+    this.isReadOnly = Boolean(navigation?.extras.state?.['readOnly'] ?? history.state?.readOnly);
+    this.rol = String(navigation?.extras.state?.['rol'] ?? history.state?.rol ?? '');
     this.solicitud = this.parseSolicitud(stateSolicitud);
     if (this.solicitud) {
       this.documentoArchivos = { ...(this.solicitud.documentos ?? {}) };
@@ -221,6 +227,10 @@ export class EditarSolicitudComponent {
           mes12: [this.solicitud.cronograma?.mes12 ?? '']
         })
       });
+
+      if (this.isReadOnly) {
+        this.form.disable({ emitEvent: false });
+      }
     }
   }
 
@@ -241,6 +251,10 @@ export class EditarSolicitudComponent {
   }
 
   onAgregarDocumento(): void {
+    if (this.isReadOnly) {
+      return;
+    }
+
     if (!this.documentoSeleccionado) {
       return;
     }
@@ -259,6 +273,10 @@ export class EditarSolicitudComponent {
   }
 
   onEliminarDocumento(key: string): void {
+    if (this.isReadOnly) {
+      return;
+    }
+
     this.documentosSeleccionados = this.documentosSeleccionados.filter(
       (documento) => documento !== key
     );
@@ -270,6 +288,10 @@ export class EditarSolicitudComponent {
   }
 
   onDocumentoChange(key: string, event: Event): void {
+    if (this.isReadOnly) {
+      return;
+    }
+
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
     this.documentoArchivos[key] = file ? file.name : null;
@@ -285,6 +307,10 @@ export class EditarSolicitudComponent {
   }
 
   onGuardar(): void {
+    if (this.isReadOnly) {
+      return;
+    }
+
     if (!this.form || !this.solicitud) {
       return;
     }
@@ -304,8 +330,27 @@ export class EditarSolicitudComponent {
     };
   }
 
-  onEnviarRevision(): void {
-    return;
+  async onEnviarRevision(): Promise<void> {
+    if (!this.solicitud) {
+      return;
+    }
+
+    const isDocenteBorrador = this.rol === 'DOCENTE'
+      && (this.solicitud.estado === 'Borrador' || this.solicitud.estado === 'Subsanación solicitada');
+    const textKey = isDocenteBorrador
+      ? 'HISTORIAL_SOLICITUDES.actions.confirmSendDocenteDraft'
+      : 'HISTORIAL_SOLICITUDES.actions.confirmSendGeneral';
+
+    const result = await this.popUpManager.showConfirmAlert(
+      this.translate.instant(textKey),
+      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmSendTitle')
+    );
+
+    if (!result?.isConfirmed) {
+      return;
+    }
+
+    console.log(`Enviar a revisión solicitud ${this.solicitud.id}`);
   }
 
   private parseEstado(value: string | null | undefined): EstadoSolicitud | null {
