@@ -261,7 +261,7 @@
           <div class="editar-solicitud__documento-selector">
             <mat-form-field appearance="outline" class="editar-solicitud__field">
               <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.documentos.seleccionar' | translate }}</mat-label>
-              <mat-select [(value)]="documentoSeleccionado">
+              <mat-select [(value)]="documentoSeleccionado" [disabled]="isReadOnly">
                 <mat-option *ngFor="let documento of documentosDisponibles; trackBy: trackDocumento"
                   [value]="documento.key">
                   {{ documento.label | translate }}
@@ -269,7 +269,7 @@
               </mat-select>
             </mat-form-field>
             <button mat-raised-button color="primary" type="button" class="editar-solicitud__documento-add"
-              (click)="onAgregarDocumento()" [disabled]="!documentoSeleccionado">
+              (click)="onAgregarDocumento()" [disabled]="isReadOnly || !documentoSeleccionado">
               {{ 'GLOBAL.agregar' | translate }}
             </button>
           </div>
@@ -283,12 +283,14 @@
                 </span>
               </div>
               <div class="editar-solicitud__documento-actions">
-                <label class="editar-solicitud__documento-action" mat-stroked-button>
+                <label class="editar-solicitud__documento-action" [class.editar-solicitud__documento-action--disabled]="isReadOnly"
+                  mat-stroked-button>
                   {{ 'HISTORIAL_SOLICITUDES.modal.documentos.cargar' | translate }}
-                  <input type="file" (change)="onDocumentoChange(documento.key, $event)" />
+                  <input type="file" (change)="onDocumentoChange(documento.key, $event)" [disabled]="isReadOnly" />
                 </label>
                 <button mat-icon-button type="button" class="editar-solicitud__documento-remove"
-                  (click)="onEliminarDocumento(documento.key)" [attr.aria-label]="'GLOBAL.eliminar' | translate">
+                  (click)="onEliminarDocumento(documento.key)" [disabled]="isReadOnly"
+                  [attr.aria-label]="'GLOBAL.eliminar' | translate">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
@@ -296,7 +298,7 @@
           </div>
         </div>
 
-        <div class="editar-solicitud__actions">
+        <div class="editar-solicitud__actions" *ngIf="!isReadOnly">
           <button mat-raised-button type="button" class="editar-solicitud__save" (click)="onGuardar()">
             {{ 'HISTORIAL_SOLICITUDES.edit.save' | translate }}
           </button>
