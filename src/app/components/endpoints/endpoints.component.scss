@@ -1,0 +1,117 @@
+.formulario {
+	max-width: 1100px;
+	margin: 1rem auto;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+fieldset {
+	border: 1px solid #d8d8d8;
+	border-radius: 8px;
+	padding: 1rem;
+}
+
+.full-width {
+	width: 100%;
+}
+
+label {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+}
+
+input,
+textarea {
+	width: 100%;
+	border: 1px solid #c8c8c8;
+	border-radius: 6px;
+	padding: 0.55rem;
+	font-size: 0.95rem;
+}
+
+.grid-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.75rem;
+}
+
+.full {
+	grid-column: 1 / -1;
+}
+
+.lista {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.item {
+	border: 1px dashed #d8d8d8;
+	border-radius: 6px;
+	padding: 0.75rem;
+}
+
+.check {
+	flex-direction: row;
+	align-items: center;
+}
+
+.check input {
+	width: auto;
+}
+
+button {
+	align-self: flex-start;
+	border: none;
+	border-radius: 6px;
+	padding: 0.7rem 1rem;
+	color: #fff;
+	background: #0057b8;
+	cursor: pointer;
+}
+
+.resultado {
+	max-width: 1100px;
+	margin: 0 auto 1rem;
+}
+
+.error {
+	margin: 0;
+	color: #b00020;
+}
+
+.success {
+	margin: 0.5rem 0 0 0;
+	color: #1b8a1b;
+	font-size: 0.9rem;
+}
+
+.file-input-wrapper {
+	margin: 1.5rem 0 0 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.file-label {
+	font-size: 0.9rem;
+	color: #555;
+	font-weight: 500;
+}
+
+.file-input {
+	padding: 0.5rem;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+pre {
+	background: #f7f7f7;
+	border: 1px solid #ebebeb;
+	border-radius: 8px;
+	padding: 1rem;
+	overflow: auto;
+}
