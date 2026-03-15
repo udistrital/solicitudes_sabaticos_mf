@@ -4,6 +4,10 @@
     <mat-card-subtitle>{{ 'HISTORIAL_SOLICITUDES.description' | translate }}</mat-card-subtitle>
   </mat-card-header>
 
+  <blockquote class="historial-solicitudes__role-info">
+    <p class="historial-solicitudes__role-info-text">{{ roleInfoMessageKey | translate }}</p>
+  </blockquote>
+
   <mat-card-content class="historial-solicitudes__contenido">
     <div class="historial-solicitudes__info-wrapper">
       <section class="historial-solicitudes__docente" *ngIf="isDocente">

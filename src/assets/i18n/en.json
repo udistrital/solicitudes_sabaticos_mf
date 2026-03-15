@@ -647,6 +647,11 @@
       "title": "Request history",
       "subtitle": "Section to view ongoing requests"
     },
+    "roleInfo": {
+      "coordinador": "From this section, you can review the history of requests processed in SGA under SIGUD procedure GD-PR-020, review the consolidated file, record the Academic Council decision, and attach the resolution or supporting response documents.",
+      "contratista": "From this section, you can review requests filed in SGA under SIGUD procedure GD-PR-020, check their documentary status, record the Faculty Council response, and manage returns or corrections when applicable.",
+      "docente": "Welcome to the Sabbatical Request module. Here you can register and review your requests (SIGUD GD-PR-020) and continue the process whenever needed."
+    },
     "abreviaturas": {
       "titulo": "Abbreviations",
       "sa": "Academic Secretariat",

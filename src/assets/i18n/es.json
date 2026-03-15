@@ -666,6 +666,11 @@
       "title": "Historial de solicitudes",
       "subtitle": "Sección para visualizar las solicitudes en curso"
     },
+    "roleInfo": {
+      "coordinador": "Desde esta sección podrá consultar el historial de solicitudes tramitadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar el expediente consolidado, registrar la decisión del Consejo Académico y adjuntar la resolución o los documentos que soportan la respuesta.",
+      "contratista": "Desde esta sección podrá consultar las solicitudes radicadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar su estado documental, registrar la respuesta del Consejo de Facultad y gestionar devoluciones o subsanaciones cuando corresponda.",
+      "docente": "Le damos la bienvenida al módulo de solicitudes de Año Sabático, aquí usted podrá registrar y consultar sus solicitudes (GD-PR-020 del SIGUD), y dar continuidad al proceso cuando lo requiera."
+    },
     "abreviaturas": {
       "titulo": "Definición de abreviaturas",
       "sa": "Secretaría Académica",
