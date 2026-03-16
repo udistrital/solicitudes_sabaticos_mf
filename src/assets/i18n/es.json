@@ -666,6 +666,11 @@
       "title": "Historial de solicitudes",
       "subtitle": "Sección para visualizar las solicitudes en curso"
     },
+    "roleInfo": {
+      "coordinador": "Desde esta sección podrá consultar el historial de solicitudes tramitadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar el expediente consolidado, registrar la decisión del Consejo Académico y adjuntar la resolución o los documentos que soportan la respuesta.",
+      "contratista": "Desde esta sección podrá consultar las solicitudes radicadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar su estado documental, registrar la respuesta del Consejo de Facultad y gestionar devoluciones o subsanaciones cuando corresponda.",
+      "docente": "Le damos la bienvenida al módulo de solicitudes de Año Sabático, aquí usted podrá registrar y consultar sus solicitudes (GD-PR-020 del SIGUD), y dar continuidad al proceso cuando lo requiera."
+    },
     "abreviaturas": {
       "titulo": "Definición de abreviaturas",
       "sa": "Secretaría Académica",
@@ -681,6 +686,18 @@
       "observaciones": {
         "title": "Observaciones",
         "label": "Comentarios u observaciones a tener en cuenta"
+      },
+      "secretaria": {
+        "title": "Gestión de Secretaría",
+        "observaciones": "Observaciones de Secretaría",
+        "documentos": {
+          "title": "Documentos de Secretaría",
+          "revisionRequisitosSabatico": "Revisión requisitos para año sabático (GD-PR-020-FR-029)",
+          "actaConsejoFacultad": "Acta del consejo de facultad",
+          "actaConsejoAcademico": "Acta del consejo académico",
+          "resolucionConsejoAcademico": "Resolución del consejo académico (fechas inicio / fin)",
+          "otrosRequeridos": "Otros que se requieran"
+        }
       }
     },
 
@@ -736,6 +753,8 @@
       "documentos": {
         "cargar": "Cargar",
         "seleccionar": "Seleccionar documento",
+        "soloPdf": "Solo se permiten archivos en formato PDF.",
+        "errorSoloPdf": "Solo se permite la carga de archivos PDF.",
         "sinArchivo": "Sin archivo",
         "avalConsejo": "Aval del Consejo Curricular",
 

@@ -70,7 +70,9 @@
             {{ 'HISTORIAL_SOLICITUDES.modal.sectionSolicitud' | translate }}
           </h3>
           <mat-form-field appearance="outline" class="editar-solicitud__field">
-            <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.periodoEjecucion' | translate }}</mat-label>
+            <mat-label>
+              {{ 'HISTORIAL_SOLICITUDES.modal.periodoEjecucion' | translate }}
+            </mat-label>
             <input matInput formControlName="periodoEjecucion" />
           </mat-form-field>
         </div>
@@ -81,7 +83,9 @@
           </h3>
           <div class="editar-solicitud__grid editar-solicitud__grid--modalidad">
             <mat-form-field appearance="outline" class="editar-solicitud__field">
-              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.modalidad.hint' | translate }}</mat-label>
+              <mat-label>
+                {{ 'HISTORIAL_SOLICITUDES.modal.modalidad.hint' | translate }}
+              </mat-label>
               <mat-select formControlName="modalidad">
                 <mat-option *ngFor="let modalidad of modalidadOptions" [value]="modalidad">
                   {{ modalidad | translate }}
@@ -98,7 +102,9 @@
           <div class="editar-solicitud__grid editar-solicitud__grid--ultima-solicitud">
             <div class="editar-solicitud__field">
               <mat-form-field appearance="outline" class="editar-solicitud__field-full">
-                <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.periodoUltimoSabatico' | translate }}</mat-label>
+                <mat-label>
+                  {{ 'HISTORIAL_SOLICITUDES.modal.periodoUltimoSabatico' | translate }}
+                </mat-label>
                 <mat-date-range-input [rangePicker]="ultimoSabaticoPicker" formGroupName="ultimoSabatico" (focusin)="ultimoSabaticoPicker.open()">
                   <input matStartDate formControlName="start" />
                   <input matEndDate formControlName="end" />
@@ -108,7 +114,9 @@
               </mat-form-field>
             </div>
             <mat-form-field appearance="outline" class="editar-solicitud__field">
-              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.productoUltimoSabatico' | translate }}</mat-label>
+              <mat-label>
+                {{ 'HISTORIAL_SOLICITUDES.modal.productoUltimoSabatico' | translate }}
+              </mat-label>
               <input matInput formControlName="productoUltimo" />
             </mat-form-field>
           </div>
@@ -120,11 +128,15 @@
           </h3>
           <div class="editar-solicitud__grid editar-solicitud__grid--objetivos">
             <mat-form-field appearance="outline" class="editar-solicitud__field">
-              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.objetivoGeneral' | translate }}</mat-label>
+              <mat-label>
+                {{ 'HISTORIAL_SOLICITUDES.modal.objetivoGeneral' | translate }}
+              </mat-label>
               <textarea matInput rows="2" formControlName="objetivoGeneral" class="editar-solicitud__textarea"></textarea>
             </mat-form-field>
             <mat-form-field appearance="outline" class="editar-solicitud__field">
-              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.objetivosEspecificos' | translate }}</mat-label>
+              <mat-label>
+                {{ 'HISTORIAL_SOLICITUDES.modal.objetivosEspecificos' | translate }}
+              </mat-label>
               <textarea matInput rows="2" formControlName="objetivosEspecificos"
                 class="editar-solicitud__textarea"></textarea>
             </mat-form-field>
@@ -137,7 +149,9 @@
           </h3>
           <div class="editar-solicitud__grid editar-solicitud__grid--justificacion">
             <mat-form-field appearance="outline" class="editar-solicitud__field">
-              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.justificacion' | translate }}</mat-label>
+              <mat-label>
+                {{ 'HISTORIAL_SOLICITUDES.modal.justificacion' | translate }}
+              </mat-label>
               <textarea matInput rows="2" formControlName="justificacion"
                 class="editar-solicitud__textarea"></textarea>
             </mat-form-field>
@@ -150,17 +164,23 @@
           </h3>
           <div class="editar-solicitud__grid editar-solicitud__grid--articulacion">
             <mat-form-field appearance="outline" class="editar-solicitud__field">
-              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.planDesarrolloInstitucional' | translate }}</mat-label>
+              <mat-label>
+                {{ 'HISTORIAL_SOLICITUDES.modal.planDesarrolloInstitucional' | translate }}
+              </mat-label>
               <textarea matInput rows="2" formControlName="planDesarrolloInstitucional"
                 class="editar-solicitud__textarea"></textarea>
             </mat-form-field>
             <mat-form-field appearance="outline" class="editar-solicitud__field">
-              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.proyectoEducativoFacultad' | translate }}</mat-label>
+              <mat-label>
+                {{ 'HISTORIAL_SOLICITUDES.modal.proyectoEducativoFacultad' | translate }}
+              </mat-label>
               <textarea matInput rows="2" formControlName="proyectoEducativoFacultad"
                 class="editar-solicitud__textarea"></textarea>
             </mat-form-field>
             <mat-form-field appearance="outline" class="editar-solicitud__field">
-              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.proyectoEducativoProgramas' | translate }}</mat-label>
+              <mat-label>
+                {{ 'HISTORIAL_SOLICITUDES.modal.proyectoEducativoProgramas' | translate }}
+              </mat-label>
               <textarea matInput rows="2" formControlName="proyectoEducativoProgramas"
                 class="editar-solicitud__textarea"></textarea>
             </mat-form-field>
@@ -173,7 +193,9 @@
           </h3>
           <div class="editar-solicitud__grid editar-solicitud__grid--entregable">
             <mat-form-field appearance="outline" class="editar-solicitud__field">
-              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.productoEntregable' | translate }}</mat-label>
+              <mat-label>
+                {{ 'HISTORIAL_SOLICITUDES.modal.productoEntregable' | translate }}
+              </mat-label>
               <textarea matInput rows="3" formControlName="productoEntregable"
                 class="editar-solicitud__textarea editar-solicitud__textarea--large"></textarea>
             </mat-form-field>
@@ -186,7 +208,9 @@
           </h3>
           <div class="editar-solicitud__grid editar-solicitud__grid--impacto">
             <mat-form-field appearance="outline" class="editar-solicitud__field">
-              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.impactoAlcance' | translate }}</mat-label>
+              <mat-label>
+                {{ 'HISTORIAL_SOLICITUDES.modal.impactoAlcance' | translate }}
+              </mat-label>
               <textarea matInput rows="3" formControlName="impactoAlcance"
                 class="editar-solicitud__textarea editar-solicitud__textarea--large"></textarea>
             </mat-form-field>
@@ -199,7 +223,9 @@
           </h3>
           <div class="editar-solicitud__grid editar-solicitud__grid--metodologia">
             <mat-form-field appearance="outline" class="editar-solicitud__field">
-              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.metodologia' | translate }}</mat-label>
+              <mat-label>
+                {{ 'HISTORIAL_SOLICITUDES.modal.metodologia' | translate }}
+              </mat-label>
               <textarea matInput rows="3" formControlName="metodologia"
                 class="editar-solicitud__textarea editar-solicitud__textarea--large"></textarea>
             </mat-form-field>
@@ -219,7 +245,9 @@
                   <mat-panel-title>{{ mes.label | translate }}</mat-panel-title>
                 </mat-expansion-panel-header>
                 <mat-form-field appearance="outline" class="editar-solicitud__field">
-                  <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.cronograma.actividad' | translate }}</mat-label>
+                  <mat-label>
+                    {{ 'HISTORIAL_SOLICITUDES.modal.cronograma.actividad' | translate }}
+                  </mat-label>
                   <textarea matInput rows="2" [formControlName]="mes.key"
                     class="editar-solicitud__textarea editar-solicitud__textarea--medium"></textarea>
                 </mat-form-field>
@@ -234,7 +262,9 @@
           </h3>
           <div class="editar-solicitud__grid editar-solicitud__grid--presupuesto">
             <mat-form-field appearance="outline" class="editar-solicitud__field">
-              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.presupuesto' | translate }}</mat-label>
+              <mat-label>
+                {{ 'HISTORIAL_SOLICITUDES.modal.presupuesto' | translate }}
+              </mat-label>
               <textarea matInput rows="2" formControlName="presupuesto"
                 class="editar-solicitud__textarea"></textarea>
             </mat-form-field>
@@ -258,10 +288,15 @@
           <h3 class="editar-solicitud__section-title">
             {{ 'HISTORIAL_SOLICITUDES.modal.sectionDocumentos' | translate }}
           </h3>
+          <p class="editar-solicitud__documento-help">
+            {{ 'HISTORIAL_SOLICITUDES.modal.documentos.soloPdf' | translate }}
+          </p>
           <div class="editar-solicitud__documento-selector">
             <mat-form-field appearance="outline" class="editar-solicitud__field">
-              <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.documentos.seleccionar' | translate }}</mat-label>
-              <mat-select [(value)]="documentoSeleccionado" [disabled]="isReadOnly">
+              <mat-label>
+                {{ 'HISTORIAL_SOLICITUDES.modal.documentos.seleccionar' | translate }}
+              </mat-label>
+              <mat-select [(value)]="documentoSeleccionado" [disabled]="!canEditarFormularioPrincipal">
                 <mat-option *ngFor="let documento of documentosDisponibles; trackBy: trackDocumento"
                   [value]="documento.key">
                   {{ documento.label | translate }}
@@ -269,7 +304,7 @@
               </mat-select>
             </mat-form-field>
             <button mat-raised-button color="primary" type="button" class="editar-solicitud__documento-add"
-              (click)="onAgregarDocumento()" [disabled]="isReadOnly || !documentoSeleccionado">
+              (click)="onAgregarDocumento()" [disabled]="!canEditarFormularioPrincipal || !documentoSeleccionado">
               {{ 'GLOBAL.agregar' | translate }}
             </button>
           </div>
@@ -283,16 +318,96 @@
                 </span>
               </div>
               <div class="editar-solicitud__documento-actions">
-                <label class="editar-solicitud__documento-action" [class.editar-solicitud__documento-action--disabled]="isReadOnly"
-                  mat-stroked-button>
-                  {{ 'HISTORIAL_SOLICITUDES.modal.documentos.cargar' | translate }}
-                  <input type="file" (change)="onDocumentoChange(documento.key, $event)" [disabled]="isReadOnly" />
-                </label>
+                <button *ngIf="canPrevisualizarDocumento(documento.key); else cargarDocumento"
+                  mat-icon-button type="button" class="editar-solicitud__documento-preview"
+                  (click)="onPrevisualizarDocumento(documento.key)" aria-label="Previsualizar documento">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <ng-template #cargarDocumento>
+                  <label class="editar-solicitud__documento-action" [class.editar-solicitud__documento-action--disabled]="!canEditarFormularioPrincipal"
+                    mat-stroked-button>
+                    {{ 'HISTORIAL_SOLICITUDES.modal.documentos.cargar' | translate }}
+                    <input type="file" accept=".pdf,application/pdf" (change)="onDocumentoChange(documento.key, $event)" [disabled]="!canEditarFormularioPrincipal" />
+                  </label>
+                </ng-template>
                 <button mat-icon-button type="button" class="editar-solicitud__documento-remove"
-                  (click)="onEliminarDocumento(documento.key)" [disabled]="isReadOnly"
+                  (click)="onEliminarDocumento(documento.key)" [disabled]="!canEditarFormularioPrincipal"
                   [attr.aria-label]="'GLOBAL.eliminar' | translate">
                   <mat-icon>delete</mat-icon>
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="editar-solicitud__section" *ngIf="showSeccionSecretaria">
+          <div class="editar-solicitud__summary editar-solicitud__summary--secretaria">
+            <h3 class="editar-solicitud__section-title">
+              {{ 'HISTORIAL_SOLICITUDES.edit.secretaria.title' | translate }}
+            </h3>
+            <div class="editar-solicitud__grid editar-solicitud__grid--justificacion">
+              <mat-form-field appearance="outline" class="editar-solicitud__field">
+                <mat-label>
+                  {{ 'HISTORIAL_SOLICITUDES.edit.secretaria.observaciones' | translate }}
+                </mat-label>
+                <textarea matInput rows="3" formControlName="observacionesSecretaria"
+                  class="editar-solicitud__textarea editar-solicitud__textarea--large"></textarea>
+              </mat-form-field>
+            </div>
+
+            <h4 class="editar-solicitud__subsection-title">
+              {{ 'HISTORIAL_SOLICITUDES.edit.secretaria.documentos.title' | translate }}
+            </h4>
+            <p class="editar-solicitud__documento-help">
+              {{ 'HISTORIAL_SOLICITUDES.modal.documentos.soloPdf' | translate }}
+            </p>
+            <div class="editar-solicitud__documento-selector">
+              <mat-form-field appearance="outline" class="editar-solicitud__field">
+                <mat-label>
+                  {{ 'HISTORIAL_SOLICITUDES.modal.documentos.seleccionar' | translate }}
+                </mat-label>
+                <mat-select [(value)]="secretariaDocumentoSeleccionado" [disabled]="!canEditarSeccionSecretaria">
+                  <mat-option *ngFor="let documento of secretariaDocumentosDisponibles; trackBy: trackDocumento"
+                    [value]="documento.key">
+                    {{ documento.label | translate }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <button mat-raised-button color="primary" type="button" class="editar-solicitud__documento-add"
+                (click)="onAgregarDocumentoSecretaria()"
+                [disabled]="!canEditarSeccionSecretaria || !secretariaDocumentoSeleccionado || !canGestionarDocumentoSecretaria(secretariaDocumentoSeleccionado)">
+                {{ 'GLOBAL.agregar' | translate }}
+              </button>
+            </div>
+            <div class="editar-solicitud__documentos">
+              <div class="editar-solicitud__documento"
+                *ngFor="let documento of secretariaDocumentosSeleccionadosDetalle; trackBy: trackDocumento">
+                <div class="editar-solicitud__documento-info">
+                  <span class="editar-solicitud__documento-title">{{ documento.label | translate }}</span>
+                  <span class="editar-solicitud__documento-file">
+                    {{ getDocumentoSecretariaNombre(documento.key) || ('HISTORIAL_SOLICITUDES.modal.documentos.sinArchivo' | translate) }}
+                  </span>
+                </div>
+                <div class="editar-solicitud__documento-actions">
+                  <button *ngIf="canPrevisualizarDocumentoSecretaria(documento.key); else cargarDocumentoSecretaria"
+                    mat-icon-button type="button" class="editar-solicitud__documento-preview"
+                    (click)="onPrevisualizarDocumentoSecretaria(documento.key)" aria-label="Previsualizar documento">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                  <ng-template #cargarDocumentoSecretaria>
+                    <label class="editar-solicitud__documento-action"
+                      [class.editar-solicitud__documento-action--disabled]="!canGestionarDocumentoSecretaria(documento.key)" mat-stroked-button>
+                      {{ 'HISTORIAL_SOLICITUDES.modal.documentos.cargar' | translate }}
+                      <input type="file" accept=".pdf,application/pdf"
+                        (change)="onDocumentoSecretariaChange(documento.key, $event)" [disabled]="!canGestionarDocumentoSecretaria(documento.key)" />
+                    </label>
+                  </ng-template>
+                  <button mat-icon-button type="button" class="editar-solicitud__documento-remove"
+                    (click)="onEliminarDocumentoSecretaria(documento.key)" [disabled]="!canGestionarDocumentoSecretaria(documento.key)"
+                    [attr.aria-label]="'GLOBAL.eliminar' | translate">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -303,7 +418,8 @@
             {{ 'HISTORIAL_SOLICITUDES.edit.save' | translate }}
           </button>
           <button mat-raised-button color="primary" type="button" class="editar-solicitud__send"
-            (click)="onEnviarRevision()">
+            (click)="onEnviarRevision()"
+            [disabled]="!canEnviarRevision">
             {{ 'HISTORIAL_SOLICITUDES.edit.sendReview' | translate }}
           </button>
         </div>
