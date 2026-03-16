@@ -1,0 +1,166 @@
+<form class="formulario" [formGroup]="formulario" (ngSubmit)="enviarPayload()">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Formulario Crear Solicitud</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="grid-2">
+        <mat-form-field appearance="outline">
+          <mat-label>TerceroId</mat-label>
+          <input matInput type="number" formControlName="terceroId" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>TipoSolicitudId</mat-label>
+          <input matInput type="text" formControlName="tipoSolicitudId" />
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>formulario (JSON)</mat-label>
+        <textarea matInput rows="8" formControlName="formularioTexto" placeholder='{"mi_llave_larga": {"campo": "valor"}}'></textarea>
+      </mat-form-field>
+
+      <p class="error" *ngIf="errorJson">{{ errorJson }}</p>
+    </mat-card-content>
+  </mat-card>
+
+  <button mat-raised-button color="primary" type="submit">Generar payload</button>
+</form>
+
+<form class="formulario" [formGroup]="formularioRadicacion" (ngSubmit)="enviarPayloadRadicacion()">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Formulario Radicación</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="grid-2">
+        <mat-form-field appearance="outline">
+          <mat-label>SolicitudId</mat-label>
+          <input matInput type="number" formControlName="solicitudId" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>FormularioId</mat-label>
+          <input matInput type="number" formControlName="formularioId" />
+        </mat-form-field>
+      </div>
+
+      <div class="grid-2">
+        <mat-form-field appearance="outline">
+          <mat-label>DocumentosId (JSON)</mat-label>
+          <input matInput type="text" formControlName="documentosId" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>FechaCreacion</mat-label>
+          <input matInput type="text" formControlName="fechaCreacion" />
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Formulario (JSON)</mat-label>
+        <textarea matInput rows="5" formControlName="formularioTextoRadicacion"></textarea>
+      </mat-form-field>
+
+      <p class="error" *ngIf="errorJsonRadicacion">{{ errorJsonRadicacion }}</p>
+    </mat-card-content>
+  </mat-card>
+
+  <button mat-raised-button color="accent" type="submit">Enviar payload radicación</button>
+</form>
+
+<form class="formulario" [formGroup]="formularioSoporte" (ngSubmit)="enviarPayloadSoporte()">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Formulario Soporte Solicitud</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="grid-2">
+        <mat-form-field appearance="outline">
+          <mat-label>SolicitudId</mat-label>
+          <input matInput type="number" formControlName="solicitudId" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>TerceroId</mat-label>
+          <input matInput type="number" formControlName="terceroId" />
+        </mat-form-field>
+      </div>
+
+      <div class="grid-2">
+        <mat-form-field appearance="outline">
+          <mat-label>Rol Usuario</mat-label>
+          <input matInput type="text" formControlName="rolUsuario" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Estado Soporte Solicitud</mat-label>
+          <input matInput type="text" formControlName="estadoSoporteSolicitud" />
+        </mat-form-field>
+      </div>
+
+      <div class="file-input-wrapper">
+        <label class="file-label">Documentos (selecciona uno o más archivos)</label>
+        <input type="file" multiple (change)="onArchivosSoporteSeleccionados($event)" class="file-input" />
+      </div>
+
+      <p *ngIf="archivosSoporte.length > 0" class="success">
+        {{ archivosSoporte.length }} archivo(s) seleccionado(s)
+      </p>
+
+      <p class="error" *ngIf="errorServicioSoporte">{{ errorServicioSoporte }}</p>
+    </mat-card-content>
+  </mat-card>
+
+  <button mat-raised-button color="warn" type="submit">Enviar soporte solicitud</button>
+</form>
+
+<mat-card class="resultado" *ngIf="payloadGenerado">
+  <mat-card-header>
+    <mat-card-title>Payload generado</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <pre>{{ payloadGenerado | json }}</pre>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="resultado" *ngIf="payloadRadicacionGenerado">
+  <mat-card-header>
+    <mat-card-title>Payload radicación generado</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <pre>{{ payloadRadicacionGenerado | json }}</pre>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="resultado" *ngIf="respuestaServicioRadicacion">
+  <mat-card-header>
+    <mat-card-title>Respuesta servicio radicación</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <pre>{{ respuestaServicioRadicacion | json }}</pre>
+  </mat-card-content>
+</mat-card>
+
+<p class="error resultado" *ngIf="errorServicioRadicacion">{{ errorServicioRadicacion }}</p>
+
+<mat-card class="resultado" *ngIf="respuestaServicioSoporte">
+  <mat-card-header>
+    <mat-card-title>Respuesta servicio soporte</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <pre>{{ respuestaServicioSoporte | json }}</pre>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="resultado" *ngIf="respuestaServicio">
+  <mat-card-header>
+    <mat-card-title>Respuesta servicio</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <pre>{{ respuestaServicio | json }}</pre>
+  </mat-card-content>
+</mat-card>
+
+<p class="error resultado" *ngIf="errorServicio">{{ errorServicio }}</p>

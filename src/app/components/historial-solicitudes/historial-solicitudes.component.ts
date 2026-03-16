@@ -279,6 +279,16 @@ export class HistorialSolicitudesComponent {
     return this.isContratista || this.isCoordinador;
   }
 
+  get roleInfoMessageKey(): string {
+    if (this.isCoordinador) {
+      return 'HISTORIAL_SOLICITUDES.roleInfo.coordinador';
+    }
+    if (this.isContratista) {
+      return 'HISTORIAL_SOLICITUDES.roleInfo.contratista';
+    }
+    return 'HISTORIAL_SOLICITUDES.roleInfo.docente';
+  }
+
   constructor(
     private readonly translate: TranslateService,
     private readonly dateAdapter: DateAdapter<Date>,
