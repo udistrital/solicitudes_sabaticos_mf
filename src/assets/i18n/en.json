@@ -667,6 +667,18 @@
       "observaciones": {
         "title": "Observations",
         "label": "Comments or observations to consider"
+      },
+      "secretaria": {
+        "title": "Secretariat management",
+        "observaciones": "Secretariat observations",
+        "documentos": {
+          "title": "Secretariat documents",
+          "revisionRequisitosSabatico": "Sabbatical requirements review (GD-PR-020-FR-029)",
+          "actaConsejoFacultad": "Faculty council minutes",
+          "actaConsejoAcademico": "Academic council minutes",
+          "resolucionConsejoAcademico": "Academic council resolution (start/end dates)",
+          "otrosRequeridos": "Other required documents"
+        }
       }
     },
 
@@ -706,6 +718,8 @@
       "documentos": {
         "cargar": "Upload",
         "seleccionar": "Select document",
+        "soloPdf": "Only PDF files are allowed.",
+        "errorSoloPdf": "Only PDF files can be uploaded.",
         "sinArchivo": "No file",
         "avalConsejo": "Curricular Council approval",
 

@@ -7,6 +7,12 @@ import { TranslateService } from '@ngx-translate/core';
   providedIn: 'root',
 })
 export class PopUpManager {
+  private readonly sweetAlertCustomClass = {
+    confirmButton: 'sga-swal2-confirm',
+    cancelButton: 'sga-swal2-cancel',
+    popup: 'sga-swal2-popup',
+  };
+
   constructor(
     private snackBar: MatSnackBar,
     private translate: TranslateService
@@ -47,6 +53,7 @@ export class PopUpManager {
       title: title,
       text: text,
       confirmButtonText: this.translate.instant('GLOBAL.aceptar'),
+      customClass: this.sweetAlertCustomClass,
     });
   }
 
@@ -56,6 +63,7 @@ export class PopUpManager {
       title: this.translate.instant('GLOBAL.operacion_exitosa'),
       text: text,
       confirmButtonText: this.translate.instant('GLOBAL.aceptar'),
+      customClass: this.sweetAlertCustomClass,
     });
   }
 
@@ -65,6 +73,7 @@ export class PopUpManager {
       title: this.translate.instant('GLOBAL.error'),
       text: text,
       confirmButtonText: this.translate.instant('GLOBAL.aceptar'),
+      customClass: this.sweetAlertCustomClass,
     });
   }
 
@@ -76,11 +85,7 @@ export class PopUpManager {
       showCancelButton: true,
       confirmButtonText: this.translate.instant('GLOBAL.aceptar'),
       cancelButtonText: this.translate.instant('GLOBAL.cancelar'),
-      customClass: {
-        confirmButton: 'sga-swal2-confirm',
-        cancelButton: 'sga-swal2-cancel',
-        popup: 'sga-swal2-popup',
-      },
+      customClass: this.sweetAlertCustomClass,
     });
   }
 
@@ -93,6 +98,7 @@ export class PopUpManager {
       allowOutsideClick: !cancelar,
       confirmButtonText: this.translate.instant('GLOBAL.aceptar'),
       cancelButtonText: this.translate.instant('GLOBAL.cancelar'),
+      customClass: this.sweetAlertCustomClass,
     });
   }
 
@@ -104,6 +110,7 @@ export class PopUpManager {
       allowOutsideClick: !cancelar,
       confirmButtonText: this.translate.instant('GLOBAL.aceptar'),
       cancelButtonText: this.translate.instant('GLOBAL.cancelar'),
+      customClass: this.sweetAlertCustomClass,
       preConfirm: () => {
         const results: any = {};
         form.ids.forEach(id => {

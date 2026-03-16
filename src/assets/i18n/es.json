@@ -686,6 +686,18 @@
       "observaciones": {
         "title": "Observaciones",
         "label": "Comentarios u observaciones a tener en cuenta"
+      },
+      "secretaria": {
+        "title": "Gestión de Secretaría",
+        "observaciones": "Observaciones de Secretaría",
+        "documentos": {
+          "title": "Documentos de Secretaría",
+          "revisionRequisitosSabatico": "Revisión requisitos para año sabático (GD-PR-020-FR-029)",
+          "actaConsejoFacultad": "Acta del consejo de facultad",
+          "actaConsejoAcademico": "Acta del consejo académico",
+          "resolucionConsejoAcademico": "Resolución del consejo académico (fechas inicio / fin)",
+          "otrosRequeridos": "Otros que se requieran"
+        }
       }
     },
 
@@ -741,6 +753,8 @@
       "documentos": {
         "cargar": "Cargar",
         "seleccionar": "Seleccionar documento",
+        "soloPdf": "Solo se permiten archivos en formato PDF.",
+        "errorSoloPdf": "Solo se permite la carga de archivos PDF.",
         "sinArchivo": "Sin archivo",
         "avalConsejo": "Aval del Consejo Curricular",
 
