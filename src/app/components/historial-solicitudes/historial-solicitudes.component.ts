@@ -9,6 +9,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { CrearSolicitudModalComponent } from '../crear-solicitud-modal/crear-solicitud-modal.component';
 import { ImplicitAutenticationService } from '../../services/implicit_authentication.service';
 import { PopUpManager } from '../../../managers/popUpManager';
+import { RequestManager } from '../../../managers/requestManager';
 
 type EstadoSolicitud =
   | 'Borrador'
@@ -148,21 +149,21 @@ export class HistorialSolicitudesComponent {
     'Finalizada Aprobada con Resolución'
   ];
 
-  readonly docenteInfo: DocenteInfo = {
-    nombre: 'Ana María López',
-    facultad: 'Facultad de Ingeniería',
-    documentoIdentificacion: '1.234.567.890',
-    edad: '42',
-    correoElectronico: 'ana.lopez@udistrital.edu.co',
-    proyectoCurricular: 'Ingeniería de Sistemas',
-    telefono: '601 323 9300',
-    celular: '300 123 4567',
-    fechaIngreso: '2012-08-15',
-    resolucionFechaIngreso: 'Resolución 015 de 2012',
-    fechaInscripcionEscalafon: '2015-03-10',
-    resolucionInscripcionEscalafon: 'Resolución 042 de 2015',
-    categoriaIngreso: 'Asistente',
-    categoriaActual: 'Asociado'
+  docenteInfo: DocenteInfo = {
+    nombre: '',
+    facultad: '',
+    documentoIdentificacion: '',
+    edad: '',
+    correoElectronico: '',
+    proyectoCurricular: '',
+    telefono: '',
+    celular: '',
+    fechaIngreso: '',
+    resolucionFechaIngreso: '',
+    fechaInscripcionEscalafon: '',
+    resolucionInscripcionEscalafon: '',
+    categoriaIngreso: '',
+    categoriaActual: ''
   };
 
   solicitudes: HistorialSolicitud[] = [
@@ -296,7 +297,8 @@ export class HistorialSolicitudesComponent {
     private readonly router: Router,
     private readonly destroyRef: DestroyRef,
     private readonly autenticationService: ImplicitAutenticationService,
-    private readonly popUpManager: PopUpManager
+    private readonly popUpManager: PopUpManager,
+    private readonly requestManager: RequestManager
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
     this.dateAdapter.setLocale(this.currentLang);
@@ -328,6 +330,10 @@ export class HistorialSolicitudesComponent {
     ) {
       this.rol = 'DOCENTE';
     }
+
+    this.autenticationService.getDocument().then((documento: any) => {
+      this.loadDocenteInfo(documento);
+    });
   }
 
   getEstadoTranslation(estado: EstadoSolicitud): string {
@@ -446,6 +452,40 @@ export class HistorialSolicitudesComponent {
       || solicitud.estado === 'Subsanación solicitada'
       || solicitud.estado === 'Recepcionada a SG'
       || solicitud.estado === 'Finalizada Aprobada con Resolución';
+  }
+
+  private loadDocenteInfo(documento: string): void {
+    this.requestManager.setPath('ACADEMICA_MID_SERVICE');
+    this.requestManager.getXml(`consulta_datos_docente_planta/${documento}`)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: any) => {
+          const parsed = this.parseDocenteResponse(response);
+          this.docenteInfo = { ...this.docenteInfo, ...parsed };
+        },
+        error: () => {
+          this.popUpManager.showErrorToast('GLOBAL.error');
+        }
+      });
+  }
+
+  private parseDocenteResponse(response: string): Partial<DocenteInfo> {
+    const data = JSON.parse(response);
+    const datos = data?.datosCollection?.datos?.[0];
+
+    if (!datos) {
+      return {};
+    }
+
+    return {
+      nombre: `${datos.nombres || ''} ${datos.apellidos || ''}`.trim(),
+      facultad: datos.facultad || '',
+      documentoIdentificacion: datos.documento || '',
+      correoElectronico: (datos.correo || '').split(';').map((c: string) => c.trim()).filter(Boolean).join('|'),
+      proyectoCurricular: datos.proyecto || '',
+      telefono: datos.telefono || '',
+      celular: datos.celular || '',
+    };
   }
 
   private navigateToEditarSolicitud(solicitud: HistorialSolicitud, readOnly: boolean): void {

@@ -2,6 +2,11 @@ import { Component, Inject, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatStepper } from '@angular/material/stepper';
+import { switchMap } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
+import { PopUpManager } from '../../../managers/popUpManager';
+import { SabaticosMidService } from '../../services/sabaticos-mid.service';
+import { TercerosService } from '../../services/terceros.service';
 
 interface DocenteBasico {
   nombre: string;
@@ -68,6 +73,7 @@ export class CrearSolicitudModalComponent {
   documentoSeleccionado: string | null = null;
   documentosSeleccionados: string[] = [];
   currentStep = 0;
+  guardando = false;
   readonly stepControlPaths: string[][] = [
     [
       'periodoEjecucion',
@@ -104,7 +110,11 @@ export class CrearSolicitudModalComponent {
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly dialogRef: MatDialogRef<CrearSolicitudModalComponent>,
-    @Inject(MAT_DIALOG_DATA) private readonly data: CrearSolicitudModalData
+    @Inject(MAT_DIALOG_DATA) private readonly data: CrearSolicitudModalData,
+    private readonly tercerosService: TercerosService,
+    private readonly sabaticosMidService: SabaticosMidService,
+    private readonly popUpManager: PopUpManager,
+    private readonly translate: TranslateService
   ) {
     this.form = this.formBuilder.group({
       docenteNombre: [{ value: data.docente.nombre, disabled: true }],
@@ -183,10 +193,114 @@ export class CrearSolicitudModalComponent {
       return;
     }
 
-    this.dialogRef.close({
-      ...this.form.getRawValue(),
-      documentos: this.documentoArchivos
+    if (this.guardando) {
+      return;
+    }
+
+    this.guardando = true;
+    const documento = this.data.docente.documentoIdentificacion;
+    const endpoint = `datos_identificacion?query=Activo:true,Numero:${documento}&sortby=FechaCreacion&order=desc`;
+
+    this.tercerosService.get(endpoint).pipe(
+      switchMap((response: any) => {
+        const registros = Array.isArray(response) ? response : [];
+        if (!registros.length || !registros[0]?.TerceroId?.Id) {
+          throw new Error('No se encontró el TerceroId para el documento proporcionado.');
+        }
+
+        const terceroId = registros[0].TerceroId.Id;
+        const payload = {
+          TerceroId: terceroId,
+          TipoSolicitudId: 'NS',
+          formulario: this.buildFormularioJson()
+        };
+
+        return this.sabaticosMidService.post('solicitud', payload);
+      })
+    ).subscribe({
+      next: (response) => {
+        this.guardando = false;
+        this.popUpManager.showToast('HISTORIAL_SOLICITUDES.modal.guardarExitoso');
+        this.dialogRef.close({
+          ...this.form.getRawValue(),
+          documentos: this.documentoArchivos,
+          respuestaServidor: response
+        });
+      },
+      error: (error) => {
+        this.guardando = false;
+        console.error('Error al crear solicitud:', error);
+        this.popUpManager.showErrorToast('HISTORIAL_SOLICITUDES.modal.guardarError');
+      }
     });
+  }
+
+  private valueOrNull(value: unknown): string | null {
+    if (typeof value === 'string' && value.trim()) {
+      return value;
+    }
+    return null;
+  }
+
+  private translateOrNull(value: unknown): string | null {
+    if (typeof value !== 'string' || !value.trim()) {
+      return null;
+    }
+    return this.translate.instant(value);
+  }
+
+  private formatDate(date: Date | null): string | null {
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+      return null;
+    }
+    return date.toISOString().split('T')[0];
+  }
+
+  private buildFormularioJson(): Record<string, unknown> {
+    const v = this.form.getRawValue();
+
+    return {
+      plan_trabajo_ano_sabatico: {
+        detalle_solicitud: {
+          periodo_ejecucion: this.valueOrNull(v.periodoEjecucion),
+          modalidad: this.translateOrNull(v.modalidad),
+          ultimo_sabatico: {
+            fecha_inicio: this.formatDate(v.ultimoSabatico?.start),
+            fecha_fin: this.formatDate(v.ultimoSabatico?.end)
+          },
+          producto_ultimo_sabatico: this.valueOrNull(v.productoUltimo)
+        },
+        objetivos: {
+          objetivo_general: this.valueOrNull(v.objetivoGeneral),
+          objetivos_especificos: this.valueOrNull(v.objetivosEspecificos)
+        },
+        justificacion: this.valueOrNull(v.justificacion),
+        articulacion: {
+          plan_desarrollo_institucional: this.valueOrNull(v.planDesarrolloInstitucional),
+          proyecto_educativo_facultad: this.valueOrNull(v.proyectoEducativoFacultad),
+          proyecto_educativo_programas: this.valueOrNull(v.proyectoEducativoProgramas)
+        },
+        producto_entregable: this.valueOrNull(v.productoEntregable),
+        impacto_alcance: this.valueOrNull(v.impactoAlcance),
+        metodologia: this.valueOrNull(v.metodologia),
+        cronograma: {
+          mes1: this.valueOrNull(v.cronograma?.mes1),
+          mes2: this.valueOrNull(v.cronograma?.mes2),
+          mes3: this.valueOrNull(v.cronograma?.mes3),
+          mes4: this.valueOrNull(v.cronograma?.mes4),
+          mes5: this.valueOrNull(v.cronograma?.mes5),
+          mes6: this.valueOrNull(v.cronograma?.mes6),
+          mes7: this.valueOrNull(v.cronograma?.mes7),
+          mes8: this.valueOrNull(v.cronograma?.mes8),
+          mes9: this.valueOrNull(v.cronograma?.mes9),
+          mes10: this.valueOrNull(v.cronograma?.mes10),
+          mes11: this.valueOrNull(v.cronograma?.mes11),
+          mes12: this.valueOrNull(v.cronograma?.mes12)
+        },
+        presupuesto: this.valueOrNull(v.presupuesto),
+        observaciones: null
+      }
+    };
   }
 
   areStepsValidUpTo(step: number): boolean {
