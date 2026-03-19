@@ -790,7 +790,11 @@
         "opcion7": "Actualización para el dominio de lenguas diferentes a la lengua materna."
       },
       "cancelar": "Cancelar",
-      "guardar": "Guardar"
+      "guardar": "Guardar",
+      "guardarExitoso": "La solicitud se ha guardado correctamente.",
+      "guardarError": "Ocurrió un error al guardar la solicitud. Intente nuevamente.",
+      "cargandoModalidades": "Cargando modalidades...",
+      "errorCargarModalidades": "No se pudieron cargar las modalidades. Intente nuevamente."
     },
     "actions": {
       "add": "Agregar solicitud",

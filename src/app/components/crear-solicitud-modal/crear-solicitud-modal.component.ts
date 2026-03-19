@@ -1,10 +1,12 @@
-import { Component, Inject, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatStepper } from '@angular/material/stepper';
-import { switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { PopUpManager } from '../../../managers/popUpManager';
+import { ParametrosService } from '../../services/parametros.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
 import { TercerosService } from '../../services/terceros.service';
 
@@ -24,23 +26,21 @@ interface DocumentoOption {
   label: string;
 }
 
+interface ModalidadOption {
+  id: number;
+  nombre: string;
+}
+
 @Component({
   selector: 'app-crear-solicitud-modal',
   templateUrl: './crear-solicitud-modal.component.html',
   styleUrl: './crear-solicitud-modal.component.scss'
 })
-export class CrearSolicitudModalComponent {
+export class CrearSolicitudModalComponent implements OnInit {
   @ViewChild('stepper') stepper!: MatStepper;
   readonly form: FormGroup;
-  readonly modalidadOptions = [
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion1',
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion2',
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion3',
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion4',
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion5',
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion6',
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion7'
-  ];
+  modalidadOptions: ModalidadOption[] = [];
+  cargandoModalidades = true;
   readonly cronogramaMeses = [
     { key: 'mes1', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes1' },
     { key: 'mes2', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes2' },
@@ -70,6 +70,7 @@ export class CrearSolicitudModalComponent {
     { key: 'otros', label: 'HISTORIAL_SOLICITUDES.modal.documentos.otros' }
   ];
   readonly documentoArchivos: Record<string, string | null> = {};
+  readonly documentoFiles: Record<string, File> = {};
   documentoSeleccionado: string | null = null;
   documentosSeleccionados: string[] = [];
   currentStep = 0;
@@ -113,6 +114,7 @@ export class CrearSolicitudModalComponent {
     @Inject(MAT_DIALOG_DATA) private readonly data: CrearSolicitudModalData,
     private readonly tercerosService: TercerosService,
     private readonly sabaticosMidService: SabaticosMidService,
+    private readonly parametrosService: ParametrosService,
     private readonly popUpManager: PopUpManager,
     private readonly translate: TranslateService
   ) {
@@ -154,6 +156,10 @@ export class CrearSolicitudModalComponent {
       })
     });
 
+  }
+
+  ngOnInit(): void {
+    this.cargarModalidades();
   }
 
   onCancelar(): void {
@@ -215,7 +221,28 @@ export class CrearSolicitudModalComponent {
           formulario: this.buildFormularioJson()
         };
 
-        return this.sabaticosMidService.post('solicitud', payload);
+        return this.sabaticosMidService.post('solicitud', payload).pipe(
+          map((res: any) => ({ solicitudResponse: res, terceroId }))
+        );
+      }),
+      switchMap(({ solicitudResponse, terceroId }) => {
+        const solicitudId = solicitudResponse?.Data?.Solicitud?.Id;
+        const archivos = Object.values(this.documentoFiles);
+
+        if (!solicitudId || archivos.length === 0) {
+          return of(solicitudResponse);
+        }
+
+        const formData = new FormData();
+        formData.append('solicitud_id', solicitudId.toString());
+        formData.append('tercero_id', terceroId.toString());
+        formData.append('rol_usuario', 'DOCENTE');
+        formData.append('estado_soporte_solicitud', 'PEN');
+        archivos.forEach((file) => formData.append('documentos', file));
+
+        return this.sabaticosMidService.postFile('soporte_solicitud', formData).pipe(
+          map((soporteRes: any) => ({ ...solicitudResponse, soporte: soporteRes }))
+        );
       })
     ).subscribe({
       next: (response) => {
@@ -235,18 +262,39 @@ export class CrearSolicitudModalComponent {
     });
   }
 
+  private cargarModalidades(): void {
+    this.cargandoModalidades = true;
+    this.parametrosService
+      .get('parametro?query=TipoParametroId__CodigoAbreviacion:MODSAB')
+      .subscribe({
+        next: (response: any) => {
+          const datos = response?.Data ?? response ?? [];
+          this.modalidadOptions = (Array.isArray(datos) ? datos : [])
+            .filter((item: any) => item?.Id && item?.Nombre)
+            .map((item: any) => ({ id: item.Id, nombre: item.Nombre }));
+          this.cargandoModalidades = false;
+        },
+        error: (error) => {
+          console.error('Error al cargar modalidades:', error);
+          this.cargandoModalidades = false;
+          this.popUpManager.showErrorToast('HISTORIAL_SOLICITUDES.modal.errorCargarModalidades');
+        }
+      });
+  }
+
+  private getModalidadSeleccionada(): ModalidadOption | null {
+    const modalidadId = this.form.get('modalidad')?.value;
+    if (!modalidadId) {
+      return null;
+    }
+    return this.modalidadOptions.find((m) => m.id === modalidadId) ?? null;
+  }
+
   private valueOrNull(value: unknown): string | null {
     if (typeof value === 'string' && value.trim()) {
       return value;
     }
     return null;
-  }
-
-  private translateOrNull(value: unknown): string | null {
-    if (typeof value !== 'string' || !value.trim()) {
-      return null;
-    }
-    return this.translate.instant(value);
   }
 
   private formatDate(date: Date | null): string | null {
@@ -258,17 +306,25 @@ export class CrearSolicitudModalComponent {
 
   private buildFormularioJson(): Record<string, unknown> {
     const v = this.form.getRawValue();
+    const modalidad = this.getModalidadSeleccionada();
 
     return {
       plan_trabajo_ano_sabatico: {
+        identificacion_docente: {
+          nombre_docente: this.valueOrNull(v.docenteNombre),
+          numero_identificacion: this.valueOrNull(v.docenteIdentificacion),
+          facultad: this.valueOrNull(v.docenteFacultad),
+          proyecto_curricular: this.valueOrNull(v.docenteProyecto)
+        },
         detalle_solicitud: {
           periodo_ejecucion: this.valueOrNull(v.periodoEjecucion),
-          modalidad: this.translateOrNull(v.modalidad),
+          modalidad: modalidad?.nombre ?? null,
+          modalidad_id: modalidad?.id ?? null,
           ultimo_sabatico: {
             fecha_inicio: this.formatDate(v.ultimoSabatico?.start),
-            fecha_fin: this.formatDate(v.ultimoSabatico?.end)
-          },
-          producto_ultimo_sabatico: this.valueOrNull(v.productoUltimo)
+            fecha_fin: this.formatDate(v.ultimoSabatico?.end),
+            producto_ultimo_sabatico: this.valueOrNull(v.productoUltimo)
+          }
         },
         objetivos: {
           objetivo_general: this.valueOrNull(v.objetivoGeneral),
@@ -356,6 +412,7 @@ export class CrearSolicitudModalComponent {
       (documento) => documento !== key
     );
     delete this.documentoArchivos[key];
+    delete this.documentoFiles[key];
   }
 
   getDocumentoNombre(key: string): string | null {
@@ -366,6 +423,11 @@ export class CrearSolicitudModalComponent {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
     this.documentoArchivos[key] = file ? file.name : null;
+    if (file) {
+      this.documentoFiles[key] = file;
+    } else {
+      delete this.documentoFiles[key];
+    }
   }
 
   trackDocumento(_: number, item: { key: string }): string {
