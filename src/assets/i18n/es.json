@@ -610,6 +610,9 @@
   "HISTORIAL_SOLICITUDES": {
     "title": "Solicitudes de Sabáticos",
     "description": "Módulo para la gestión de las solicitudes de sabáticos",
+    "cargandoSolicitudes": "Cargando solicitudes...",
+    "errorCargarSolicitudes": "No se pudieron cargar las solicitudes. Intente nuevamente.",
+    "sinSolicitudes": "No se encontraron solicitudes registradas.",
     "tableAriaLabel": "Tabla de historial de solicitudes",
     "columns": {
       "id": "ID",
@@ -801,7 +804,6 @@
       "editAria": "Editar solicitud",
       "reviewAria": "Revisar solicitud",
       "viewAria": "Ver solicitud",
-      "sendAria": "Enviar solicitud",
       "startSabaticoAria": "Iniciar sabático",
       "confirmSendTitle": "Confirmar envío",
       "confirmSendDocenteDraft": "¿Está seguro/a de enviar a revisión su solicitud de año sabático?",

@@ -19,6 +19,7 @@ interface DocenteBasico {
 
 interface CrearSolicitudModalData {
   docente: DocenteBasico;
+  terceroId?: number | null;
 }
 
 interface DocumentoOption {
@@ -204,17 +205,13 @@ export class CrearSolicitudModalComponent implements OnInit {
     }
 
     this.guardando = true;
-    const documento = this.data.docente.documentoIdentificacion;
-    const endpoint = `datos_identificacion?query=Activo:true,Numero:${documento}&sortby=FechaCreacion&order=desc`;
 
-    this.tercerosService.get(endpoint).pipe(
-      switchMap((response: any) => {
-        const registros = Array.isArray(response) ? response : [];
-        if (!registros.length || !registros[0]?.TerceroId?.Id) {
-          throw new Error('No se encontró el TerceroId para el documento proporcionado.');
-        }
+    const terceroId$ = this.data.terceroId
+      ? of(this.data.terceroId)
+      : this.obtenerTerceroId();
 
-        const terceroId = registros[0].TerceroId.Id;
+    terceroId$.pipe(
+      switchMap((terceroId: number) => {
         const payload = {
           TerceroId: terceroId,
           TipoSolicitudId: 'NS',
@@ -260,6 +257,21 @@ export class CrearSolicitudModalComponent implements OnInit {
         this.popUpManager.showErrorToast('HISTORIAL_SOLICITUDES.modal.guardarError');
       }
     });
+  }
+
+  private obtenerTerceroId() {
+    const documento = this.data.docente.documentoIdentificacion;
+    const endpoint = `datos_identificacion?query=Activo:true,Numero:${documento}&sortby=FechaCreacion&order=desc`;
+
+    return this.tercerosService.get(endpoint).pipe(
+      map((response: any) => {
+        const registros = Array.isArray(response) ? response : [];
+        if (!registros.length || !registros[0]?.TerceroId?.Id) {
+          throw new Error('No se encontró el TerceroId para el documento proporcionado.');
+        }
+        return registros[0].TerceroId.Id as number;
+      })
+    );
   }
 
   private cargarModalidades(): void {

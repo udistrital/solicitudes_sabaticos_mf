@@ -5,9 +5,12 @@ import { MatDateRangeInput } from '@angular/material/datepicker';
 import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
+import { switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { CrearSolicitudModalComponent } from '../crear-solicitud-modal/crear-solicitud-modal.component';
 import { ImplicitAutenticationService } from '../../services/implicit_authentication.service';
+import { SabaticosCrudService } from '../../services/sabaticos-crud.service';
+import { TercerosService } from '../../services/terceros.service';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { RequestManager } from '../../../managers/requestManager';
 
@@ -166,80 +169,10 @@ export class HistorialSolicitudesComponent {
     categoriaActual: ''
   };
 
-  solicitudes: HistorialSolicitud[] = [
-    {
-      id: 'SOL-001',
-      fechaRadicado: '2026-01-15',
-      estado: 'Borrador'
-    },
-    {
-      id: 'SOL-002',
-      fechaRadicado: '2026-01-20',
-      estado: 'Radicada / Enviada a SA'
-    },
-    {
-      id: 'SOL-003',
-      fechaRadicado: '2026-01-25',
-      estado: 'Recepcionada a SA'
-    },
-    {
-      id: 'SOL-004',
-      fechaRadicado: '2026-02-25',
-      estado: 'En verificación de SA'
-    },
-    {
-      id: 'SOL-005',
-      fechaRadicado: '2026-03-02',
-      estado: 'Subsanación solicitada'
-    },
-    {
-      id: 'SOL-006',
-      fechaRadicado: '2026-05-14',
-      estado: 'Trámite externo CF'
-    },
-    {
-      id: 'SOL-007',
-      fechaRadicado: '2026-06-10',
-      estado: 'Respuesta CF registrada'
-    },
-    {
-      id: 'SOL-008',
-      fechaRadicado: '2026-11-25',
-      estado: 'Enviada a SG'
-    },
-    {
-      id: 'SOL-009',
-      fechaRadicado: '2026-07-07',
-      estado: 'Recepcionada a SG'
-    },
-    {
-      id: 'SOL-010',
-      fechaRadicado: '2026-08-06',
-      estado: 'Trámite externo CA'
-    },
-    {
-      id: 'SOL-011',
-      fechaRadicado: '2026-09-12',
-      estado: 'Decisión CA registrada'
-    },
-    {
-      id: 'SOL-012',
-      fechaRadicado: '2026-10-01',
-      estado: 'Finalizada No aprobada'
-    },
-    {
-      id: 'SOL-013',
-      fechaRadicado: '2026-11-18',
-      estado: 'Aprobada pendiente Resolución'
-    },
-    {
-      id: 'SOL-014',
-      fechaRadicado: '2026-12-05',
-      estado: 'Finalizada Aprobada con Resolución'
-    }
-  ];
-
-  filteredSolicitudes: HistorialSolicitud[] = [...this.solicitudes];
+  terceroId: number | null = null;
+  cargandoSolicitudes = true;
+  solicitudes: HistorialSolicitud[] = [];
+  filteredSolicitudes: HistorialSolicitud[] = [];
 
   readonly pageSizeOptions = [5, 10, 25];
   pageSize = 5;
@@ -298,7 +231,9 @@ export class HistorialSolicitudesComponent {
     private readonly destroyRef: DestroyRef,
     private readonly autenticationService: ImplicitAutenticationService,
     private readonly popUpManager: PopUpManager,
-    private readonly requestManager: RequestManager
+    private readonly requestManager: RequestManager,
+    private readonly tercerosService: TercerosService,
+    private readonly sabaticosCrudService: SabaticosCrudService
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
     this.dateAdapter.setLocale(this.currentLang);
@@ -333,6 +268,7 @@ export class HistorialSolicitudesComponent {
 
     this.autenticationService.getDocument().then((documento: any) => {
       this.loadDocenteInfo(documento);
+      this.loadTerceroIdAndSolicitudes(documento);
     });
   }
 
@@ -407,18 +343,6 @@ export class HistorialSolicitudesComponent {
     return !this.shouldShowViewOnly(solicitud);
   }
 
-  shouldShowSendButton(solicitud: HistorialSolicitud): boolean {
-    if (this.shouldShowViewOnly(solicitud) || this.shouldShowIniciarSabatico(solicitud)) {
-      return false;
-    }
-
-    if (this.isDocente) {
-      return this.isDocenteEditable(solicitud);
-    }
-
-    return true;
-  }
-
   getEditIcon(): string {
     return (this.isContratista || this.isCoordinador) ? 'library_add_check' : 'edit';
   }
@@ -469,6 +393,63 @@ export class HistorialSolicitudesComponent {
       });
   }
 
+  private loadTerceroIdAndSolicitudes(documento: string): void {
+    this.cargandoSolicitudes = true;
+    const endpoint = `datos_identificacion?query=Activo:true,Numero:${documento}&sortby=FechaCreacion&order=desc`;
+
+    this.tercerosService.get(endpoint).pipe(
+      switchMap((response: any) => {
+        const registros = Array.isArray(response) ? response : [];
+        if (!registros.length || !registros[0]?.TerceroId?.Id) {
+          throw new Error('No se encontró el TerceroId para el documento proporcionado.');
+        }
+
+        this.terceroId = registros[0].TerceroId.Id;
+        const historialEndpoint = `historial_solicitud?query=TerceroId:${this.terceroId},Activo:true&limit=100`;
+        return this.sabaticosCrudService.get(historialEndpoint);
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: (response: any) => {
+        const data = response?.Data ?? response ?? [];
+        this.solicitudes = this.mapHistorialResponse(Array.isArray(data) ? data : []);
+        this.applyFilters();
+        this.cargandoSolicitudes = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar solicitudes:', error);
+        this.solicitudes = [];
+        this.applyFilters();
+        this.cargandoSolicitudes = false;
+        this.popUpManager.showErrorToast('HISTORIAL_SOLICITUDES.errorCargarSolicitudes');
+      }
+    });
+  }
+
+  private mapHistorialResponse(data: any[]): HistorialSolicitud[] {
+    return data.map((item) => {
+      const estadoNombre = item.EstadoSolicitudId?.Nombre ?? 'Borrador';
+      const fechaRaw = item.FechaCreacion ?? '';
+      const fechaFormateada = this.formatApiDate(fechaRaw);
+
+      return {
+        id: String(item.SolicitudId?.Id ?? item.Id ?? ''),
+        fechaRadicado: fechaFormateada,
+        estado: estadoNombre as EstadoSolicitud
+      };
+    });
+  }
+
+  private formatApiDate(fechaRaw: string): string {
+    if (!fechaRaw) return '';
+    const dateObj = new Date(fechaRaw);
+    if (Number.isNaN(dateObj.getTime())) {
+      const match = fechaRaw.match(/^(\d{4}-\d{2}-\d{2})/);
+      return match ? match[1] : '';
+    }
+    return this.formatLocalDate(dateObj);
+  }
+
   private parseDocenteResponse(response: string): Partial<DocenteInfo> {
     const data = JSON.parse(response);
     const datos = data?.datosCollection?.datos?.[0];
@@ -509,24 +490,6 @@ export class HistorialSolicitudesComponent {
     });
   }
 
-  async onEnviar(solicitud: HistorialSolicitud): Promise<void> {
-    const isDocenteBorrador = this.isDocente && this.isDocenteEditable(solicitud);
-    const textKey = isDocenteBorrador
-      ? 'HISTORIAL_SOLICITUDES.actions.confirmSendDocenteDraft'
-      : 'HISTORIAL_SOLICITUDES.actions.confirmSendGeneral';
-
-    const result = await this.popUpManager.showConfirmAlert(
-      this.translate.instant(textKey),
-      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmSendTitle')
-    );
-
-    if (!result?.isConfirmed) {
-      return;
-    }
-
-    console.log(`Enviar solicitud ${solicitud.id}`);
-  }
-
   onIniciarSabatico(id: string): void {
     console.log(`Iniciar sabático para solicitud ${id}`);
   }
@@ -548,7 +511,8 @@ export class HistorialSolicitudesComponent {
           documentoIdentificacion: this.docenteInfo.documentoIdentificacion,
           facultad: this.docenteInfo.facultad,
           proyectoCurricular: this.docenteInfo.proyectoCurricular
-        }
+        },
+        terceroId: this.terceroId
       }
     });
 
@@ -559,23 +523,28 @@ export class HistorialSolicitudesComponent {
           return;
         }
 
-        const nuevaId = this.getNextSolicitudId();
-        const fechaRadicado = this.formatLocalDate(new Date());
-        const detalle = result as SolicitudDetalle;
+        this.recargarSolicitudes();
+      });
+  }
 
-        this.solicitudes = [
-          ...this.solicitudes,
-          {
-            id: nuevaId,
-            fechaRadicado,
-            estado: 'Borrador',
-            detalle: {
-              ...detalle,
-              documentos: detalle.documentos ?? {}
-            }
-          }
-        ];
-        this.applyFilters();
+  private recargarSolicitudes(): void {
+    if (!this.terceroId) return;
+
+    this.cargandoSolicitudes = true;
+    const endpoint = `historial_solicitud?query=TerceroId:${this.terceroId},Activo:true&limit=100`;
+    this.sabaticosCrudService.get(endpoint)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: any) => {
+          const data = response?.Data ?? response ?? [];
+          this.solicitudes = this.mapHistorialResponse(Array.isArray(data) ? data : []);
+          this.applyFilters();
+          this.cargandoSolicitudes = false;
+        },
+        error: () => {
+          this.cargandoSolicitudes = false;
+          this.popUpManager.showErrorToast('HISTORIAL_SOLICITUDES.errorCargarSolicitudes');
+        }
       });
   }
 
@@ -667,18 +636,6 @@ export class HistorialSolicitudesComponent {
         .replace(/\p{Diacritic}/gu, '')
         .toLowerCase()
       : '';
-  }
-
-  private getNextSolicitudId(): string {
-    const maxId = this.solicitudes
-      .map((solicitud) => {
-        const match = solicitud.id.match(/\d+/);
-        return match ? Number(match[0]) : 0;
-      })
-      .reduce((max, value) => (value > max ? value : max), 0);
-
-    const nextId = maxId + 1;
-    return `SOL-${String(nextId).padStart(3, '0')}`;
   }
 
   private formatLocalDate(date: Date): string {
