@@ -57,11 +57,15 @@
         {{ 'HISTORIAL_SOLICITUDES.modal.sectionModalidad' | translate }}
       </h3>
       <div class="crear-solicitud-modal__grid crear-solicitud-modal__grid--modalidad">
-        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+        <div *ngIf="cargandoModalidades" class="crear-solicitud-modal__loading">
+          <mat-spinner diameter="32"></mat-spinner>
+          <span>{{ 'HISTORIAL_SOLICITUDES.modal.cargandoModalidades' | translate }}</span>
+        </div>
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field" *ngIf="!cargandoModalidades">
           <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.modalidad.hint' | translate }}</mat-label>
           <mat-select formControlName="modalidad" panelClass="crear-solicitud-modal__modalidad-panel">
-            <mat-option *ngFor="let modalidad of modalidadOptions" [value]="modalidad">
-              <span class="crear-solicitud-modal__modalidad-option">{{ modalidad | translate }}</span>
+            <mat-option *ngFor="let modalidad of modalidadOptions" [value]="modalidad.id">
+              <span class="crear-solicitud-modal__modalidad-option">{{ modalidad.nombre }}</span>
             </mat-option>
           </mat-select>
         </mat-form-field>

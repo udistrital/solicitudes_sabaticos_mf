@@ -610,6 +610,9 @@
   "HISTORIAL_SOLICITUDES": {
     "title": "Solicitudes de Sabáticos",
     "description": "Módulo para la gestión de las solicitudes de sabáticos",
+    "cargandoSolicitudes": "Cargando solicitudes...",
+    "errorCargarSolicitudes": "No se pudieron cargar las solicitudes. Intente nuevamente.",
+    "sinSolicitudes": "No se encontraron solicitudes registradas.",
     "tableAriaLabel": "Tabla de historial de solicitudes",
     "columns": {
       "id": "ID",
@@ -790,14 +793,17 @@
         "opcion7": "Actualización para el dominio de lenguas diferentes a la lengua materna."
       },
       "cancelar": "Cancelar",
-      "guardar": "Guardar"
+      "guardar": "Guardar",
+      "guardarExitoso": "La solicitud se ha guardado correctamente.",
+      "guardarError": "Ocurrió un error al guardar la solicitud. Intente nuevamente.",
+      "cargandoModalidades": "Cargando modalidades...",
+      "errorCargarModalidades": "No se pudieron cargar las modalidades. Intente nuevamente."
     },
     "actions": {
       "add": "Agregar solicitud",
       "editAria": "Editar solicitud",
       "reviewAria": "Revisar solicitud",
       "viewAria": "Ver solicitud",
-      "sendAria": "Enviar solicitud",
       "startSabaticoAria": "Iniciar sabático",
       "confirmSendTitle": "Confirmar envío",
       "confirmSendDocenteDraft": "¿Está seguro/a de enviar a revisión su solicitud de año sabático?",

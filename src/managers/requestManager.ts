@@ -61,6 +61,25 @@ export class RequestManager {
   }
 
   /**
+   * Perform a GET http request expecting an XML response
+   * @param endpoint service's end-point
+   * @returns Observable<string>
+   */
+  getXml(endpoint: any) {
+    const acces_token = window.localStorage.getItem('access_token');
+    const headers = acces_token
+      ? new HttpHeaders({ 'Authorization': `Bearer ${acces_token}` })
+      : new HttpHeaders();
+
+    return this.http.get(`${this.path}${endpoint}`, {
+      headers,
+      responseType: 'text'
+    }).pipe(
+      catchError(this.errManager.handleError.bind(this)),
+    );
+  }
+
+  /**
    * Perform a POST http request
    * @param endpoint service's end-point
    * @param element data to send as JSON
