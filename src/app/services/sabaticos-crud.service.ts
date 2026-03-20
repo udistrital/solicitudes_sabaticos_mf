@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { HttpErrorManager } from '../../managers/errorManager';
+import { RequestManager } from '../../managers/requestManager';
 
 // TODO: Cuando se habilite access_token en producción, reemplazar HttpClient directo
 // por RequestManager para que las peticiones incluyan el header Authorization.
@@ -16,12 +17,14 @@ export class SabaticosCrudService {
 
   constructor(
     private http: HttpClient,
-    private errManager: HttpErrorManager
-  ) {}
+    private errManager: HttpErrorManager,
+    private requestManager: RequestManager
+  ) {
+    this.requestManager.setPath('SABATICOS_CRUD_SERVICE');
+  }
 
   get(endpoint: string) {
-    return this.http.get<any>(`${this.basePath}${endpoint}`).pipe(
-      catchError(this.errManager.handleError.bind(this)),
-    );
+    this.requestManager.setPath('SABATICOS_CRUD_SERVICE');
+    return this.requestManager.get(endpoint);
   }
 }
