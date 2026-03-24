@@ -284,13 +284,6 @@
           </div>
         </div>
 
-        <!--
-        Sección comentada temporalmente:
-        depende de funciones/propiedades comentadas en el TS
-        (documentosDisponibles, documentoSeleccionado, onAgregarDocumento,
-        documentosSeleccionadosDetalle, getDocumentoNombre,
-        canPrevisualizarDocumento, onPrevisualizarDocumento,
-        onDocumentoChange, onEliminarDocumento).
         <div class="editar-solicitud__section">
           <h3 class="editar-solicitud__section-title">
             {{ 'HISTORIAL_SOLICITUDES.modal.sectionDocumentos' | translate }}
@@ -346,7 +339,6 @@
             </div>
           </div>
         </div>
-        -->
 
         <div class="editar-solicitud__section" *ngIf="showSeccionSecretaria">
           <div class="editar-solicitud__summary editar-solicitud__summary--secretaria">
@@ -363,15 +355,6 @@
               </mat-form-field>
             </div>
 
-            <!--
-            Subsección comentada temporalmente:
-            depende de funciones/propiedades comentadas en el TS
-            (secretariaDocumentosDisponibles, secretariaDocumentoSeleccionado,
-            onAgregarDocumentoSecretaria, secretariaDocumentosSeleccionadosDetalle,
-            getDocumentoSecretariaNombre, canPrevisualizarDocumentoSecretaria,
-            onPrevisualizarDocumentoSecretaria, onDocumentoSecretariaChange,
-            onEliminarDocumentoSecretaria, isDocumentoSecretariaChecked,
-            onToggleDocumentoSecretariaCheck).
             <h4 class="editar-solicitud__subsection-title">
               {{ 'HISTORIAL_SOLICITUDES.edit.secretaria.documentos.title' | translate }}
             </h4>
@@ -459,7 +442,6 @@
                 <tr mat-row *matRowDef="let row; columns: secretariaTablaColumnas"></tr>
               </table>
             </div>
-            -->
           </div>
         </div>
 

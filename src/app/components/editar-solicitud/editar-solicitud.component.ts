@@ -14,10 +14,8 @@ import {
   SECRETARIA_TABLA_COLUMNAS
 } from './constant';
 import {
-  CronogramaActividad,
   DocumentoOption,
   EstadoSolicitud,
-  FormularioDetalle,
   FormularioInit,
   FormularioSolicitud,
   FormularioSolicitudFormValue,
@@ -43,6 +41,7 @@ export class EditarSolicitudComponent {
 
   formulario: FormularioSolicitud | null = null;
   formularioInit: FormularioInit | null = null;
+  formularioRecordId: number | null = null;
   documentos: any = null;
   currentLang = 'es';
   modalidadesOptions: any[] = [];
@@ -53,16 +52,16 @@ export class EditarSolicitudComponent {
 
   // Estado de documentos (docente)
   documentoArchivos: Record<string, string | null> = {};
-  // documentoObjectUrls: Record<string, string> = {};
+  documentoObjectUrls: Record<string, string> = {};
   documentoSeleccionado: string | null = null;
   documentosSeleccionados: string[] = [];
 
   // Estado de documentos (secretaría)
-  // secretariaDocumentoArchivos: Record<string, string | null> = {};
-  // secretariaDocumentoObjectUrls: Record<string, string> = {};
-  // secretariaDocumentoChecks: Record<string, boolean> = {};
-  // secretariaDocumentoSeleccionado: string | null = null;
-  // secretariaDocumentosSeleccionados: string[] = [];
+  secretariaDocumentoArchivos: Record<string, string | null> = {};
+  secretariaDocumentoObjectUrls: Record<string, string> = {};
+  secretariaDocumentoChecks: Record<string, boolean> = {};
+  secretariaDocumentoSeleccionado: string | null = null;
+  secretariaDocumentosSeleccionados: string[] = [];
 
   // Catálogos
   readonly cronogramaMeses = CRONOGRAMA_MESES;
@@ -81,20 +80,30 @@ export class EditarSolicitudComponent {
     private readonly parametrosService: ParametrosService,
     private readonly translate: TranslateService
   ) {
+    const solicitudId = (this.router.getCurrentNavigation()?.extras?.state ?? history.state)?.['solicitud']?.id;
+
     forkJoin({
-      formularioResponse: this.sabaticosCrudService.get('formulario_solicitud/1'),
+      formularioResponse: this.sabaticosCrudService.get(
+        `formulario_solicitud?query=SolicitudId:${solicitudId},Activo:True&limit=100`
+      ),
       documentosResponse: this.sabaticosCrudService.get(
-        'soporte_solicitud?query=SolicitudId:1,EstadoSoporteSolicitudId.CodigoAbreviacion:RAD'
+        `soporte_solicitud?query=SolicitudId:${solicitudId},EstadoSoporteSolicitudId.CodigoAbreviacion:RAD`
       ),
       modalidadesResponse: this.parametrosService.get('parametro?query=TipoParametroId__CodigoAbreviacion:MODSAB')
     }).subscribe({
       next: ({ formularioResponse, documentosResponse, modalidadesResponse }: any) => {
-        const contenido = JSON.parse(formularioResponse.Data.Contenido ?? '{}');
-        this.formulario = contenido ?? contenido;
-        this.documentos = documentosResponse.Data;
-        this.modalidadesOptions = modalidadesResponse.Data;
-        // this.applySoportesFromBackend(this.documentos);
+        const data = formularioResponse?.Data ?? formularioResponse ?? [];
+        const formularioRaw = Array.isArray(data) && data.length > 0 ? data[0] : null;
+
+        if (formularioRaw) {
+          this.formularioRecordId = formularioRaw.Id ?? null;
+          this.formulario = this.parseContenidoToFormulario(formularioRaw);
+        }
+
+        this.documentos = documentosResponse?.Data ?? documentosResponse;
+        this.modalidadesOptions = modalidadesResponse?.Data ?? modalidadesResponse ?? [];
         this.initializeSolicitudFromNavigation();
+        this.applySoportesFromBackend(Array.isArray(this.documentos) ? this.documentos : []);
         this.applyFormPermissions();
       },
       error: (error) => {
@@ -198,45 +207,45 @@ export class EditarSolicitudComponent {
   // =========================
   // Getters / estado derivado
   // =========================
-  // get documentosDisponibles(): DocumentoOption[] {
-  //   return this.documentoOptions.filter(
-  //     (documento) =>
-  //       documento.key === this.otrosDocumentoKey
-  //       || !this.documentosSeleccionados.includes(documento.key)
-  //   );
-  // }
+  get documentosDisponibles(): DocumentoOption[] {
+    return this.documentoOptions.filter(
+      (documento) =>
+        documento.key === this.otrosDocumentoKey
+        || !this.documentosSeleccionados.includes(documento.key)
+    );
+  }
 
-  // get documentosSeleccionadosDetalle(): DocumentoOption[] {
-  //   return this.documentosSeleccionados
-  //     .map((key) => {
-  //       const documento = this.documentoOptions.find(
-  //         (option) => option.key === this.getDocumentoBaseKey(key)
-  //       );
-  //       return documento ? { key, label: documento.label } : null;
-  //     })
-  //     .filter((documento): documento is DocumentoOption => Boolean(documento));
-  // }
+  get documentosSeleccionadosDetalle(): DocumentoOption[] {
+    return this.documentosSeleccionados
+      .map((key) => {
+        const documento = this.documentoOptions.find(
+          (option) => option.key === this.getDocumentoBaseKey(key)
+        );
+        return documento ? { key, label: documento.label } : null;
+      })
+      .filter((documento): documento is DocumentoOption => Boolean(documento));
+  }
 
-  // get secretariaDocumentosDisponibles(): DocumentoOption[] {
-  //   return this.secretariaDocumentoOptions.filter((documento) =>
-  //     this.canGestionarDocumentoSecretaria(documento.key)
-  //     && (
-  //       documento.key === this.otrosSecretariaKey
-  //       || !this.secretariaDocumentosSeleccionados.includes(documento.key)
-  //     )
-  //   );
-  // }
+  get secretariaDocumentosDisponibles(): DocumentoOption[] {
+    return this.secretariaDocumentoOptions.filter((documento) =>
+      this.canGestionarDocumentoSecretaria(documento.key)
+      && (
+        documento.key === this.otrosSecretariaKey
+        || !this.secretariaDocumentosSeleccionados.includes(documento.key)
+      )
+    );
+  }
 
-  // get secretariaDocumentosSeleccionadosDetalle(): DocumentoOption[] {
-  //   return this.secretariaDocumentosSeleccionados
-  //     .map((key) => {
-  //       const documento = this.secretariaDocumentoOptions.find(
-  //         (option) => option.key === this.getDocumentoBaseKey(key)
-  //       );
-  //       return documento ? { key, label: documento.label } : null;
-  //     })
-  //     .filter((documento): documento is DocumentoOption => Boolean(documento));
-  // }
+  get secretariaDocumentosSeleccionadosDetalle(): DocumentoOption[] {
+    return this.secretariaDocumentosSeleccionados
+      .map((key) => {
+        const documento = this.secretariaDocumentoOptions.find(
+          (option) => option.key === this.getDocumentoBaseKey(key)
+        );
+        return documento ? { key, label: documento.label } : null;
+      })
+      .filter((documento): documento is DocumentoOption => Boolean(documento));
+  }
 
   get showSeccionSecretaria(): boolean {
     if (!this.formularioInit) {
@@ -276,11 +285,11 @@ export class EditarSolicitudComponent {
     return baseKey === this.otrosSecretariaKey;
   }
 
-  // get documentosAdjuntosCount(): number {
-  //   return Object.values(this.documentoArchivos).filter(
-  //     (nombre): nombre is string => Boolean(nombre && nombre.trim())
-  //   ).length;
-  // }
+  get documentosAdjuntosCount(): number {
+    return Object.values(this.documentoArchivos).filter(
+      (nombre): nombre is string => Boolean(nombre && nombre.trim())
+    ).length;
+  }
 
   get canEnviarRevision(): boolean {
     if (this.isReadOnly || !this.form || !this.formulario) {
@@ -305,28 +314,28 @@ export class EditarSolicitudComponent {
   // =========================
   // Acciones documentos docente
   // =========================
-  // onAgregarDocumento(): void {
-  //   if (!this.canEditarFormularioPrincipal) {
-  //     return;
-  //   }
+  onAgregarDocumento(): void {
+    if (!this.canEditarFormularioPrincipal) {
+      return;
+    }
 
-  //   if (!this.documentoSeleccionado) {
-  //     return;
-  //   }
+    if (!this.documentoSeleccionado) {
+      return;
+    }
 
-  //   const keyToAdd = this.buildDocumentoKey(this.documentoSeleccionado, this.documentosSeleccionados);
-  //   if (!this.documentosSeleccionados.includes(keyToAdd)) {
-  //     this.documentosSeleccionados = [
-  //       ...this.documentosSeleccionados,
-  //       keyToAdd
-  //     ];
-  //     if (!(keyToAdd in this.documentoArchivos)) {
-  //       this.documentoArchivos[keyToAdd] = null;
-  //     }
-  //   }
+    const keyToAdd = this.buildDocumentoKey(this.documentoSeleccionado, this.documentosSeleccionados);
+    if (!this.documentosSeleccionados.includes(keyToAdd)) {
+      this.documentosSeleccionados = [
+        ...this.documentosSeleccionados,
+        keyToAdd
+      ];
+      if (!(keyToAdd in this.documentoArchivos)) {
+        this.documentoArchivos[keyToAdd] = null;
+      }
+    }
 
-  //   this.documentoSeleccionado = null;
-  // }
+    this.documentoSeleccionado = null;
+  }
 
   async onEliminarDocumento(key: string): Promise<void> {
     if (!this.canEditarFormularioPrincipal) {
@@ -341,89 +350,88 @@ export class EditarSolicitudComponent {
     if (!result?.isConfirmed) {
       return;
     }
+
+    this.documentosSeleccionados = this.documentosSeleccionados.filter(
+      (documento) => documento !== key
+    );
+    this.revokeDocumentoObjectUrl(key);
+    delete this.documentoArchivos[key];
   }
 
-  //   this.documentosSeleccionados = this.documentosSeleccionados.filter(
-  //     (documento) => documento !== key
-  //   );
-  //   this.revokeDocumentoObjectUrl(key);
-  //   delete this.documentoArchivos[key];
-  // }
+  getDocumentoNombre(key: string): string | null {
+    return this.documentoArchivos[key] ?? null;
+  }
 
-  // getDocumentoNombre(key: string): string | null {
-  //   return this.documentoArchivos[key] ?? null;
-  // }
+  onDocumentoChange(key: string, event: Event): void {
+    if (!this.canEditarFormularioPrincipal) {
+      return;
+    }
 
-  // onDocumentoChange(key: string, event: Event): void {
-  //   if (!this.canEditarFormularioPrincipal) {
-  //     return;
-  //   }
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    if (file && !this.isPdfFile(file)) {
+      this.popUpManager.showErrorAlert(
+        this.translate.instant('HISTORIAL_SOLICITUDES.modal.documentos.errorSoloPdf')
+      );
+      input.value = '';
+      return;
+    }
 
-  //   const input = event.target as HTMLInputElement;
-  //   const file = input.files?.[0] ?? null;
-  //   if (file && !this.isPdfFile(file)) {
-  //     this.popUpManager.showErrorAlert(
-  //       this.translate.instant('HISTORIAL_SOLICITUDES.modal.documentos.errorSoloPdf')
-  //     );
-  //     input.value = '';
-  //     return;
-  //   }
+    this.revokeDocumentoObjectUrl(key);
+    if (file) {
+      this.documentoObjectUrls[key] = URL.createObjectURL(file);
+    }
+    this.documentoArchivos[key] = file ? file.name : null;
+  }
 
-  //   this.revokeDocumentoObjectUrl(key);
-  //   if (file) {
-  //     this.documentoObjectUrls[key] = URL.createObjectURL(file);
-  //   }
-  //   this.documentoArchivos[key] = file ? file.name : null;
-  // }
+  canPrevisualizarDocumento(key: string): boolean {
+    return Boolean(this.documentoObjectUrls[key]);
+  }
 
-  // canPrevisualizarDocumento(key: string): boolean {
-  //   return Boolean(this.documentoObjectUrls[key]);
-  // }
+  onPrevisualizarDocumento(key: string): void {
+    const previewUrl = this.documentoObjectUrls[key];
+    if (!previewUrl) {
+      return;
+    }
 
-  // onPrevisualizarDocumento(key: string): void {
-  //   const previewUrl = this.documentoObjectUrls[key];
-  //   if (!previewUrl) {
-  //     return;
-  //   }
-
-  //   window.open(previewUrl, '_blank', 'noopener,noreferrer');
-  // }
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
+  }
 
   // =========================
   // Acciones documentos secretaría
   // =========================
-  // onAgregarDocumentoSecretaria(): void {
-  //   if (!this.canEditarSeccionSecretaria) {
-  //     return;
-  //   }
+  onAgregarDocumentoSecretaria(): void {
+    if (!this.canEditarSeccionSecretaria) {
+      return;
+    }
 
-  //   if (!this.secretariaDocumentoSeleccionado) {
-  //     return;
-  //   }
+    if (!this.secretariaDocumentoSeleccionado) {
+      return;
+    }
 
-  //   if (!this.canGestionarDocumentoSecretaria(this.secretariaDocumentoSeleccionado)) {
-  //     return;
-  //   }
+    if (!this.canGestionarDocumentoSecretaria(this.secretariaDocumentoSeleccionado)) {
+      return;
+    }
 
-  //   const keyToAdd = this.buildDocumentoKey(
-  //     this.secretariaDocumentoSeleccionado,
-  //     this.secretariaDocumentosSeleccionados
-  //   );
-  //   if (!this.secretariaDocumentosSeleccionados.includes(keyToAdd)) {
-  //     this.secretariaDocumentosSeleccionados = [
-  //       ...this.secretariaDocumentosSeleccionados,
-  //       keyToAdd
-  //     ];
-  //     if (!(keyToAdd in this.secretariaDocumentoArchivos)) {
-  //       this.secretariaDocumentoArchivos[keyToAdd] = null;
-  //     }
-  //     if (!(keyToAdd in this.secretariaDocumentoChecks)) {
-  //       this.secretariaDocumentoChecks[keyToAdd] = false;
-  //     }
-  //   }
+    const keyToAdd = this.buildDocumentoKey(
+      this.secretariaDocumentoSeleccionado,
+      this.secretariaDocumentosSeleccionados
+    );
+    if (!this.secretariaDocumentosSeleccionados.includes(keyToAdd)) {
+      this.secretariaDocumentosSeleccionados = [
+        ...this.secretariaDocumentosSeleccionados,
+        keyToAdd
+      ];
+      if (!(keyToAdd in this.secretariaDocumentoArchivos)) {
+        this.secretariaDocumentoArchivos[keyToAdd] = null;
+      }
+      if (!(keyToAdd in this.secretariaDocumentoChecks)) {
+        this.secretariaDocumentoChecks[keyToAdd] = false;
+      }
+    }
 
-  //   this.secretariaDocumentoSeleccionado = null;
-  // }
+    this.secretariaDocumentoSeleccionado = null;
+  }
 
   async onEliminarDocumentoSecretaria(key: string): Promise<void> {
     if (!this.canGestionarDocumentoSecretaria(key)) {
@@ -438,78 +446,77 @@ export class EditarSolicitudComponent {
     if (!result?.isConfirmed) {
       return;
     }
+
+    this.secretariaDocumentosSeleccionados = this.secretariaDocumentosSeleccionados.filter(
+      (documento) => documento !== key
+    );
+    this.revokeSecretariaDocumentoObjectUrl(key);
+    delete this.secretariaDocumentoArchivos[key];
+    delete this.secretariaDocumentoChecks[key];
   }
 
-  //   this.secretariaDocumentosSeleccionados = this.secretariaDocumentosSeleccionados.filter(
-  //     (documento) => documento !== key
-  //   );
-  //   this.revokeSecretariaDocumentoObjectUrl(key);
-  //   delete this.secretariaDocumentoArchivos[key];
-  //   delete this.secretariaDocumentoChecks[key];
-  // }
+  getDocumentoSecretariaNombre(key: string): string | null {
+    return this.secretariaDocumentoArchivos[key] ?? null;
+  }
 
-  // getDocumentoSecretariaNombre(key: string): string | null {
-  //   return this.secretariaDocumentoArchivos[key] ?? null;
-  // }
+  onDocumentoSecretariaChange(key: string, event: Event): void {
+    if (!this.canGestionarDocumentoSecretaria(key)) {
+      return;
+    }
 
-  // onDocumentoSecretariaChange(key: string, event: Event): void {
-  //   if (!this.canGestionarDocumentoSecretaria(key)) {
-  //     return;
-  //   }
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    if (file && !this.isPdfFile(file)) {
+      this.popUpManager.showErrorAlert(
+        this.translate.instant('HISTORIAL_SOLICITUDES.modal.documentos.errorSoloPdf')
+      );
+      input.value = '';
+      return;
+    }
 
-  //   const input = event.target as HTMLInputElement;
-  //   const file = input.files?.[0] ?? null;
-  //   if (file && !this.isPdfFile(file)) {
-  //     this.popUpManager.showErrorAlert(
-  //       this.translate.instant('HISTORIAL_SOLICITUDES.modal.documentos.errorSoloPdf')
-  //     );
-  //     input.value = '';
-  //     return;
-  //   }
+    this.revokeSecretariaDocumentoObjectUrl(key);
+    if (file) {
+      this.secretariaDocumentoObjectUrls[key] = URL.createObjectURL(file);
+    }
+    this.secretariaDocumentoArchivos[key] = file ? file.name : null;
+    this.secretariaDocumentoChecks[key] = Boolean(file);
+  }
 
-  //   this.revokeSecretariaDocumentoObjectUrl(key);
-  //   if (file) {
-  //     this.secretariaDocumentoObjectUrls[key] = URL.createObjectURL(file);
-  //   }
-  //   this.secretariaDocumentoArchivos[key] = file ? file.name : null;
-  //   this.secretariaDocumentoChecks[key] = Boolean(file);
-  // }
+  canPrevisualizarDocumentoSecretaria(key: string): boolean {
+    return Boolean(this.secretariaDocumentoObjectUrls[key]);
+  }
 
-  // canPrevisualizarDocumentoSecretaria(key: string): boolean {
-  //   return Boolean(this.secretariaDocumentoObjectUrls[key]);
-  // }
+  canVerDocumentoSecretaria(key: string): boolean {
+    return Boolean(this.secretariaDocumentoObjectUrls[key] || this.secretariaDocumentoArchivos[key]);
+  }
 
-  // canVerDocumentoSecretaria(key: string): boolean {
-  //   return Boolean(this.secretariaDocumentoObjectUrls[key] || this.secretariaDocumentoArchivos[key]);
-  // }
+  onPrevisualizarDocumentoSecretaria(key: string): void {
+    const previewUrl = this.secretariaDocumentoObjectUrls[key];
+    if (previewUrl) {
+      window.open(previewUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
 
-  // onPrevisualizarDocumentoSecretaria(key: string): void {
-  //   const previewUrl = this.secretariaDocumentoObjectUrls[key];
-  //   if (previewUrl) {
-  //     window.open(previewUrl, '_blank', 'noopener,noreferrer');
-  //     return;
-  //   }
+    this.popUpManager.showAlert(
+      'Sin previsualización',
+      'El botón está habilitado para pruebas. La previsualización estará disponible cuando se conecte el servicio del backend.'
+    );
+  }
 
-  //   this.popUpManager.showAlert(
-  //     'Sin previsualización',
-  //     'El botón está habilitado para pruebas. La previsualización estará disponible cuando se conecte el servicio del backend.'
-  //   );
-  // }
+  isDocumentoSecretariaChecked(key: string): boolean {
+    return Boolean(this.secretariaDocumentoChecks[key]);
+  }
 
-  // isDocumentoSecretariaChecked(key: string): boolean {
-  //   return Boolean(this.secretariaDocumentoChecks[key]);
-  // }
-
-  // onToggleDocumentoSecretariaCheck(key: string, checked: boolean): void {
-  //   this.secretariaDocumentoChecks[key] = checked;
-  // }
+  onToggleDocumentoSecretariaCheck(key: string, checked: boolean): void {
+    this.secretariaDocumentoChecks[key] = checked;
+  }
 
   // =========================
   // Acciones de formulario
   // =========================
-  // trackDocumento(_: number, item: { key: string }): string {
-  //   return item.key;
-  // }
+  trackDocumento(_: number, item: { key: string }): string {
+    return item.key;
+  }
 
   hasCronogramaValue(key: string): boolean {
     const value = this.form?.get(`cronograma.${key}`)?.value as string | null | undefined;
@@ -523,29 +530,14 @@ export class EditarSolicitudComponent {
 
     this.syncFormularioFromForm();
 
-    // const formValue = this.form.getRawValue() as Omit<
-    //   FormularioDetalle,
-    //   'id' | 'fechaRadicado' | 'estado' | 'documentos' | 'documentosSecretaria'
-    // > & {
-    //   cronograma: CronogramaActividad;
-    // };
-
-    // this.formularioDetalle = {
-    //   ...this.formularioDetalle,
-    //   ...formValue,
-    //   cronograma: { ...formValue.cronograma },
-    //   documentos: { ...this.documentoArchivos },
-    //   documentosSecretaria: { ...this.secretariaDocumentoArchivos }
-    // };
-
-    const body: GuardarBorradorBody ={
-      Id: 1,
+    const body: GuardarBorradorBody = {
+      Id: this.formularioRecordId ?? 0,
       Contenido: JSON.stringify(this.formulario),
       Activo: true,
       FechaModificacion: this.formatTimestampForBackend(),
       FechaCreacion: this.formularioInit ? this.formatTimestampForBackend() : '',
       SolicitudId: {
-        Id: 1,
+        Id: Number(this.formularioInit?.id) || 0,
       }
     };
 
@@ -574,35 +566,18 @@ export class EditarSolicitudComponent {
 
     this.syncFormularioFromForm();
 
-    // const isDocenteBorrador = this.rol === 'DOCENTE'
-    //   && (this.formularioDetalle.estado === 'Borrador' || this.formularioDetalle.estado === 'Subsanación solicitada');
-    // const textKey = isDocenteBorrador
-    //   ? 'HISTORIAL_SOLICITUDES.actions.confirmSendDocenteDraft'
-    //   : 'HISTORIAL_SOLICITUDES.actions.confirmSendGeneral';
-
-    // const result = await this.popUpManager.showConfirmAlert(
-    //   this.translate.instant(textKey),
-    //   this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmSendTitle')
-    // );
-
-    // if (!result?.isConfirmed) {
-    //   return;
-    // }
-
-    // console.log(`Enviar a revisión solicitud ${this.formularioDetalle.id}`);
-
-    const body : RadicarBody = {
-      Id: 1,
-      SolicitudId: 1,
-      DocumentosId: [1,2],
-      FormularioId: 1,
+    const body: RadicarBody = {
+      Id: Number(this.formularioInit?.id) || 0,
+      SolicitudId: Number(this.formularioInit?.id) || 0,
+      DocumentosId: [1, 2],
+      FormularioId: this.formularioRecordId ?? 0,
       FechaCreacion: this.formatTimestampForBackend(),
       Formulario: this.formulario
     };
 
     console.log('Enviar a revisión con body:', body);
 
-    this.sabaticosMidService.post('solicitud/radicar/1', body).subscribe({
+    this.sabaticosMidService.post(`solicitud/radicar/${this.formularioInit?.id ?? 0}`, body).subscribe({
       next: (response) => {
         console.log('Solicitud enviada a revisión exitosamente:', response);
         this.popUpManager.showSuccessAlert(
@@ -625,20 +600,9 @@ export class EditarSolicitudComponent {
 
     this.syncFormularioFromForm();
 
-    // const result = await this.popUpManager.showConfirmAlert(
-    //   this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmSendSecretaria'),
-    //   this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmSendTitle')
-    // );
-
-    // if (!result?.isConfirmed) {
-    //   return;
-    // }
-
-    // console.log(`Enviar a revisión de secretaria general solicitud ${this.formularioDetalle.id}`);
-
     const body: SecretariaGeneralBody = {
       TerceroId: 7173,
-      SolicitudId: 1,
+      SolicitudId: Number(this.formularioInit?.id) || 0,
       Justificacion: this.formulario.observacionesSecretaria ?? '',
       EstadoSolicitud: value ? 'ENVIADA_SG' : 'SUBSANACION_SOLICITADA',
       EstadoSoporte: value ? 'APROB' : 'NOAPROB',
@@ -666,51 +630,185 @@ export class EditarSolicitudComponent {
   // =========================
   // Helpers privados
   // =========================
-  // private applySoportesFromBackend(soportes: any[]): void {
-  //   if (!Array.isArray(soportes) || !soportes.length) {
-  //     return;
-  //   }
+  private applySoportesFromBackend(soportes: any[]): void {
+    if (!Array.isArray(soportes) || !soportes.length) {
+      return;
+    }
 
-  //   const baseKeys = this.documentoOptions
-  //     .filter((option) => option.key !== this.otrosDocumentoKey)
-  //     .map((option) => option.key);
+    const baseKeys = this.documentoOptions
+      .filter((option) => option.key !== this.otrosDocumentoKey)
+      .map((option) => option.key);
 
-  //   const selectedKeys: string[] = [];
-  //   const archivos: Record<string, string | null> = {};
+    const selectedKeys: string[] = [];
+    const archivos: Record<string, string | null> = {};
 
-  //   soportes.forEach((soporte, index) => {
-  //     const fallbackKey = baseKeys[index] ?? this.otrosDocumentoKey;
-  //     const key = this.buildDocumentoKey(fallbackKey, selectedKeys);
-  //     const documentoId = soporte?.DocumentoId;
+    soportes.forEach((soporte, index) => {
+      const fallbackKey = baseKeys[index] ?? this.otrosDocumentoKey;
+      const key = this.buildDocumentoKey(fallbackKey, selectedKeys);
+      const documentoId = soporte?.DocumentoId;
 
-  //     selectedKeys.push(key);
-  //     archivos[key] = documentoId
-  //       ? `Documento_${documentoId}.pdf`
-  //       : 'Documento cargado';
-  //   });
+      selectedKeys.push(key);
+      archivos[key] = documentoId
+        ? `Documento_${documentoId}.pdf`
+        : 'Documento cargado';
+    });
 
-  //   this.documentosSeleccionados = selectedKeys;
-  //   this.documentoArchivos = {
-  //     ...this.documentoArchivos,
-  //     ...archivos
-  //   };
-  // }
+    this.documentosSeleccionados = selectedKeys;
+    this.documentoArchivos = {
+      ...this.documentoArchivos,
+      ...archivos
+    };
+  }
 
-  // private revokeDocumentoObjectUrl(key: string): void {
-  //   const url = this.documentoObjectUrls[key];
-  //   if (url) {
-  //     URL.revokeObjectURL(url);
-  //     delete this.documentoObjectUrls[key];
-  //   }
-  // }
+  private revokeDocumentoObjectUrl(key: string): void {
+    const url = this.documentoObjectUrls[key];
+    if (url) {
+      URL.revokeObjectURL(url);
+      delete this.documentoObjectUrls[key];
+    }
+  }
 
-  // private revokeSecretariaDocumentoObjectUrl(key: string): void {
-  //   const url = this.secretariaDocumentoObjectUrls[key];
-  //   if (url) {
-  //     URL.revokeObjectURL(url);
-  //     delete this.secretariaDocumentoObjectUrls[key];
-  //   }
-  // }
+  private revokeSecretariaDocumentoObjectUrl(key: string): void {
+    const url = this.secretariaDocumentoObjectUrls[key];
+    if (url) {
+      URL.revokeObjectURL(url);
+      delete this.secretariaDocumentoObjectUrls[key];
+    }
+  }
+
+  private parseContenidoToFormulario(formularioRaw: any): FormularioSolicitud | null {
+    if (!formularioRaw?.Contenido) return null;
+
+    try {
+      const contenido = typeof formularioRaw.Contenido === 'string'
+        ? JSON.parse(formularioRaw.Contenido)
+        : formularioRaw.Contenido;
+
+      if (contenido?.plan_trabajo_ano_sabatico) {
+        return this.mapPlanTrabajoToFormulario(contenido.plan_trabajo_ano_sabatico);
+      }
+
+      if (contenido?.docente) {
+        return this.sanitizeFormulario(contenido as FormularioSolicitud);
+      }
+
+      return null;
+    } catch (e) {
+      console.error('Error al parsear Contenido del formulario:', e);
+      return null;
+    }
+  }
+
+  private mapPlanTrabajoToFormulario(plan: any): FormularioSolicitud {
+    const ident = plan.identificacion_docente ?? {};
+    const detalleSol = plan.detalle_solicitud ?? {};
+    const ultimoSab = detalleSol.ultimo_sabatico ?? {};
+    const objetivos = plan.objetivos ?? {};
+    const articulacion = plan.articulacion ?? {};
+    const cronograma = plan.cronograma ?? {};
+
+    return {
+      docente: {
+        nombre: ident.nombre_docente ?? '',
+        identificacion: ident.numero_identificacion ?? '',
+        facultad: ident.facultad ?? '',
+        proyecto_curricular: ident.proyecto_curricular ?? ''
+      },
+      detalle_solicitud: {
+        modalidad: detalleSol.modalidad ?? '',
+        modalidadId: detalleSol.modalidad_id ?? 0,
+        periodo_ejecucion: detalleSol.periodo_ejecucion ?? '',
+        producto_ultimo_sabatico: ultimoSab.producto_ultimo_sabatico ?? '',
+        ultimo_sabatico: {
+          fecha_inicio: ultimoSab.fecha_inicio ?? '',
+          fecha_fin: ultimoSab.fecha_fin ?? '',
+          producto_ultimo_sabatico: ultimoSab.producto_ultimo_sabatico ?? ''
+        }
+      },
+      objetivos: {
+        objetivo_general: objetivos.objetivo_general ?? '',
+        objetivos_especificos: objetivos.objetivos_especificos ?? ''
+      },
+      articulacion: {
+        plan_desarrollo_institucional: articulacion.plan_desarrollo_institucional ?? '',
+        proyecto_educativo_facultad: articulacion.proyecto_educativo_facultad ?? '',
+        proyecto_educativo_programas: articulacion.proyecto_educativo_programas ?? ''
+      },
+      cronograma: {
+        mes1: cronograma.mes1 ?? '',
+        mes2: cronograma.mes2 ?? '',
+        mes3: cronograma.mes3 ?? '',
+        mes4: cronograma.mes4 ?? '',
+        mes5: cronograma.mes5 ?? '',
+        mes6: cronograma.mes6 ?? '',
+        mes7: cronograma.mes7 ?? '',
+        mes8: cronograma.mes8 ?? '',
+        mes9: cronograma.mes9 ?? '',
+        mes10: cronograma.mes10 ?? '',
+        mes11: cronograma.mes11 ?? '',
+        mes12: cronograma.mes12 ?? ''
+      },
+      justificacion: plan.justificacion ?? '',
+      producto_entregable: plan.producto_entregable ?? '',
+      impacto_alcance: plan.impacto_alcance ?? '',
+      metodologia: plan.metodologia ?? '',
+      presupuesto: plan.presupuesto ?? '',
+      observaciones: plan.observaciones ?? '',
+      observacionesSecretaria: plan.observacionesSecretaria ?? ''
+    };
+  }
+
+  private sanitizeFormulario(formulario: FormularioSolicitud): FormularioSolicitud {
+    return {
+      docente: {
+        nombre: formulario.docente?.nombre ?? '',
+        identificacion: formulario.docente?.identificacion ?? '',
+        facultad: formulario.docente?.facultad ?? '',
+        proyecto_curricular: formulario.docente?.proyecto_curricular ?? ''
+      },
+      detalle_solicitud: {
+        modalidad: formulario.detalle_solicitud?.modalidad ?? '',
+        modalidadId: formulario.detalle_solicitud?.modalidadId ?? 0,
+        periodo_ejecucion: formulario.detalle_solicitud?.periodo_ejecucion ?? '',
+        producto_ultimo_sabatico: formulario.detalle_solicitud?.producto_ultimo_sabatico ?? '',
+        ultimo_sabatico: {
+          fecha_inicio: formulario.detalle_solicitud?.ultimo_sabatico?.fecha_inicio ?? '',
+          fecha_fin: formulario.detalle_solicitud?.ultimo_sabatico?.fecha_fin ?? '',
+          producto_ultimo_sabatico: formulario.detalle_solicitud?.ultimo_sabatico?.producto_ultimo_sabatico ?? ''
+        }
+      },
+      objetivos: {
+        objetivo_general: formulario.objetivos?.objetivo_general ?? '',
+        objetivos_especificos: formulario.objetivos?.objetivos_especificos ?? ''
+      },
+      articulacion: {
+        plan_desarrollo_institucional: formulario.articulacion?.plan_desarrollo_institucional ?? '',
+        proyecto_educativo_facultad: formulario.articulacion?.proyecto_educativo_facultad ?? '',
+        proyecto_educativo_programas: formulario.articulacion?.proyecto_educativo_programas ?? ''
+      },
+      cronograma: {
+        mes1: formulario.cronograma?.mes1 ?? '',
+        mes2: formulario.cronograma?.mes2 ?? '',
+        mes3: formulario.cronograma?.mes3 ?? '',
+        mes4: formulario.cronograma?.mes4 ?? '',
+        mes5: formulario.cronograma?.mes5 ?? '',
+        mes6: formulario.cronograma?.mes6 ?? '',
+        mes7: formulario.cronograma?.mes7 ?? '',
+        mes8: formulario.cronograma?.mes8 ?? '',
+        mes9: formulario.cronograma?.mes9 ?? '',
+        mes10: formulario.cronograma?.mes10 ?? '',
+        mes11: formulario.cronograma?.mes11 ?? '',
+        mes12: formulario.cronograma?.mes12 ?? ''
+      },
+      justificacion: formulario.justificacion ?? '',
+      producto_entregable: formulario.producto_entregable ?? '',
+      impacto_alcance: formulario.impacto_alcance ?? '',
+      metodologia: formulario.metodologia ?? '',
+      presupuesto: formulario.presupuesto ?? '',
+      observaciones: formulario.observaciones ?? '',
+      observacionesSecretaria: formulario.observacionesSecretaria ?? ''
+    };
+  }
 
   private getDocumentoBaseKey(key: string): string {
     if (key.startsWith(this.otrosDocumentoPrefijo)) {
@@ -722,25 +820,25 @@ export class EditarSolicitudComponent {
     return key;
   }
 
-  // private buildDocumentoKey(baseKey: string, selectedKeys: string[]): string {
-  //   if (baseKey === this.otrosDocumentoKey) {
-  //     return this.buildUniqueKey(this.otrosDocumentoPrefijo, selectedKeys);
-  //   }
-  //   if (baseKey === this.otrosSecretariaKey) {
-  //     return this.buildUniqueKey(this.otrosSecretariaPrefijo, selectedKeys);
-  //   }
-  //   return baseKey;
-  // }
+  private buildDocumentoKey(baseKey: string, selectedKeys: string[]): string {
+    if (baseKey === this.otrosDocumentoKey) {
+      return this.buildUniqueKey(this.otrosDocumentoPrefijo, selectedKeys);
+    }
+    if (baseKey === this.otrosSecretariaKey) {
+      return this.buildUniqueKey(this.otrosSecretariaPrefijo, selectedKeys);
+    }
+    return baseKey;
+  }
 
-  // private buildUniqueKey(prefix: string, selectedKeys: string[]): string {
-  //   let index = 1;
-  //   let dynamicKey = `${prefix}${index}`;
-  //   while (selectedKeys.includes(dynamicKey)) {
-  //     index += 1;
-  //     dynamicKey = `${prefix}${index}`;
-  //   }
-  //   return dynamicKey;
-  // }
+  private buildUniqueKey(prefix: string, selectedKeys: string[]): string {
+    let index = 1;
+    let dynamicKey = `${prefix}${index}`;
+    while (selectedKeys.includes(dynamicKey)) {
+      index += 1;
+      dynamicKey = `${prefix}${index}`;
+    }
+    return dynamicKey;
+  }
 
   private disableFormularioPrincipal(): void {
     if (!this.form) {
@@ -894,28 +992,28 @@ export class EditarSolicitudComponent {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   }
 
-  // private hasDocumentosSecretariaObligatorios(): boolean {
-  //   const requiredKeysByRole: Record<string, string[]> = {
-  //     CONTRATISTA: ['revisionRequisitosSabatico', 'actaConsejoFacultad'],
-  //     COORDINADOR: ['actaConsejoAcademico', 'resolucionConsejoAcademico']
-  //   };
-  //   const requiredKeys = requiredKeysByRole[this.rol] ?? [];
+  private hasDocumentosSecretariaObligatorios(): boolean {
+    const requiredKeysByRole: Record<string, string[]> = {
+      CONTRATISTA: ['revisionRequisitosSabatico', 'actaConsejoFacultad'],
+      COORDINADOR: ['actaConsejoAcademico', 'resolucionConsejoAcademico']
+    };
+    const requiredKeys = requiredKeysByRole[this.rol] ?? [];
 
-  //   if (!requiredKeys.length) {
-  //     return false;
-  //   }
+    if (!requiredKeys.length) {
+      return false;
+    }
 
-  //   return requiredKeys.every((key) => {
-  //     const nombre = this.secretariaDocumentoArchivos[key];
-  //     return Boolean(nombre && nombre.trim());
-  //   });
-  // }
+    return requiredKeys.every((key) => {
+      const nombre = this.secretariaDocumentoArchivos[key];
+      return Boolean(nombre && nombre.trim());
+    });
+  }
 
-  // private isPdfFile(file: File): boolean {
-  //   const fileName = file.name.toLowerCase();
-  //   const isPdfByExtension = fileName.endsWith('.pdf');
-  //   const isPdfByMime = file.type === 'application/pdf';
-  //   return isPdfByExtension || isPdfByMime;
-  // }
+  private isPdfFile(file: File): boolean {
+    const fileName = file.name.toLowerCase();
+    const isPdfByExtension = fileName.endsWith('.pdf');
+    const isPdfByMime = file.type === 'application/pdf';
+    return isPdfByExtension || isPdfByMime;
+  }
 
 }

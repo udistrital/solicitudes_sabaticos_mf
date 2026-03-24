@@ -319,109 +319,12 @@ export class HistorialSolicitudesComponent {
     return solicitud.detalle?.docenteNombre || this.docenteInfo.nombre;
   }
 
-  cargandoFormulario = false;
-
   onEditar(solicitud: HistorialSolicitud): void {
-    this.fetchFormularioAndNavigate(solicitud, false);
+    this.navigateToEditarSolicitud(solicitud, false);
   }
 
   onVisualizar(solicitud: HistorialSolicitud): void {
-    this.fetchFormularioAndNavigate(solicitud, true);
-  }
-
-  private fetchFormularioAndNavigate(solicitud: HistorialSolicitud, readOnly: boolean): void {
-    if (this.cargandoFormulario) return;
-
-    this.cargandoFormulario = true;
-    const endpoint = `formulario_solicitud?query=SolicitudId:${solicitud.id},Activo:true&limit=100`;
-
-    this.sabaticosCrudService.get(endpoint)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (response: any) => {
-          this.cargandoFormulario = false;
-          const data = response?.Data ?? response ?? [];
-          const formularioRaw = Array.isArray(data) && data.length > 0 ? data[0] : null;
-          const detalle = this.parseContenidoToDetalle(formularioRaw);
-
-          this.navigateToEditarSolicitud(solicitud, readOnly, detalle);
-        },
-        error: (error) => {
-          this.cargandoFormulario = false;
-          console.error('Error al cargar formulario:', error);
-          this.popUpManager.showErrorToast('HISTORIAL_SOLICITUDES.errorCargarFormulario');
-        }
-      });
-  }
-
-  private parseContenidoToDetalle(formularioRaw: any): Partial<SolicitudDetalle> | null {
-    if (!formularioRaw?.Contenido) return null;
-
-    try {
-      const contenido = typeof formularioRaw.Contenido === 'string'
-        ? JSON.parse(formularioRaw.Contenido)
-        : formularioRaw.Contenido;
-
-      const plan = contenido?.plan_trabajo_ano_sabatico;
-      if (!plan) return null;
-
-      const ident = plan.identificacion_docente ?? {};
-      const detalleSol = plan.detalle_solicitud ?? {};
-      const ultimoSab = detalleSol.ultimo_sabatico ?? {};
-      const objetivos = plan.objetivos ?? {};
-      const articulacion = plan.articulacion ?? {};
-      const cronograma = plan.cronograma ?? {};
-
-      return {
-        docenteNombre: ident.nombre_docente ?? '',
-        docenteIdentificacion: ident.numero_identificacion ?? '',
-        docenteFacultad: ident.facultad ?? '',
-        docenteProyecto: ident.proyecto_curricular ?? '',
-        periodoEjecucion: detalleSol.periodo_ejecucion ?? '',
-        modalidad: detalleSol.modalidad ?? '',
-        ultimoSabatico: {
-          start: this.parseDateString(ultimoSab.fecha_inicio),
-          end: this.parseDateString(ultimoSab.fecha_fin)
-        },
-        productoUltimo: ultimoSab.producto_ultimo_sabatico ?? '',
-        objetivoGeneral: objetivos.objetivo_general ?? '',
-        objetivosEspecificos: objetivos.objetivos_especificos ?? '',
-        justificacion: plan.justificacion ?? '',
-        planDesarrolloInstitucional: articulacion.plan_desarrollo_institucional ?? '',
-        proyectoEducativoFacultad: articulacion.proyecto_educativo_facultad ?? '',
-        proyectoEducativoProgramas: articulacion.proyecto_educativo_programas ?? '',
-        productoEntregable: plan.producto_entregable ?? '',
-        impactoAlcance: plan.impacto_alcance ?? '',
-        metodologia: plan.metodologia ?? '',
-        presupuesto: plan.presupuesto ?? '',
-        observaciones: plan.observaciones ?? '',
-        cronograma: {
-          mes1: cronograma.mes1 ?? '',
-          mes2: cronograma.mes2 ?? '',
-          mes3: cronograma.mes3 ?? '',
-          mes4: cronograma.mes4 ?? '',
-          mes5: cronograma.mes5 ?? '',
-          mes6: cronograma.mes6 ?? '',
-          mes7: cronograma.mes7 ?? '',
-          mes8: cronograma.mes8 ?? '',
-          mes9: cronograma.mes9 ?? '',
-          mes10: cronograma.mes10 ?? '',
-          mes11: cronograma.mes11 ?? '',
-          mes12: cronograma.mes12 ?? ''
-        }
-      };
-    } catch (e) {
-      console.error('Error al parsear Contenido del formulario:', e);
-      return null;
-    }
-  }
-
-  private parseDateString(value: string | null | undefined): Date | null {
-    if (!value) return null;
-    const [year, month, day] = value.split('-').map(Number);
-    if (!year || !month || !day) return null;
-    const date = new Date(year, month - 1, day);
-    return Number.isNaN(date.getTime()) ? null : date;
+    this.navigateToEditarSolicitud(solicitud, true);
   }
 
   shouldShowViewOnly(solicitud: HistorialSolicitud): boolean {
@@ -569,8 +472,7 @@ export class HistorialSolicitudesComponent {
 
   private navigateToEditarSolicitud(
     solicitud: HistorialSolicitud,
-    readOnly: boolean,
-    detalle?: Partial<SolicitudDetalle> | null
+    readOnly: boolean
   ): void {
     this.router.navigate(['solicitudes/editar'], {
       state: {
@@ -580,8 +482,6 @@ export class HistorialSolicitudesComponent {
           id: solicitud.id,
           fechaRadicado: solicitud.fechaRadicado,
           estado: solicitud.estado,
-          ...(detalle ?? {}),
-          ...(solicitud.detalle ?? {})
         }
       }
     });
