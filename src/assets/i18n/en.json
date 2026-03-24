@@ -580,6 +580,9 @@
   "HISTORIAL_SOLICITUDES": {
     "title": "Sabbatical Requests",
     "description": "Module for managing sabbatical requests",
+    "cargandoSolicitudes": "Loading requests...",
+    "errorCargarSolicitudes": "Failed to load requests. Please try again.",
+    "sinSolicitudes": "No requests found.",
     "tableAriaLabel": "Request history table",
     "columns": {
       "id": "ID",
@@ -594,7 +597,6 @@
       "editAria": "Edit request",
       "reviewAria": "Review request",
       "viewAria": "View request",
-      "sendAria": "Send request",
       "startSabaticoAria": "Start sabbatical",
       "confirmSendTitle": "Confirm submission",
       "confirmSendDocenteDraft": "Are you sure you want to submit your sabbatical year request for review?",
@@ -772,7 +774,11 @@
         "opcion7": "Updating for mastery of languages other than the mother tongue."
       },
       "cancelar": "Cancel",
-      "guardar": "Save"
+      "guardar": "Save",
+      "guardarExitoso": "The request has been saved successfully.",
+      "guardarError": "An error occurred while saving the request. Please try again.",
+      "cargandoModalidades": "Loading modalities...",
+      "errorCargarModalidades": "Could not load modalities. Please try again."
     }
   },
   "gestion_horarios": {

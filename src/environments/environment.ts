@@ -25,6 +25,7 @@ export const environment = {
     'https://autenticacion.portaloas.udistrital.edu.co/apioas/plan_trabajo_docente_crud/v1/',
   TERCEROS_SERVICE:
     'https://autenticacion.portaloas.udistrital.edu.co/apioas/terceros_crud/v1/',
-  SABATICOS_MID_SERVICE: 'http://localhost:8081/v1/',
-  SABATICOS_CRUD_SERVICE: 'http://localhost:8080/v1/',
+  SABATICOS_MID_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/sabaticos_mid/v1/',
+  ACADEMICA_MID_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/academica_jbpm/v2/',
+  SABATICOS_CRUD_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/sabaticos_crud/v1/',
 };
