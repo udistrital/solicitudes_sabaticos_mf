@@ -78,7 +78,8 @@ export class EditarSolicitudComponent {
     private readonly popUpManager: PopUpManager,
     private readonly sabaticosCrudService: SabaticosCrudService,
     private readonly sabaticosMidService: SabaticosMidService,
-    private readonly parametrosService: ParametrosService
+    private readonly parametrosService: ParametrosService,
+    private readonly translate: TranslateService
   ) {
     forkJoin({
       formularioResponse: this.sabaticosCrudService.get('formulario_solicitud/1'),
@@ -253,27 +254,27 @@ export class EditarSolicitudComponent {
     return !this.isReadOnly && this.rol !== 'COORDINADOR' && this.rol !== 'CONTRATISTA';
   }
 
-  // canGestionarDocumentoSecretaria(key: string): boolean {
-  //   const baseKey = this.getDocumentoBaseKey(key);
+  canGestionarDocumentoSecretaria(key: string): boolean {
+    const baseKey = this.getDocumentoBaseKey(key);
 
-  //   if (!this.canEditarSeccionSecretaria) {
-  //     return false;
-  //   }
+    if (!this.canEditarSeccionSecretaria) {
+      return false;
+    }
 
-  //   if (this.rol === 'CONTRATISTA') {
-  //     return baseKey === 'revisionRequisitosSabatico'
-  //       || baseKey === 'actaConsejoFacultad'
-  //       || baseKey === this.otrosSecretariaKey;
-  //   }
+    if (this.rol === 'CONTRATISTA') {
+      return baseKey === 'revisionRequisitosSabatico'
+        || baseKey === 'actaConsejoFacultad'
+        || baseKey === this.otrosSecretariaKey;
+    }
 
-  //   if (this.rol === 'COORDINADOR') {
-  //     return baseKey === 'actaConsejoAcademico'
-  //       || baseKey === 'resolucionConsejoAcademico'
-  //       || baseKey === this.otrosSecretariaKey;
-  //   }
+    if (this.rol === 'COORDINADOR') {
+      return baseKey === 'actaConsejoAcademico'
+        || baseKey === 'resolucionConsejoAcademico'
+        || baseKey === this.otrosSecretariaKey;
+    }
 
-  //   return baseKey === this.otrosSecretariaKey;
-  // }
+    return baseKey === this.otrosSecretariaKey;
+  }
 
   // get documentosAdjuntosCount(): number {
   //   return Object.values(this.documentoArchivos).filter(
@@ -340,6 +341,7 @@ export class EditarSolicitudComponent {
     if (!result?.isConfirmed) {
       return;
     }
+  }
 
   //   this.documentosSeleccionados = this.documentosSeleccionados.filter(
   //     (documento) => documento !== key
@@ -436,6 +438,7 @@ export class EditarSolicitudComponent {
     if (!result?.isConfirmed) {
       return;
     }
+  }
 
   //   this.secretariaDocumentosSeleccionados = this.secretariaDocumentosSeleccionados.filter(
   //     (documento) => documento !== key
@@ -709,15 +712,15 @@ export class EditarSolicitudComponent {
   //   }
   // }
 
-  // private getDocumentoBaseKey(key: string): string {
-  //   if (key.startsWith(this.otrosDocumentoPrefijo)) {
-  //     return this.otrosDocumentoKey;
-  //   }
-  //   if (key.startsWith(this.otrosSecretariaPrefijo)) {
-  //     return this.otrosSecretariaKey;
-  //   }
-  //   return key;
-  // }
+  private getDocumentoBaseKey(key: string): string {
+    if (key.startsWith(this.otrosDocumentoPrefijo)) {
+      return this.otrosDocumentoKey;
+    }
+    if (key.startsWith(this.otrosSecretariaPrefijo)) {
+      return this.otrosSecretariaKey;
+    }
+    return key;
+  }
 
   // private buildDocumentoKey(baseKey: string, selectedKeys: string[]): string {
   //   if (baseKey === this.otrosDocumentoKey) {
