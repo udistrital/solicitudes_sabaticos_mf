@@ -30,6 +30,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { CrearSolicitudModalComponent } from './components/crear-solicitud-modal/crear-solicitud-modal.component';
 import { EditarSolicitudComponent } from './components/editar-solicitud/editar-solicitud.component';
@@ -113,6 +114,7 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
     MatSnackBarModule,
     MatTableModule,
     MatCardModule,
+    MatCheckboxModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

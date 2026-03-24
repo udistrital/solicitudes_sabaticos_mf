@@ -283,6 +283,18 @@
     margin: 0;
     color: #6b7280;
   }
+
+  &__tabla-documentos {
+    margin-top: 0.5rem;
+    overflow-x: auto;
+    border-radius: 0.75rem;
+    background-color: #ffffff;
+  }
+
+  &__mat-table {
+    width: 100%;
+    min-width: 520px;
+  }
 }
 
 :host ::ng-deep .editar-solicitud__summary--secretaria .mat-mdc-text-field-wrapper {
@@ -330,6 +342,15 @@
 :host ::ng-deep .editar-solicitud__cronograma-panel .mat-expansion-panel-header:hover,
 :host ::ng-deep .editar-solicitud__cronograma-panel .mat-expansion-panel-header.mat-expanded:hover {
   background-color: #e0f2ff !important;
+}
+
+:host ::ng-deep .editar-solicitud__mat-table .mat-mdc-header-row {
+  background-color: #f3f4f6;
+}
+
+:host ::ng-deep .editar-solicitud__mat-table .mat-mdc-header-cell {
+  font-weight: 700;
+  color: #1f2933;
 }
 
 @media (max-width: 768px) {
