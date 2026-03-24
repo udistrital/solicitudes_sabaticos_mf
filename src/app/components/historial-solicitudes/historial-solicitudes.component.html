@@ -1,3 +1,7 @@
+<div class="historial-solicitudes__overlay" *ngIf="cargandoFormulario">
+  <mat-spinner diameter="48"></mat-spinner>
+</div>
+
 <mat-card class="historial-solicitudes">
   <mat-card-header class="historial-solicitudes__encabezado">
     <mat-card-title>{{ 'HISTORIAL_SOLICITUDES.title' | translate }}</mat-card-title>
