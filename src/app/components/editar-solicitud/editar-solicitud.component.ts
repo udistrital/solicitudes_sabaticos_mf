@@ -327,10 +327,19 @@ export class EditarSolicitudComponent {
   //   this.documentoSeleccionado = null;
   // }
 
-  // onEliminarDocumento(key: string): void {
-  //   if (!this.canEditarFormularioPrincipal) {
-  //     return;
-  //   }
+  async onEliminarDocumento(key: string): Promise<void> {
+    if (!this.canEditarFormularioPrincipal) {
+      return;
+    }
+
+    const result = await this.popUpManager.showConfirmAlert(
+      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmDeleteDoc'),
+      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmDeleteDocTitle')
+    );
+
+    if (!result?.isConfirmed) {
+      return;
+    }
 
   //   this.documentosSeleccionados = this.documentosSeleccionados.filter(
   //     (documento) => documento !== key
@@ -414,10 +423,19 @@ export class EditarSolicitudComponent {
   //   this.secretariaDocumentoSeleccionado = null;
   // }
 
-  // onEliminarDocumentoSecretaria(key: string): void {
-  //   if (!this.canGestionarDocumentoSecretaria(key)) {
-  //     return;
-  //   }
+  async onEliminarDocumentoSecretaria(key: string): Promise<void> {
+    if (!this.canGestionarDocumentoSecretaria(key)) {
+      return;
+    }
+
+    const result = await this.popUpManager.showConfirmAlert(
+      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmDeleteDoc'),
+      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmDeleteDocTitle')
+    );
+
+    if (!result?.isConfirmed) {
+      return;
+    }
 
   //   this.secretariaDocumentosSeleccionados = this.secretariaDocumentosSeleccionados.filter(
   //     (documento) => documento !== key

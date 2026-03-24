@@ -227,6 +227,9 @@
       <h3 class="crear-solicitud-modal__section-title">
         {{ 'HISTORIAL_SOLICITUDES.modal.sectionDocumentos' | translate }}
       </h3>
+      <p class="crear-solicitud-modal__documento-help">
+        {{ 'HISTORIAL_SOLICITUDES.modal.documentos.soloPdf' | translate }}
+      </p>
       <div class="crear-solicitud-modal__documento-selector">
         <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
           <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.documentos.seleccionar' | translate }}</mat-label>
@@ -254,7 +257,7 @@
           <div class="crear-solicitud-modal__documento-actions">
             <label class="crear-solicitud-modal__documento-action" mat-stroked-button>
               {{ 'HISTORIAL_SOLICITUDES.modal.documentos.cargar' | translate }}
-              <input type="file" (change)="onDocumentoChange(documento.key, $event)" />
+              <input type="file" accept=".pdf,application/pdf" (change)="onDocumentoChange(documento.key, $event)" />
             </label>
             <button mat-icon-button type="button" class="crear-solicitud-modal__documento-remove"
               (click)="onEliminarDocumento(documento.key)" [attr.aria-label]="'GLOBAL.eliminar' | translate">

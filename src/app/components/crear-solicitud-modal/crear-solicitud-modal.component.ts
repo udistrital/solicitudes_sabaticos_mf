@@ -434,6 +434,14 @@ export class CrearSolicitudModalComponent implements OnInit {
   onDocumentoChange(key: string, event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
+    if (file && !this.isPdfFile(file)) {
+      this.popUpManager.showErrorAlert(
+        this.translate.instant('HISTORIAL_SOLICITUDES.modal.documentos.errorSoloPdf')
+      );
+      input.value = '';
+      return;
+    }
+
     this.documentoArchivos[key] = file ? file.name : null;
     if (file) {
       this.documentoFiles[key] = file;
@@ -458,5 +466,12 @@ export class CrearSolicitudModalComponent implements OnInit {
     return this.stepControlPaths[step]
       .map((path) => this.form.get(path))
       .filter((control): control is AbstractControl => Boolean(control));
+  }
+
+  private isPdfFile(file: File): boolean {
+    const fileName = file.name.toLowerCase();
+    const isPdfByExtension = fileName.endsWith('.pdf');
+    const isPdfByMime = file.type === 'application/pdf';
+    return isPdfByExtension || isPdfByMime;
   }
 }

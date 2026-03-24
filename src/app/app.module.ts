@@ -35,7 +35,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CrearSolicitudModalComponent } from './components/crear-solicitud-modal/crear-solicitud-modal.component';
 import { EditarSolicitudComponent } from './components/editar-solicitud/editar-solicitud.component';
 import { HistorialSolicitudesComponent } from './components/historial-solicitudes/historial-solicitudes.component';
-import { EndpointsComponent } from './components/endpoints/endpoints.component';
 
 registerLocaleData(localeEs);
 registerLocaleData(localeEn);
@@ -88,8 +87,7 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
     AppComponent,
     CrearSolicitudModalComponent,
     EditarSolicitudComponent,
-    HistorialSolicitudesComponent,
-    EndpointsComponent
+    HistorialSolicitudesComponent
   ],
   imports: [
     BrowserModule,
