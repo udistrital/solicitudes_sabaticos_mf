@@ -666,6 +666,8 @@
       "subtitle": "Selected request details",
       "save": "Save changes",
       "sendReview": "Send for review",
+      "sendReviewSecretariaGeneral": "Send to General Secretariat for review",
+      "subsanacion": "Correction",
       "observaciones": {
         "title": "Observations",
         "label": "Comments or observations to consider"

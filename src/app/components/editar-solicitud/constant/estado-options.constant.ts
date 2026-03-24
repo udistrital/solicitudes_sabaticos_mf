@@ -1,0 +1,18 @@
+import { EstadoSolicitud } from '../interface';
+
+export const ESTADO_OPTIONS: EstadoSolicitud[] = [
+  'Borrador',
+  'Radicada / Enviada a SA',
+  'Recepcionada a SA',
+  'En verificación de SA',
+  'Subsanación solicitada',
+  'Trámite externo CF',
+  'Respuesta CF registrada',
+  'Enviada a SG',
+  'Recepcionada a SG',
+  'Trámite externo CA',
+  'Decisión CA registrada',
+  'Finalizada No aprobada',
+  'Aprobada pendiente Resolución',
+  'Finalizada Aprobada con Resolución'
+];

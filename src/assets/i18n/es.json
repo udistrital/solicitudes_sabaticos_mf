@@ -686,6 +686,8 @@
       "subtitle": "Detalle de la solicitud seleccionada",
       "save": "Guardar cambios",
       "sendReview": "Enviar a revisión",
+      "sendReviewSecretariaGeneral": "Enviar a revisión Secretaría General",
+      "subsanacion": "Subsanación",
       "observaciones": {
         "title": "Observaciones",
         "label": "Comentarios u observaciones a tener en cuenta"

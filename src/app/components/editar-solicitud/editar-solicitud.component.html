@@ -12,21 +12,21 @@
     </div>
   </mat-card-header>
   <mat-card-content>
-    <ng-container *ngIf="solicitud && form; else noData">
+    <ng-container *ngIf="formularioInit && form; else noData">
       <div class="editar-solicitud__summary">
         <div class="editar-solicitud__summary-grid">
           <div class="editar-solicitud__summary-item">
             <span class="editar-solicitud__summary-label">
               {{ 'HISTORIAL_SOLICITUDES.columns.id' | translate }}
             </span>
-            <span class="editar-solicitud__summary-value">{{ solicitud.id }}</span>
+            <span class="editar-solicitud__summary-value">{{ formularioInit.id }}</span>
           </div>
           <div class="editar-solicitud__summary-item">
             <span class="editar-solicitud__summary-label">
               {{ 'HISTORIAL_SOLICITUDES.columns.fechaRadicado' | translate }}
             </span>
             <span class="editar-solicitud__summary-value">
-              {{ solicitud.fechaRadicado | date: 'longDate':undefined:currentLang }}
+              {{ formularioInit.fechaRadicado | date: 'longDate':undefined:currentLang }}
             </span>
           </div>
           <div class="editar-solicitud__summary-item">
@@ -34,7 +34,7 @@
               {{ 'HISTORIAL_SOLICITUDES.columns.estado' | translate }}
             </span>
             <span class="editar-solicitud__summary-value">
-              {{ getEstadoTranslation(solicitud.estado) | translate }}
+              {{formularioInit.estado}}
             </span>
           </div>
         </div>
@@ -87,8 +87,8 @@
                 {{ 'HISTORIAL_SOLICITUDES.modal.modalidad.hint' | translate }}
               </mat-label>
               <mat-select formControlName="modalidad">
-                <mat-option *ngFor="let modalidad of modalidadOptions" [value]="modalidad">
-                  {{ modalidad | translate }}
+                <mat-option *ngFor="let modalidad of modalidadesOptions" [value]="modalidad.Id">
+                  {{ modalidad.Nombre }}
                 </mat-option>
               </mat-select>
             </mat-form-field>
@@ -284,6 +284,13 @@
           </div>
         </div>
 
+        <!--
+        Sección comentada temporalmente:
+        depende de funciones/propiedades comentadas en el TS
+        (documentosDisponibles, documentoSeleccionado, onAgregarDocumento,
+        documentosSeleccionadosDetalle, getDocumentoNombre,
+        canPrevisualizarDocumento, onPrevisualizarDocumento,
+        onDocumentoChange, onEliminarDocumento).
         <div class="editar-solicitud__section">
           <h3 class="editar-solicitud__section-title">
             {{ 'HISTORIAL_SOLICITUDES.modal.sectionDocumentos' | translate }}
@@ -339,6 +346,7 @@
             </div>
           </div>
         </div>
+        -->
 
         <div class="editar-solicitud__section" *ngIf="showSeccionSecretaria">
           <div class="editar-solicitud__summary editar-solicitud__summary--secretaria">
@@ -355,6 +363,15 @@
               </mat-form-field>
             </div>
 
+            <!--
+            Subsección comentada temporalmente:
+            depende de funciones/propiedades comentadas en el TS
+            (secretariaDocumentosDisponibles, secretariaDocumentoSeleccionado,
+            onAgregarDocumentoSecretaria, secretariaDocumentosSeleccionadosDetalle,
+            getDocumentoSecretariaNombre, canPrevisualizarDocumentoSecretaria,
+            onPrevisualizarDocumentoSecretaria, onDocumentoSecretariaChange,
+            onEliminarDocumentoSecretaria, isDocumentoSecretariaChecked,
+            onToggleDocumentoSecretariaCheck).
             <h4 class="editar-solicitud__subsection-title">
               {{ 'HISTORIAL_SOLICITUDES.edit.secretaria.documentos.title' | translate }}
             </h4>
@@ -410,18 +427,65 @@
                 </div>
               </div>
             </div>
+            <div class="editar-solicitud__tabla-documentos mat-elevation-z2">
+              <table mat-table [dataSource]="secretariaDocumentosSeleccionadosDetalle" class="editar-solicitud__mat-table">
+                <ng-container matColumnDef="documento">
+                  <th mat-header-cell *matHeaderCellDef>Documento</th>
+                  <td mat-cell *matCellDef="let documento">{{ documento.label | translate }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="verDocumento">
+                  <th mat-header-cell *matHeaderCellDef>Ver documento</th>
+                  <td mat-cell *matCellDef="let documento">
+                    <button mat-icon-button color="primary" type="button"
+                      (click)="onPrevisualizarDocumentoSecretaria(documento.key)"
+                      aria-label="Ver documento">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="check">
+                  <th mat-header-cell *matHeaderCellDef>Check</th>
+                  <td mat-cell *matCellDef="let documento">
+                    <mat-checkbox color="primary"
+                      [checked]="isDocumentoSecretariaChecked(documento.key)"
+                      (change)="onToggleDocumentoSecretariaCheck(documento.key, $event.checked)">
+                    </mat-checkbox>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="secretariaTablaColumnas"></tr>
+                <tr mat-row *matRowDef="let row; columns: secretariaTablaColumnas"></tr>
+              </table>
+            </div>
+            -->
           </div>
         </div>
 
         <div class="editar-solicitud__actions" *ngIf="!isReadOnly">
-          <button mat-raised-button type="button" class="editar-solicitud__save" (click)="onGuardar()">
+          
+          <button *ngIf="rol === 'DOCENTE'" mat-raised-button type="button" class="editar-solicitud__save" (click)="onGuardarBorrador()">
             {{ 'HISTORIAL_SOLICITUDES.edit.save' | translate }}
           </button>
-          <button mat-raised-button color="primary" type="button" class="editar-solicitud__send"
+          <button *ngIf="rol === 'DOCENTE'" mat-raised-button color="primary" type="button" class="editar-solicitud__send"
             (click)="onEnviarRevision()"
             [disabled]="!canEnviarRevision">
             {{ 'HISTORIAL_SOLICITUDES.edit.sendReview' | translate }}
           </button>
+
+          <ng-container *ngIf="rol === 'SECRETARIA_GENERAL'">
+            <button mat-raised-button color="warn" type="button" class="editar-solicitud__send"
+              (click)="onEnviarRevisionSecretariaGeneral(false)"
+              [disabled]="!canEnviarSecretariaGeneral">
+              {{ 'HISTORIAL_SOLICITUDES.edit.subsanacion' | translate }}
+            </button>
+            <button mat-raised-button color="primary" type="button" class="editar-solicitud__send"
+              (click)="onEnviarRevisionSecretariaGeneral(true)"
+              [disabled]="!canEnviarSecretariaGeneral">
+              {{ 'HISTORIAL_SOLICITUDES.edit.sendReviewSecretariaGeneral' | translate }}
+            </button>
+          </ng-container>
         </div>
       </form>
     </ng-container>
