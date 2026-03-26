@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { forkJoin } from 'rxjs';
+import { forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { SabaticosCrudService } from '../../services/sabatico-crud.service';
 import {
@@ -48,6 +48,7 @@ export class EditarSolicitudComponent {
   form: FormGroup | null = null;
   isReadOnly = false;
   rol = '';
+  terceroIdSolicitud = 0;
 
 
   // Estado de documentos (docente)
@@ -55,6 +56,14 @@ export class EditarSolicitudComponent {
   documentoObjectUrls: Record<string, string> = {};
   documentoSeleccionado: string | null = null;
   documentosSeleccionados: string[] = [];
+  documentosDocenteExistentesIds: number[] = [];
+  documentosDocenteNuevosIds: number[] = [];
+
+  // Para subir solo los nuevos
+  documentosDocenteNuevosFiles: { [key: string]: File } = {};
+
+  // Si quieres conservar también el arreglo de soportes que vino del backend
+  documentosDocenteBackend: any[] = [];
 
   // Estado de documentos (secretaría)
   secretariaDocumentoArchivos: Record<string, string | null> = {};
@@ -87,12 +96,13 @@ export class EditarSolicitudComponent {
         `formulario_solicitud?query=SolicitudId:${solicitudId},Activo:True&limit=100`
       ),
       documentosResponse: this.sabaticosCrudService.get(
-        `soporte_solicitud?query=SolicitudId:${solicitudId},EstadoSoporteSolicitudId.CodigoAbreviacion:RAD`
+        `soporte_solicitud?query=SolicitudId:${solicitudId},EstadoSoporteSolicitudId.CodigoAbreviacion:PEN`
       ),
       modalidadesResponse: this.parametrosService.get('parametro?query=TipoParametroId__CodigoAbreviacion:MODSAB')
     }).subscribe({
       next: ({ formularioResponse, documentosResponse, modalidadesResponse }: any) => {
         const data = formularioResponse?.Data ?? formularioResponse ?? [];
+        this.terceroIdSolicitud = Number(data[0]?.SolicitudId?.TerceroId) || 0;
         const formularioRaw = Array.isArray(data) && data.length > 0 ? data[0] : null;
 
         if (formularioRaw) {
@@ -101,9 +111,20 @@ export class EditarSolicitudComponent {
         }
 
         this.documentos = documentosResponse?.Data ?? documentosResponse;
+        console.log("Documentos obtenidos:", this.documentos);
         this.modalidadesOptions = modalidadesResponse?.Data ?? modalidadesResponse ?? [];
         this.initializeSolicitudFromNavigation();
-        this.applySoportesFromBackend(Array.isArray(this.documentos) ? this.documentos : []);
+        const soportesBackend = Array.isArray(documentosResponse?.Data)
+          ? documentosResponse.Data
+          : [];
+
+        this.documentosDocenteBackend = [...soportesBackend];
+
+        this.documentosDocenteExistentesIds = soportesBackend
+          .map((item: any) => Number(item?.DocumentoId))
+          .filter((id: number) => !isNaN(id) && id > 0);
+
+        this.applySoportesFromBackend(soportesBackend);
         this.applyFormPermissions();
       },
       error: (error) => {
@@ -363,25 +384,39 @@ export class EditarSolicitudComponent {
   }
 
   onDocumentoChange(key: string, event: Event): void {
-    if (!this.canEditarFormularioPrincipal) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    
+    if (!file) {
       return;
     }
-
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
-    if (file && !this.isPdfFile(file)) {
-      this.popUpManager.showErrorAlert(
-        this.translate.instant('HISTORIAL_SOLICITUDES.modal.documentos.errorSoloPdf')
-      );
+  
+    if (!this.isPdfFile(file)) {
       input.value = '';
       return;
     }
-
-    this.revokeDocumentoObjectUrl(key);
-    if (file) {
-      this.documentoObjectUrls[key] = URL.createObjectURL(file);
+  
+    // Guardar archivo nuevo
+    this.documentosDocenteNuevosFiles[key] = file;
+  
+    // Nombre
+    this.documentoArchivos[key] = file.name;
+    console.log("documentoArchivos:", this.documentoArchivos);
+  
+    // Revoke anterior si existe
+    if (this.documentoObjectUrls[key]) {
+      URL.revokeObjectURL(this.documentoObjectUrls[key]);
     }
-    this.documentoArchivos[key] = file ? file.name : null;
+  
+    // Crear preview
+    this.documentoObjectUrls[key] = URL.createObjectURL(file);
+  
+    // Agregar a seleccionados
+    if (!this.documentosSeleccionados.includes(key)) {
+      this.documentosSeleccionados.push(key);
+    }
+  
+    input.value = '';
   }
 
   canPrevisualizarDocumento(key: string): boolean {
@@ -527,9 +562,12 @@ export class EditarSolicitudComponent {
     if (!this.form || !this.formulario) {
       return;
     }
-
+  
     this.syncFormularioFromForm();
-
+  
+    const solicitudId = Number(this.formularioInit?.id) || 0;
+    const terceroId = this.terceroIdSolicitud;
+  
     const body: GuardarBorradorBody = {
       Id: this.formularioRecordId ?? 0,
       Contenido: JSON.stringify(this.formulario),
@@ -537,13 +575,16 @@ export class EditarSolicitudComponent {
       FechaModificacion: this.formatTimestampForBackend(),
       FechaCreacion: this.formularioInit ? this.formatTimestampForBackend() : '',
       SolicitudId: {
-        Id: Number(this.formularioInit?.id) || 0,
+        Id: solicitudId,
       }
     };
-
-    console.log('Guardar borrador con body:', body);
-
-    this.sabaticosCrudService.put('formulario_solicitud', body).subscribe({
+  
+    this.subirDocumentosDocenteNuevos(solicitudId, terceroId).pipe(
+      switchMap(() => {
+        console.log('Guardar borrador con body:', body);
+        return this.sabaticosCrudService.put('formulario_solicitud', body);
+      })
+    ).subscribe({
       next: (response) => {
         console.log('Borrador guardado exitosamente:', response);
         this.popUpManager.showSuccessAlert(
@@ -559,25 +600,42 @@ export class EditarSolicitudComponent {
     });
   }
 
-  async onEnviarRevision(): Promise<void> {
-    if (!this.canEnviarRevision || !this.formulario) {
-      return;
-    }
+  onEnviarRevision(): void {
+  if (!this.canEnviarRevision || !this.formulario) {
+    return;
+  }
 
-    this.syncFormularioFromForm();
+  this.syncFormularioFromForm();
 
-    const body: RadicarBody = {
-      Id: Number(this.formularioInit?.id) || 0,
-      SolicitudId: Number(this.formularioInit?.id) || 0,
-      DocumentosId: [1, 2],
-      FormularioId: this.formularioRecordId ?? 0,
-      FechaCreacion: this.formatTimestampForBackend(),
-      Formulario: this.formulario
-    };
+  const solicitudId = Number(this.formularioInit?.id) || 0;
+  const terceroId = this.terceroIdSolicitud;
 
-    console.log('Enviar a revisión con body:', body);
+  if (!terceroId) {
+    this.popUpManager.showErrorAlert(
+      'No fue posible identificar el tercero de la solicitud',
+    );
+    return;
+  }
 
-    this.sabaticosMidService.post(`solicitud/radicar/${this.formularioInit?.id ?? 0}`, body).subscribe({
+  this.subirDocumentosDocenteNuevos(solicitudId, terceroId).pipe(
+      switchMap(() => {
+        const body: RadicarBody = {
+          Id: solicitudId,
+          SolicitudId: solicitudId,
+          DocumentosId: this.getDocumentosDocenteIds(),
+          FormularioId: this.formularioRecordId ?? 0,
+          FechaCreacion: this.formatTimestampForBackend(),
+          Formulario: this.formulario as FormularioSolicitud
+        };
+      
+        console.log('Enviar a revisión con body:', body);
+      
+        return this.sabaticosMidService.post(
+          `solicitud/radicar/${this.formularioInit?.id ?? 0}`,
+          body
+        );
+      })
+    ).subscribe({
       next: (response) => {
         console.log('Solicitud enviada a revisión exitosamente:', response);
         this.popUpManager.showSuccessAlert(
@@ -658,6 +716,53 @@ export class EditarSolicitudComponent {
       ...this.documentoArchivos,
       ...archivos
     };
+  }
+
+private subirDocumentosDocenteNuevos(
+    solicitudId: number,
+    terceroId: number
+  ): Observable<number[]> {
+    const archivos = Object.values(this.documentosDocenteNuevosFiles || {});
+
+    if (!archivos.length) {
+      return of([]);
+    }
+
+    const formData = new FormData();
+    formData.append('solicitud_id', solicitudId.toString());
+    formData.append('tercero_id', terceroId.toString());
+    formData.append('rol_usuario', 'DOCENTE');
+    formData.append('estado_soporte_solicitud', 'PEN');
+
+    archivos.forEach((file) => formData.append('documentos', file));
+
+    return this.sabaticosMidService.postFile('soporte_solicitud', formData).pipe(
+      map((response: any) => {
+        const nuevosIds = Array.isArray(response?.Data?.documentos)
+          ? response.Data.documentos
+              .map((doc: any) => Number(doc?.Id))
+              .filter((id: number) => !isNaN(id) && id > 0)
+          : [];
+
+        return nuevosIds;
+      }),
+      tap((nuevosIds: number[]) => {
+        this.documentosDocenteNuevosIds = [
+          ...this.documentosDocenteNuevosIds,
+          ...nuevosIds
+        ];
+
+        this.documentosDocenteExistentesIds = [
+          ...new Set([
+            ...this.documentosDocenteExistentesIds,
+            ...nuevosIds
+          ])
+        ];
+
+        // Ya quedaron persistidos, así que se limpian como "pendientes"
+        this.documentosDocenteNuevosFiles = {};
+      })
+    );
   }
 
   private revokeDocumentoObjectUrl(key: string): void {
@@ -818,6 +923,13 @@ export class EditarSolicitudComponent {
       return this.otrosSecretariaKey;
     }
     return key;
+  }
+
+  private getDocumentosDocenteIds(): number[] {
+    return [...new Set([
+      ...this.documentosDocenteExistentesIds,
+      ...this.documentosDocenteNuevosIds
+    ])];
   }
 
   private buildDocumentoKey(baseKey: string, selectedKeys: string[]): string {
