@@ -693,6 +693,16 @@
         "title": "Observaciones",
         "label": "Comentarios u observaciones a tener en cuenta"
       },
+      "documentos": {
+        "confirmApproveDocTitle": "Confirmar aprobación",
+        "confirmApproveDoc": "¿Está seguro/a de que desea aprobar este documento?",
+        "confirmRejectDocTitle": "Confirmar rechazo",
+        "confirmRejectDoc": "¿Está seguro/a de que desea rechazar este documento?",
+        "approved": "Aprobado",
+        "rejected": "Rechazado",
+        "approveAria": "Aprobar documento",
+        "rejectAria": "Rechazar documento"
+      },
       "secretaria": {
         "title": "Gestión de Secretaría",
         "observaciones": "Observaciones de Secretaría",
