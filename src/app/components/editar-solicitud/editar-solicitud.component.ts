@@ -1,78 +1,30 @@
-import { Component, DestroyRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { DateAdapter } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { forkJoin } from 'rxjs';
 import { PopUpManager } from '../../../managers/popUpManager';
-
-type EstadoSolicitud =
-  | 'Borrador'
-  | 'Radicada / Enviada a SA'
-  | 'Recepcionada a SA'
-  | 'En verificación de SA'
-  | 'Subsanación solicitada'
-  | 'Trámite externo CF'
-  | 'Respuesta CF registrada'
-  | 'Enviada a SG'
-  | 'Recepcionada a SG'
-  | 'Trámite externo CA'
-  | 'Decisión CA registrada'
-  | 'Finalizada No aprobada'
-  | 'Aprobada pendiente Resolución'
-  | 'Finalizada Aprobada con Resolución';
-
-interface CronogramaActividad {
-  mes1: string;
-  mes2: string;
-  mes3: string;
-  mes4: string;
-  mes5: string;
-  mes6: string;
-  mes7: string;
-  mes8: string;
-  mes9: string;
-  mes10: string;
-  mes11: string;
-  mes12: string;
-}
-
-interface SolicitudDetalle {
-  id: string;
-  fechaRadicado: string;
-  estado: EstadoSolicitud;
-  docenteNombre?: string;
-  docenteIdentificacion?: string;
-  docenteFacultad?: string;
-  docenteProyecto?: string;
-  periodoEjecucion?: string;
-  ultimoSabatico?: {
-    start: Date | null;
-    end: Date | null;
-  };
-  productoUltimo?: string;
-  modalidad?: string;
-  objetivoGeneral?: string;
-  objetivosEspecificos?: string;
-  justificacion?: string;
-  planDesarrolloInstitucional?: string;
-  proyectoEducativoFacultad?: string;
-  proyectoEducativoProgramas?: string;
-  productoEntregable?: string;
-  impactoAlcance?: string;
-  metodologia?: string;
-  cronograma?: CronogramaActividad;
-  presupuesto?: string;
-  observaciones?: string;
-  documentos?: Record<string, string | null>;
-  observacionesSecretaria?: string;
-  documentosSecretaria?: Record<string, string | null>;
-}
-
-interface DocumentoOption {
-  key: string;
-  label: string;
-}
+import { SabaticosCrudService } from '../../services/sabatico-crud.service';
+import {
+  CRONOGRAMA_MESES,
+  DOCUMENTO_OPTIONS,
+  ESTADO_OPTIONS,
+  ESTADO_TRADUCCIONES,
+  SECRETARIA_DOCUMENTO_OPTIONS,
+  SECRETARIA_TABLA_COLUMNAS
+} from './constant';
+import {
+  DocumentoOption,
+  EstadoSolicitud,
+  FormularioInit,
+  FormularioSolicitud,
+  FormularioSolicitudFormValue,
+  GuardarBorradorBody,
+  RadicarBody
+} from './interface';
+import { ParametrosService } from '../../services/parametros.service';
+import { SabaticosMidService } from '../../services/sabaticos-mid.service';
+import { SecretariaGeneralBody } from './interface/guardar-secretaria-general.type';
 
 @Component({
   selector: 'app-editar-solicitud',
@@ -80,214 +32,181 @@ interface DocumentoOption {
   styleUrl: './editar-solicitud.component.scss'
 })
 export class EditarSolicitudComponent {
-  readonly minDocumentosRequeridos = 9;
+  // Estado general
+  // readonly minDocumentosRequeridos = 9;
   private readonly otrosDocumentoKey = 'otros';
   private readonly otrosDocumentoPrefijo = 'otros__';
   private readonly otrosSecretariaKey = 'otrosRequeridos';
   private readonly otrosSecretariaPrefijo = 'otrosRequeridos__';
+
+  formulario: FormularioSolicitud | null = null;
+  formularioInit: FormularioInit | null = null;
+  formularioRecordId: number | null = null;
+  documentos: any = null;
   currentLang = 'es';
-  solicitud: SolicitudDetalle | null = null;
+  modalidadesOptions: any[] = [];
   form: FormGroup | null = null;
   isReadOnly = false;
   rol = '';
+
+
+  // Estado de documentos (docente)
   documentoArchivos: Record<string, string | null> = {};
   documentoObjectUrls: Record<string, string> = {};
   documentoSeleccionado: string | null = null;
   documentosSeleccionados: string[] = [];
+
+  // Estado de documentos (secretaría)
   secretariaDocumentoArchivos: Record<string, string | null> = {};
   secretariaDocumentoObjectUrls: Record<string, string> = {};
+  secretariaDocumentoChecks: Record<string, boolean> = {};
   secretariaDocumentoSeleccionado: string | null = null;
   secretariaDocumentosSeleccionados: string[] = [];
 
-  readonly modalidadOptions = [
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion1',
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion2',
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion3',
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion4',
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion5',
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion6',
-    'HISTORIAL_SOLICITUDES.modal.modalidad.opcion7'
-  ];
-
-  readonly cronogramaMeses = [
-    { key: 'mes1', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes1' },
-    { key: 'mes2', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes2' },
-    { key: 'mes3', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes3' },
-    { key: 'mes4', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes4' },
-    { key: 'mes5', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes5' },
-    { key: 'mes6', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes6' },
-    { key: 'mes7', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes7' },
-    { key: 'mes8', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes8' },
-    { key: 'mes9', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes9' },
-    { key: 'mes10', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes10' },
-    { key: 'mes11', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes11' },
-    { key: 'mes12', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes12' }
-  ];
-
-  readonly documentoOptions: DocumentoOption[] = [
-    { key: 'avalConsejo', label: 'HISTORIAL_SOLICITUDES.modal.documentos.avalConsejo' },
-    { key: 'cronogramaMensual', label: 'HISTORIAL_SOLICITUDES.modal.documentos.cronogramaMensual' },
-    { key: 'presupuestoProyectado', label: 'HISTORIAL_SOLICITUDES.modal.documentos.presupuestoProyectado' },
-    { key: 'certificacionLaboral', label: 'HISTORIAL_SOLICITUDES.modal.documentos.certificacionLaboral' },
-    { key: 'pazSalvoAcademico', label: 'HISTORIAL_SOLICITUDES.modal.documentos.pazSalvoAcademico' },
-    { key: 'pazSalvoInvestigaciones', label: 'HISTORIAL_SOLICITUDES.modal.documentos.pazSalvoInvestigaciones' },
-    { key: 'pazSalvoExtension', label: 'HISTORIAL_SOLICITUDES.modal.documentos.pazSalvoExtension' },
-    { key: 'pazSalvoAlmacen', label: 'HISTORIAL_SOLICITUDES.modal.documentos.pazSalvoAlmacen' },
-    { key: 'pazSalvoFinanciero', label: 'HISTORIAL_SOLICITUDES.modal.documentos.pazSalvoFinanciero' },
-    { key: 'financiacion', label: 'HISTORIAL_SOLICITUDES.modal.documentos.financiacion' },
-    { key: 'pazSalvoConsejoFacultad', label: 'HISTORIAL_SOLICITUDES.modal.documentos.pazSalvoConsejoFacultad' },
-    { key: 'otros', label: 'HISTORIAL_SOLICITUDES.modal.documentos.otros' }
-  ];
-  readonly secretariaDocumentoOptions: DocumentoOption[] = [
-    {
-      key: 'revisionRequisitosSabatico',
-      label: 'HISTORIAL_SOLICITUDES.edit.secretaria.documentos.revisionRequisitosSabatico'
-    },
-    {
-      key: 'actaConsejoFacultad',
-      label: 'HISTORIAL_SOLICITUDES.edit.secretaria.documentos.actaConsejoFacultad'
-    },
-    {
-      key: 'actaConsejoAcademico',
-      label: 'HISTORIAL_SOLICITUDES.edit.secretaria.documentos.actaConsejoAcademico'
-    },
-    {
-      key: 'resolucionConsejoAcademico',
-      label: 'HISTORIAL_SOLICITUDES.edit.secretaria.documentos.resolucionConsejoAcademico'
-    },
-    {
-      key: 'otrosRequeridos',
-      label: 'HISTORIAL_SOLICITUDES.edit.secretaria.documentos.otrosRequeridos'
-    }
-  ];
-
-  readonly estadoTraducciones: Record<EstadoSolicitud, string> = {
-    Borrador: 'HISTORIAL_SOLICITUDES.status.draft',
-    'Radicada / Enviada a SA': 'HISTORIAL_SOLICITUDES.status.filedSentSa',
-    'Recepcionada a SA': 'HISTORIAL_SOLICITUDES.status.receivedSa',
-    'En verificación de SA': 'HISTORIAL_SOLICITUDES.status.verificationSa',
-    'Subsanación solicitada': 'HISTORIAL_SOLICITUDES.status.correctionRequested',
-    'Trámite externo CF': 'HISTORIAL_SOLICITUDES.status.externalProcessCf',
-    'Respuesta CF registrada': 'HISTORIAL_SOLICITUDES.status.responseCfRecorded',
-    'Enviada a SG': 'HISTORIAL_SOLICITUDES.status.sentSg',
-    'Recepcionada a SG': 'HISTORIAL_SOLICITUDES.status.receivedSg',
-    'Trámite externo CA': 'HISTORIAL_SOLICITUDES.status.externalProcessCa',
-    'Decisión CA registrada': 'HISTORIAL_SOLICITUDES.status.decisionCaRecorded',
-    'Finalizada No aprobada': 'HISTORIAL_SOLICITUDES.status.finishedNotApproved',
-    'Aprobada pendiente Resolución': 'HISTORIAL_SOLICITUDES.status.approvedPendingResolution',
-    'Finalizada Aprobada con Resolución': 'HISTORIAL_SOLICITUDES.status.finishedApprovedResolution'
-  };
-
-  readonly estadoOptions: EstadoSolicitud[] = [
-    'Borrador',
-    'Radicada / Enviada a SA',
-    'Recepcionada a SA',
-    'En verificación de SA',
-    'Subsanación solicitada',
-    'Trámite externo CF',
-    'Respuesta CF registrada',
-    'Enviada a SG',
-    'Recepcionada a SG',
-    'Trámite externo CA',
-    'Decisión CA registrada',
-    'Finalizada No aprobada',
-    'Aprobada pendiente Resolución',
-    'Finalizada Aprobada con Resolución'
-  ];
+  // Catálogos
+  readonly cronogramaMeses = CRONOGRAMA_MESES;
+  readonly documentoOptions: DocumentoOption[] = DOCUMENTO_OPTIONS;
+  readonly secretariaDocumentoOptions: DocumentoOption[] = SECRETARIA_DOCUMENTO_OPTIONS;
+  readonly estadoTraducciones: Record<EstadoSolicitud, string> = ESTADO_TRADUCCIONES;
+  readonly estadoOptions: EstadoSolicitud[] = ESTADO_OPTIONS;
+  readonly secretariaTablaColumnas: string[] = SECRETARIA_TABLA_COLUMNAS;
 
   constructor(
-    private readonly translate: TranslateService,
-    private readonly dateAdapter: DateAdapter<Date>,
     private readonly formBuilder: FormBuilder,
     private readonly router: Router,
-    private readonly destroyRef: DestroyRef,
-    private readonly popUpManager: PopUpManager
+    private readonly popUpManager: PopUpManager,
+    private readonly sabaticosCrudService: SabaticosCrudService,
+    private readonly sabaticosMidService: SabaticosMidService,
+    private readonly parametrosService: ParametrosService,
+    private readonly translate: TranslateService
   ) {
-    this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
-    this.dateAdapter.setLocale(this.currentLang);
+    const solicitudId = (this.router.getCurrentNavigation()?.extras?.state ?? history.state)?.['solicitud']?.id;
 
-    this.translate.onLangChange
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(({ lang }) => {
-        this.currentLang = lang;
-        this.dateAdapter.setLocale(lang);
-      });
+    forkJoin({
+      formularioResponse: this.sabaticosCrudService.get(
+        `formulario_solicitud?query=SolicitudId:${solicitudId},Activo:True&limit=100`
+      ),
+      documentosResponse: this.sabaticosCrudService.get(
+        `soporte_solicitud?query=SolicitudId:${solicitudId},EstadoSoporteSolicitudId.CodigoAbreviacion:RAD`
+      ),
+      modalidadesResponse: this.parametrosService.get('parametro?query=TipoParametroId__CodigoAbreviacion:MODSAB')
+    }).subscribe({
+      next: ({ formularioResponse, documentosResponse, modalidadesResponse }: any) => {
+        const data = formularioResponse?.Data ?? formularioResponse ?? [];
+        const formularioRaw = Array.isArray(data) && data.length > 0 ? data[0] : null;
 
-    this.destroyRef.onDestroy(() => {
-      Object.values(this.documentoObjectUrls).forEach((url) => URL.revokeObjectURL(url));
-      Object.values(this.secretariaDocumentoObjectUrls).forEach((url) => URL.revokeObjectURL(url));
+        if (formularioRaw) {
+          this.formularioRecordId = formularioRaw.Id ?? null;
+          this.formulario = this.parseContenidoToFormulario(formularioRaw);
+        }
+
+        this.documentos = documentosResponse?.Data ?? documentosResponse;
+        this.modalidadesOptions = modalidadesResponse?.Data ?? modalidadesResponse ?? [];
+        this.initializeSolicitudFromNavigation();
+        this.applySoportesFromBackend(Array.isArray(this.documentos) ? this.documentos : []);
+        this.applyFormPermissions();
+      },
+      error: (error) => {
+        console.error('Error al llamar al servicio:', error);
+      }
     });
+  }
 
-    const navigation = this.router.getCurrentNavigation();
-    const stateSolicitud = navigation?.extras.state?.['solicitud'] ?? history.state?.solicitud;
-    this.isReadOnly = Boolean(navigation?.extras.state?.['readOnly'] ?? history.state?.readOnly);
-    this.rol = String(navigation?.extras.state?.['rol'] ?? history.state?.rol ?? '');
-    this.solicitud = this.parseSolicitud(stateSolicitud);
-    if (this.solicitud) {
-      this.documentoArchivos = { ...(this.solicitud.documentos ?? {}) };
-      this.documentosSeleccionados = Object.entries(this.documentoArchivos)
-        .filter(([, nombre]) => Boolean(nombre))
-        .map(([key]) => key);
-      this.secretariaDocumentoArchivos = { ...(this.solicitud.documentosSecretaria ?? {}) };
-      this.secretariaDocumentosSeleccionados = Object.entries(this.secretariaDocumentoArchivos)
-        .filter(([, nombre]) => Boolean(nombre))
-        .map(([key]) => key);
-      this.form = this.formBuilder.group({
-        docenteNombre: [{ value: this.solicitud.docenteNombre ?? '', disabled: true }],
-        docenteIdentificacion: [{ value: this.solicitud.docenteIdentificacion ?? '', disabled: true }],
-        docenteFacultad: [{ value: this.solicitud.docenteFacultad ?? '', disabled: true }],
-        docenteProyecto: [{ value: this.solicitud.docenteProyecto ?? '', disabled: true }],
-        periodoEjecucion: [this.solicitud.periodoEjecucion ?? '', Validators.required],
-        ultimoSabatico: this.formBuilder.group({
-          start: [this.solicitud.ultimoSabatico?.start ?? null, Validators.required],
-          end: [this.solicitud.ultimoSabatico?.end ?? null, Validators.required]
-        }),
-        productoUltimo: [this.solicitud.productoUltimo ?? '', Validators.required],
-        modalidad: [this.solicitud.modalidad ?? '', Validators.required],
-        objetivoGeneral: [this.solicitud.objetivoGeneral ?? '', Validators.required],
-        objetivosEspecificos: [this.solicitud.objetivosEspecificos ?? '', Validators.required],
-        justificacion: [this.solicitud.justificacion ?? '', Validators.required],
-        planDesarrolloInstitucional: [this.solicitud.planDesarrolloInstitucional ?? '', Validators.required],
-        proyectoEducativoFacultad: [this.solicitud.proyectoEducativoFacultad ?? '', Validators.required],
-        proyectoEducativoProgramas: [this.solicitud.proyectoEducativoProgramas ?? '', Validators.required],
-        productoEntregable: [this.solicitud.productoEntregable ?? '', Validators.required],
-        impactoAlcance: [this.solicitud.impactoAlcance ?? '', Validators.required],
-        metodologia: [this.solicitud.metodologia ?? '', Validators.required],
-        presupuesto: [this.solicitud.presupuesto ?? '', Validators.required],
-        observaciones: [this.solicitud.observaciones ?? ''],
-        observacionesSecretaria: [this.solicitud.observacionesSecretaria ?? ''],
-        cronograma: this.formBuilder.group({
-          mes1: [this.solicitud.cronograma?.mes1 ?? '', Validators.required],
-          mes2: [this.solicitud.cronograma?.mes2 ?? '', Validators.required],
-          mes3: [this.solicitud.cronograma?.mes3 ?? '', Validators.required],
-          mes4: [this.solicitud.cronograma?.mes4 ?? '', Validators.required],
-          mes5: [this.solicitud.cronograma?.mes5 ?? '', Validators.required],
-          mes6: [this.solicitud.cronograma?.mes6 ?? '', Validators.required],
-          mes7: [this.solicitud.cronograma?.mes7 ?? '', Validators.required],
-          mes8: [this.solicitud.cronograma?.mes8 ?? '', Validators.required],
-          mes9: [this.solicitud.cronograma?.mes9 ?? '', Validators.required],
-          mes10: [this.solicitud.cronograma?.mes10 ?? '', Validators.required],
-          mes11: [this.solicitud.cronograma?.mes11 ?? '', Validators.required],
-          mes12: [this.solicitud.cronograma?.mes12 ?? '', Validators.required]
-        })
-      });
+  // =========================
+  // Inicialización
+  // =========================
+  private initializeSolicitudFromNavigation(): void {
+    const navigationState = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
+    const stateSolicitud = navigationState?.['solicitud'];
+    this.isReadOnly = Boolean(navigationState?.['readOnly']);
+    this.rol = String(navigationState?.['rol'] ?? '');
 
-      if (this.isReadOnly) {
-        this.form.disable({ emitEvent: false });
-      } else if (!this.canEditarFormularioPrincipal) {
-        this.disableFormularioPrincipal();
+    this.formularioInit = {
+      id: stateSolicitud.id ?? '',
+      fechaRadicado: stateSolicitud.fechaRadicado ?? '',
+      estado: stateSolicitud.estado ?? '',
+    };
+
+    this.form = this.buildForm();
+
+    if (!this.form || !this.formulario) {
+      return;
+    }
+
+    const form = this.form;
+
+    const detalleSolicitud = this.formulario.detalle_solicitud ?? {};
+    const docente = this.formulario.docente ?? {};
+    const objetivos = this.formulario.objetivos ?? {};
+    const articulacion = this.formulario.articulacion ?? {};
+    const cronograma = this.formulario.cronograma ?? {};
+
+    form.patchValue({
+      docenteNombre: docente.nombre ?? '',
+      docenteIdentificacion: docente.identificacion ?? '',
+      docenteFacultad: docente.facultad ?? '',
+      docenteProyecto: docente.proyecto_curricular ?? '',
+      periodoEjecucion: detalleSolicitud.periodo_ejecucion ?? '',
+      productoUltimo:
+        detalleSolicitud.ultimo_sabatico?.producto_ultimo_sabatico
+        ?? detalleSolicitud.producto_ultimo_sabatico
+        ?? '',
+      modalidad: detalleSolicitud.modalidadId ??'',
+      objetivoGeneral: objetivos.objetivo_general ?? '',
+      objetivosEspecificos: objetivos.objetivos_especificos ?? '',
+      justificacion: this.formulario.justificacion ?? '',
+      planDesarrolloInstitucional:
+        articulacion.plan_desarrollo_institucional ?? '',
+      proyectoEducativoFacultad:
+        articulacion.proyecto_educativo_facultad ?? '',
+      proyectoEducativoProgramas:
+        articulacion.proyecto_educativo_programas ?? '',
+      productoEntregable: this.formulario.producto_entregable ?? '',
+      impactoAlcance: this.formulario.impacto_alcance ?? '',
+      metodologia: this.formulario.metodologia ?? '',
+      presupuesto: this.formulario.presupuesto ?? '',
+      observaciones: this.formulario.observaciones ?? '',
+      observacionesSecretaria: this.formulario.observacionesSecretaria ?? '',
+      ultimoSabatico: {
+        start: this.parseApiDate(detalleSolicitud.ultimo_sabatico?.fecha_inicio),
+        end: this.parseApiDate(detalleSolicitud.ultimo_sabatico?.fecha_fin)
+      },
+      cronograma: {
+        mes1: cronograma.mes1 ?? '',
+        mes2: cronograma.mes2 ?? '',
+        mes3: cronograma.mes3 ?? '',
+        mes4: cronograma.mes4 ?? '',
+        mes5: cronograma.mes5 ?? '',
+        mes6: cronograma.mes6 ?? '',
+        mes7: cronograma.mes7 ?? '',
+        mes8: cronograma.mes8 ?? '',
+        mes9: cronograma.mes9 ?? '',
+        mes10: cronograma.mes10 ?? '',
+        mes11: cronograma.mes11 ?? '',
+        mes12: cronograma.mes12 ?? ''
       }
+    });
+  }
 
-      if (!this.canEditarSeccionSecretaria) {
-        this.form.get('observacionesSecretaria')?.disable({ emitEvent: false });
-      }
+  private applyFormPermissions(): void {
+    if (!this.form) {
+      return;
+    }
+
+    if (this.isReadOnly) {
+      this.form.disable({ emitEvent: false });
+    } else if (!this.canEditarFormularioPrincipal) {
+      this.disableFormularioPrincipal();
+    }
+
+    if (!this.canEditarSeccionSecretaria) {
+      this.form.get('observacionesSecretaria')?.disable({ emitEvent: false });
     }
   }
 
-  getEstadoTranslation(estado: EstadoSolicitud): string {
-    return this.estadoTraducciones[estado];
-  }
-
+  // =========================
+  // Getters / estado derivado
+  // =========================
   get documentosDisponibles(): DocumentoOption[] {
     return this.documentoOptions.filter(
       (documento) =>
@@ -329,11 +248,11 @@ export class EditarSolicitudComponent {
   }
 
   get showSeccionSecretaria(): boolean {
-    if (!this.solicitud) {
+    if (!this.formularioInit) {
       return false;
     }
 
-    return this.estadoOptions.indexOf(this.solicitud.estado) > this.estadoOptions.indexOf('Borrador');
+    return this.estadoOptions.indexOf(this.formularioInit.estado) > this.estadoOptions.indexOf('Borrador');
   }
 
   get canEditarSeccionSecretaria(): boolean {
@@ -373,17 +292,28 @@ export class EditarSolicitudComponent {
   }
 
   get canEnviarRevision(): boolean {
-    if (this.isReadOnly || !this.form || !this.solicitud) {
+    if (this.isReadOnly || !this.form || !this.formulario) {
       return false;
     }
 
     if (this.rol === 'CONTRATISTA' || this.rol === 'COORDINADOR') {
-      return this.hasDocumentosSecretariaObligatorios();
+      return false;
     }
 
-    return this.form.valid && this.documentosAdjuntosCount >= this.minDocumentosRequeridos;
+    return true
   }
 
+  get canEnviarSecretariaGeneral(): boolean {
+    if (this.isReadOnly) {
+      return false;
+    }
+
+    return this.rol === 'SECRETARIA_GENERAL' || this.rol === 'CONTRATISTA';
+  }
+
+  // =========================
+  // Acciones documentos docente
+  // =========================
   onAgregarDocumento(): void {
     if (!this.canEditarFormularioPrincipal) {
       return;
@@ -407,8 +337,17 @@ export class EditarSolicitudComponent {
     this.documentoSeleccionado = null;
   }
 
-  onEliminarDocumento(key: string): void {
+  async onEliminarDocumento(key: string): Promise<void> {
     if (!this.canEditarFormularioPrincipal) {
+      return;
+    }
+
+    const result = await this.popUpManager.showConfirmAlert(
+      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmDeleteDoc'),
+      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmDeleteDocTitle')
+    );
+
+    if (!result?.isConfirmed) {
       return;
     }
 
@@ -417,48 +356,6 @@ export class EditarSolicitudComponent {
     );
     this.revokeDocumentoObjectUrl(key);
     delete this.documentoArchivos[key];
-  }
-
-  onAgregarDocumentoSecretaria(): void {
-    if (!this.canEditarSeccionSecretaria) {
-      return;
-    }
-
-    if (!this.secretariaDocumentoSeleccionado) {
-      return;
-    }
-
-    if (!this.canGestionarDocumentoSecretaria(this.secretariaDocumentoSeleccionado)) {
-      return;
-    }
-
-    const keyToAdd = this.buildDocumentoKey(
-      this.secretariaDocumentoSeleccionado,
-      this.secretariaDocumentosSeleccionados
-    );
-    if (!this.secretariaDocumentosSeleccionados.includes(keyToAdd)) {
-      this.secretariaDocumentosSeleccionados = [
-        ...this.secretariaDocumentosSeleccionados,
-        keyToAdd
-      ];
-      if (!(keyToAdd in this.secretariaDocumentoArchivos)) {
-        this.secretariaDocumentoArchivos[keyToAdd] = null;
-      }
-    }
-
-    this.secretariaDocumentoSeleccionado = null;
-  }
-
-  onEliminarDocumentoSecretaria(key: string): void {
-    if (!this.canGestionarDocumentoSecretaria(key)) {
-      return;
-    }
-
-    this.secretariaDocumentosSeleccionados = this.secretariaDocumentosSeleccionados.filter(
-      (documento) => documento !== key
-    );
-    this.revokeSecretariaDocumentoObjectUrl(key);
-    delete this.secretariaDocumentoArchivos[key];
   }
 
   getDocumentoNombre(key: string): string | null {
@@ -487,6 +384,77 @@ export class EditarSolicitudComponent {
     this.documentoArchivos[key] = file ? file.name : null;
   }
 
+  canPrevisualizarDocumento(key: string): boolean {
+    return Boolean(this.documentoObjectUrls[key]);
+  }
+
+  onPrevisualizarDocumento(key: string): void {
+    const previewUrl = this.documentoObjectUrls[key];
+    if (!previewUrl) {
+      return;
+    }
+
+    window.open(previewUrl, '_blank', 'noopener,noreferrer');
+  }
+
+  // =========================
+  // Acciones documentos secretaría
+  // =========================
+  onAgregarDocumentoSecretaria(): void {
+    if (!this.canEditarSeccionSecretaria) {
+      return;
+    }
+
+    if (!this.secretariaDocumentoSeleccionado) {
+      return;
+    }
+
+    if (!this.canGestionarDocumentoSecretaria(this.secretariaDocumentoSeleccionado)) {
+      return;
+    }
+
+    const keyToAdd = this.buildDocumentoKey(
+      this.secretariaDocumentoSeleccionado,
+      this.secretariaDocumentosSeleccionados
+    );
+    if (!this.secretariaDocumentosSeleccionados.includes(keyToAdd)) {
+      this.secretariaDocumentosSeleccionados = [
+        ...this.secretariaDocumentosSeleccionados,
+        keyToAdd
+      ];
+      if (!(keyToAdd in this.secretariaDocumentoArchivos)) {
+        this.secretariaDocumentoArchivos[keyToAdd] = null;
+      }
+      if (!(keyToAdd in this.secretariaDocumentoChecks)) {
+        this.secretariaDocumentoChecks[keyToAdd] = false;
+      }
+    }
+
+    this.secretariaDocumentoSeleccionado = null;
+  }
+
+  async onEliminarDocumentoSecretaria(key: string): Promise<void> {
+    if (!this.canGestionarDocumentoSecretaria(key)) {
+      return;
+    }
+
+    const result = await this.popUpManager.showConfirmAlert(
+      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmDeleteDoc'),
+      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmDeleteDocTitle')
+    );
+
+    if (!result?.isConfirmed) {
+      return;
+    }
+
+    this.secretariaDocumentosSeleccionados = this.secretariaDocumentosSeleccionados.filter(
+      (documento) => documento !== key
+    );
+    this.revokeSecretariaDocumentoObjectUrl(key);
+    delete this.secretariaDocumentoArchivos[key];
+    delete this.secretariaDocumentoChecks[key];
+  }
+
   getDocumentoSecretariaNombre(key: string): string | null {
     return this.secretariaDocumentoArchivos[key] ?? null;
   }
@@ -511,34 +479,41 @@ export class EditarSolicitudComponent {
       this.secretariaDocumentoObjectUrls[key] = URL.createObjectURL(file);
     }
     this.secretariaDocumentoArchivos[key] = file ? file.name : null;
-  }
-
-  canPrevisualizarDocumento(key: string): boolean {
-    return Boolean(this.documentoObjectUrls[key]);
-  }
-
-  onPrevisualizarDocumento(key: string): void {
-    const previewUrl = this.documentoObjectUrls[key];
-    if (!previewUrl) {
-      return;
-    }
-
-    window.open(previewUrl, '_blank', 'noopener,noreferrer');
+    this.secretariaDocumentoChecks[key] = Boolean(file);
   }
 
   canPrevisualizarDocumentoSecretaria(key: string): boolean {
     return Boolean(this.secretariaDocumentoObjectUrls[key]);
   }
 
+  canVerDocumentoSecretaria(key: string): boolean {
+    return Boolean(this.secretariaDocumentoObjectUrls[key] || this.secretariaDocumentoArchivos[key]);
+  }
+
   onPrevisualizarDocumentoSecretaria(key: string): void {
     const previewUrl = this.secretariaDocumentoObjectUrls[key];
-    if (!previewUrl) {
+    if (previewUrl) {
+      window.open(previewUrl, '_blank', 'noopener,noreferrer');
       return;
     }
 
-    window.open(previewUrl, '_blank', 'noopener,noreferrer');
+    this.popUpManager.showAlert(
+      'Sin previsualización',
+      'El botón está habilitado para pruebas. La previsualización estará disponible cuando se conecte el servicio del backend.'
+    );
   }
 
+  isDocumentoSecretariaChecked(key: string): boolean {
+    return Boolean(this.secretariaDocumentoChecks[key]);
+  }
+
+  onToggleDocumentoSecretariaCheck(key: string, checked: boolean): void {
+    this.secretariaDocumentoChecks[key] = checked;
+  }
+
+  // =========================
+  // Acciones de formulario
+  // =========================
   trackDocumento(_: number, item: { key: string }): string {
     return item.key;
   }
@@ -548,52 +523,141 @@ export class EditarSolicitudComponent {
     return Boolean(value && value.trim());
   }
 
-  onGuardar(): void {
-    if (this.isReadOnly) {
+  onGuardarBorrador(): void {
+    if (!this.form || !this.formulario) {
       return;
     }
 
-    if (!this.form || !this.solicitud) {
-      return;
-    }
+    this.syncFormularioFromForm();
 
-    const formValue = this.form.getRawValue() as Omit<
-      SolicitudDetalle,
-      'id' | 'fechaRadicado' | 'estado' | 'documentos' | 'documentosSecretaria'
-    > & {
-      cronograma: CronogramaActividad;
+    const body: GuardarBorradorBody = {
+      Id: this.formularioRecordId ?? 0,
+      Contenido: JSON.stringify(this.formulario),
+      Activo: true,
+      FechaModificacion: this.formatTimestampForBackend(),
+      FechaCreacion: this.formularioInit ? this.formatTimestampForBackend() : '',
+      SolicitudId: {
+        Id: Number(this.formularioInit?.id) || 0,
+      }
     };
 
-    this.solicitud = {
-      ...this.solicitud,
-      ...formValue,
-      cronograma: { ...formValue.cronograma },
-      documentos: { ...this.documentoArchivos },
-      documentosSecretaria: { ...this.secretariaDocumentoArchivos }
-    };
+    console.log('Guardar borrador con body:', body);
+
+    this.sabaticosCrudService.put('formulario_solicitud', body).subscribe({
+      next: (response) => {
+        console.log('Borrador guardado exitosamente:', response);
+        this.popUpManager.showSuccessAlert(
+          'Borrador guardado',
+        );
+      },
+      error: (error) => {
+        console.error('Error al guardar el borrador:', error);
+        this.popUpManager.showErrorAlert(
+          'Error al guardar',
+        );
+      }
+    });
   }
 
   async onEnviarRevision(): Promise<void> {
-    if (!this.canEnviarRevision || !this.solicitud) {
+    if (!this.canEnviarRevision || !this.formulario) {
       return;
     }
 
-    const isDocenteBorrador = this.rol === 'DOCENTE'
-      && (this.solicitud.estado === 'Borrador' || this.solicitud.estado === 'Subsanación solicitada');
-    const textKey = isDocenteBorrador
-      ? 'HISTORIAL_SOLICITUDES.actions.confirmSendDocenteDraft'
-      : 'HISTORIAL_SOLICITUDES.actions.confirmSendGeneral';
+    this.syncFormularioFromForm();
 
-    const result = await this.popUpManager.showConfirmAlert(
-      this.translate.instant(textKey),
-      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmSendTitle')
-    );
+    const body: RadicarBody = {
+      Id: Number(this.formularioInit?.id) || 0,
+      SolicitudId: Number(this.formularioInit?.id) || 0,
+      DocumentosId: [1, 2],
+      FormularioId: this.formularioRecordId ?? 0,
+      FechaCreacion: this.formatTimestampForBackend(),
+      Formulario: this.formulario
+    };
 
-    if (!result?.isConfirmed) {
+    console.log('Enviar a revisión con body:', body);
+
+    this.sabaticosMidService.post(`solicitud/radicar/${this.formularioInit?.id ?? 0}`, body).subscribe({
+      next: (response) => {
+        console.log('Solicitud enviada a revisión exitosamente:', response);
+        this.popUpManager.showSuccessAlert(
+          'Solicitud enviada',
+        );
+      },
+      error: (error) => {
+        console.error('Error al enviar la solicitud a revisión:', error);
+        this.popUpManager.showErrorAlert(
+          'Error al enviar',
+        );
+      }
+    });
+  }
+
+  async onEnviarRevisionSecretariaGeneral(value: boolean): Promise<void> {
+    if (!this.canEditarSeccionSecretaria || !this.formulario) {
       return;
     }
 
-    console.log(`Enviar a revisión solicitud ${this.solicitud.id}`);
+    this.syncFormularioFromForm();
+
+    const body: SecretariaGeneralBody = {
+      TerceroId: 7173,
+      SolicitudId: Number(this.formularioInit?.id) || 0,
+      Justificacion: this.formulario.observacionesSecretaria ?? '',
+      EstadoSolicitud: value ? 'ENVIADA_SG' : 'SUBSANACION_SOLICITADA',
+      EstadoSoporte: value ? 'APROB' : 'NOAPROB',
+    };
+
+    console.log('Enviar a revisión de secretaria general con body:', body);
+
+    this.sabaticosMidService.post('solicitud/aprobar-rechazar', body).subscribe({
+      next: (response) => {
+        console.log('Solicitud enviada a revisión de secretaria general exitosamente:', response);
+        this.popUpManager.showSuccessAlert(
+          'Solicitud enviada a Secretaría General',
+        );
+      },
+      error: (error) => {
+        console.error('Error al enviar la solicitud a revisión de secretaria general:', error);
+        this.popUpManager.showErrorAlert(
+          'Error al enviar a Secretaría General',
+        );
+      }
+    });
+  }
+
+
+  // =========================
+  // Helpers privados
+  // =========================
+  private applySoportesFromBackend(soportes: any[]): void {
+    if (!Array.isArray(soportes) || !soportes.length) {
+      return;
+    }
+
+    const baseKeys = this.documentoOptions
+      .filter((option) => option.key !== this.otrosDocumentoKey)
+      .map((option) => option.key);
+
+    const selectedKeys: string[] = [];
+    const archivos: Record<string, string | null> = {};
+
+    soportes.forEach((soporte, index) => {
+      const fallbackKey = baseKeys[index] ?? this.otrosDocumentoKey;
+      const key = this.buildDocumentoKey(fallbackKey, selectedKeys);
+      const documentoId = soporte?.DocumentoId;
+
+      selectedKeys.push(key);
+      archivos[key] = documentoId
+        ? `Documento_${documentoId}.pdf`
+        : 'Documento cargado';
+    });
+
+    this.documentosSeleccionados = selectedKeys;
+    this.documentoArchivos = {
+      ...this.documentoArchivos,
+      ...archivos
+    };
   }
 
   private revokeDocumentoObjectUrl(key: string): void {
@@ -610,6 +674,140 @@ export class EditarSolicitudComponent {
       URL.revokeObjectURL(url);
       delete this.secretariaDocumentoObjectUrls[key];
     }
+  }
+
+  private parseContenidoToFormulario(formularioRaw: any): FormularioSolicitud | null {
+    if (!formularioRaw?.Contenido) return null;
+
+    try {
+      const contenido = typeof formularioRaw.Contenido === 'string'
+        ? JSON.parse(formularioRaw.Contenido)
+        : formularioRaw.Contenido;
+
+      if (contenido?.plan_trabajo_ano_sabatico) {
+        return this.mapPlanTrabajoToFormulario(contenido.plan_trabajo_ano_sabatico);
+      }
+
+      if (contenido?.docente) {
+        return this.sanitizeFormulario(contenido as FormularioSolicitud);
+      }
+
+      return null;
+    } catch (e) {
+      console.error('Error al parsear Contenido del formulario:', e);
+      return null;
+    }
+  }
+
+  private mapPlanTrabajoToFormulario(plan: any): FormularioSolicitud {
+    const ident = plan.identificacion_docente ?? {};
+    const detalleSol = plan.detalle_solicitud ?? {};
+    const ultimoSab = detalleSol.ultimo_sabatico ?? {};
+    const objetivos = plan.objetivos ?? {};
+    const articulacion = plan.articulacion ?? {};
+    const cronograma = plan.cronograma ?? {};
+
+    return {
+      docente: {
+        nombre: ident.nombre_docente ?? '',
+        identificacion: ident.numero_identificacion ?? '',
+        facultad: ident.facultad ?? '',
+        proyecto_curricular: ident.proyecto_curricular ?? ''
+      },
+      detalle_solicitud: {
+        modalidad: detalleSol.modalidad ?? '',
+        modalidadId: detalleSol.modalidad_id ?? 0,
+        periodo_ejecucion: detalleSol.periodo_ejecucion ?? '',
+        producto_ultimo_sabatico: ultimoSab.producto_ultimo_sabatico ?? '',
+        ultimo_sabatico: {
+          fecha_inicio: ultimoSab.fecha_inicio ?? '',
+          fecha_fin: ultimoSab.fecha_fin ?? '',
+          producto_ultimo_sabatico: ultimoSab.producto_ultimo_sabatico ?? ''
+        }
+      },
+      objetivos: {
+        objetivo_general: objetivos.objetivo_general ?? '',
+        objetivos_especificos: objetivos.objetivos_especificos ?? ''
+      },
+      articulacion: {
+        plan_desarrollo_institucional: articulacion.plan_desarrollo_institucional ?? '',
+        proyecto_educativo_facultad: articulacion.proyecto_educativo_facultad ?? '',
+        proyecto_educativo_programas: articulacion.proyecto_educativo_programas ?? ''
+      },
+      cronograma: {
+        mes1: cronograma.mes1 ?? '',
+        mes2: cronograma.mes2 ?? '',
+        mes3: cronograma.mes3 ?? '',
+        mes4: cronograma.mes4 ?? '',
+        mes5: cronograma.mes5 ?? '',
+        mes6: cronograma.mes6 ?? '',
+        mes7: cronograma.mes7 ?? '',
+        mes8: cronograma.mes8 ?? '',
+        mes9: cronograma.mes9 ?? '',
+        mes10: cronograma.mes10 ?? '',
+        mes11: cronograma.mes11 ?? '',
+        mes12: cronograma.mes12 ?? ''
+      },
+      justificacion: plan.justificacion ?? '',
+      producto_entregable: plan.producto_entregable ?? '',
+      impacto_alcance: plan.impacto_alcance ?? '',
+      metodologia: plan.metodologia ?? '',
+      presupuesto: plan.presupuesto ?? '',
+      observaciones: plan.observaciones ?? '',
+      observacionesSecretaria: plan.observacionesSecretaria ?? ''
+    };
+  }
+
+  private sanitizeFormulario(formulario: FormularioSolicitud): FormularioSolicitud {
+    return {
+      docente: {
+        nombre: formulario.docente?.nombre ?? '',
+        identificacion: formulario.docente?.identificacion ?? '',
+        facultad: formulario.docente?.facultad ?? '',
+        proyecto_curricular: formulario.docente?.proyecto_curricular ?? ''
+      },
+      detalle_solicitud: {
+        modalidad: formulario.detalle_solicitud?.modalidad ?? '',
+        modalidadId: formulario.detalle_solicitud?.modalidadId ?? 0,
+        periodo_ejecucion: formulario.detalle_solicitud?.periodo_ejecucion ?? '',
+        producto_ultimo_sabatico: formulario.detalle_solicitud?.producto_ultimo_sabatico ?? '',
+        ultimo_sabatico: {
+          fecha_inicio: formulario.detalle_solicitud?.ultimo_sabatico?.fecha_inicio ?? '',
+          fecha_fin: formulario.detalle_solicitud?.ultimo_sabatico?.fecha_fin ?? '',
+          producto_ultimo_sabatico: formulario.detalle_solicitud?.ultimo_sabatico?.producto_ultimo_sabatico ?? ''
+        }
+      },
+      objetivos: {
+        objetivo_general: formulario.objetivos?.objetivo_general ?? '',
+        objetivos_especificos: formulario.objetivos?.objetivos_especificos ?? ''
+      },
+      articulacion: {
+        plan_desarrollo_institucional: formulario.articulacion?.plan_desarrollo_institucional ?? '',
+        proyecto_educativo_facultad: formulario.articulacion?.proyecto_educativo_facultad ?? '',
+        proyecto_educativo_programas: formulario.articulacion?.proyecto_educativo_programas ?? ''
+      },
+      cronograma: {
+        mes1: formulario.cronograma?.mes1 ?? '',
+        mes2: formulario.cronograma?.mes2 ?? '',
+        mes3: formulario.cronograma?.mes3 ?? '',
+        mes4: formulario.cronograma?.mes4 ?? '',
+        mes5: formulario.cronograma?.mes5 ?? '',
+        mes6: formulario.cronograma?.mes6 ?? '',
+        mes7: formulario.cronograma?.mes7 ?? '',
+        mes8: formulario.cronograma?.mes8 ?? '',
+        mes9: formulario.cronograma?.mes9 ?? '',
+        mes10: formulario.cronograma?.mes10 ?? '',
+        mes11: formulario.cronograma?.mes11 ?? '',
+        mes12: formulario.cronograma?.mes12 ?? ''
+      },
+      justificacion: formulario.justificacion ?? '',
+      producto_entregable: formulario.producto_entregable ?? '',
+      impacto_alcance: formulario.impacto_alcance ?? '',
+      metodologia: formulario.metodologia ?? '',
+      presupuesto: formulario.presupuesto ?? '',
+      observaciones: formulario.observaciones ?? '',
+      observacionesSecretaria: formulario.observacionesSecretaria ?? ''
+    };
   }
 
   private getDocumentoBaseKey(key: string): string {
@@ -654,6 +852,146 @@ export class EditarSolicitudComponent {
       });
   }
 
+  private buildForm(): FormGroup {
+    return this.formBuilder.group({
+      docenteNombre: [{ value: this.formulario?.docente?.nombre ?? '', disabled: true }],
+      docenteIdentificacion: [{ value: this.formulario?.docente?.identificacion ?? '', disabled: true }],
+      docenteFacultad: [{ value: this.formulario?.docente?.facultad ?? '', disabled: true }],
+      docenteProyecto: [{ value: this.formulario?.docente?.proyecto_curricular ?? '', disabled: true }],
+      periodoEjecucion: ['', Validators.required],
+      ultimoSabatico: this.formBuilder.group({
+        start: [null, Validators.required],
+        end: [null, Validators.required]
+      }),
+      productoUltimo: ['', Validators.required],
+      modalidad: ['', Validators.required],
+      objetivoGeneral: ['', Validators.required],
+      objetivosEspecificos: ['', Validators.required],
+      justificacion: ['', Validators.required],
+      planDesarrolloInstitucional: ['', Validators.required],
+      proyectoEducativoFacultad: ['', Validators.required],
+      proyectoEducativoProgramas: ['', Validators.required],
+      productoEntregable: ['', Validators.required],
+      impactoAlcance: ['', Validators.required],
+      metodologia: ['', Validators.required],
+      presupuesto: ['', Validators.required],
+      observaciones: [''],
+      observacionesSecretaria: [this.formulario?.observacionesSecretaria ?? ''],
+      cronograma: this.formBuilder.group({
+        mes1: ['', Validators.required],
+        mes2: ['', Validators.required],
+        mes3: ['', Validators.required],
+        mes4: ['', Validators.required],
+        mes5: ['', Validators.required],
+        mes6: ['', Validators.required],
+        mes7: ['', Validators.required],
+        mes8: ['', Validators.required],
+        mes9: ['', Validators.required],
+        mes10: ['', Validators.required],
+        mes11: ['', Validators.required],
+        mes12: ['', Validators.required]
+      })
+    });
+  }
+
+  private parseApiDate(value: string | null | undefined): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const [year, month, day] = value.split('-').map(Number);
+
+    if (!year || !month || !day) {
+      return null;
+    }
+
+    return new Date(year, month - 1, day);
+  }
+
+  private formatDateOnlyForBackend(date: Date | null | undefined): string {
+    if (!date) {
+      return '';
+    }
+
+    const pad = (value: number): string => String(value).padStart(2, '0');
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+
+    return `${year}-${month}-${day}`;
+  }
+
+  private syncFormularioFromForm(): void {
+    if (!this.form || !this.formulario) {
+      return;
+    }
+
+    const formValue = this.form.getRawValue() as FormularioSolicitudFormValue;
+    const modalidadOption = this.modalidadesOptions.find(
+      (option) => String(option?.Id) === String(formValue.modalidad)
+    );
+    const modalidadIdParsed = Number(formValue.modalidad);
+
+    this.formulario = {
+      ...this.formulario,
+      docente: {
+        ...this.formulario.docente,
+        nombre: formValue.docenteNombre,
+        identificacion: formValue.docenteIdentificacion,
+        facultad: formValue.docenteFacultad,
+        proyecto_curricular: formValue.docenteProyecto
+      },
+      detalle_solicitud: {
+        ...this.formulario.detalle_solicitud,
+        modalidad: modalidadOption?.Nombre ?? this.formulario.detalle_solicitud?.modalidad ?? '',
+        modalidadId: Number.isFinite(modalidadIdParsed)
+          ? modalidadIdParsed
+          : (this.formulario.detalle_solicitud?.modalidadId ?? 0),
+        periodo_ejecucion: formValue.periodoEjecucion,
+        producto_ultimo_sabatico: formValue.productoUltimo,
+        ultimo_sabatico: {
+          ...this.formulario.detalle_solicitud?.ultimo_sabatico,
+          fecha_inicio: this.formatDateOnlyForBackend(formValue.ultimoSabatico?.start),
+          fecha_fin: this.formatDateOnlyForBackend(formValue.ultimoSabatico?.end),
+          producto_ultimo_sabatico: formValue.productoUltimo
+        }
+      },
+      objetivos: {
+        ...this.formulario.objetivos,
+        objetivo_general: formValue.objetivoGeneral,
+        objetivos_especificos: formValue.objetivosEspecificos
+      },
+      articulacion: {
+        ...this.formulario.articulacion,
+        plan_desarrollo_institucional: formValue.planDesarrolloInstitucional,
+        proyecto_educativo_facultad: formValue.proyectoEducativoFacultad,
+        proyecto_educativo_programas: formValue.proyectoEducativoProgramas
+      },
+      cronograma: {
+        ...formValue.cronograma
+      },
+      justificacion: formValue.justificacion,
+      producto_entregable: formValue.productoEntregable,
+      impacto_alcance: formValue.impactoAlcance,
+      metodologia: formValue.metodologia,
+      presupuesto: formValue.presupuesto,
+      observaciones: formValue.observaciones,
+      observacionesSecretaria: formValue.observacionesSecretaria
+    };
+  }
+
+  private formatTimestampForBackend(date: Date = new Date()): string {
+    const pad = (value: number): string => String(value).padStart(2, '0');
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+    const seconds = pad(date.getSeconds());
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+
   private hasDocumentosSecretariaObligatorios(): boolean {
     const requiredKeysByRole: Record<string, string[]> = {
       CONTRATISTA: ['revisionRequisitosSabatico', 'actaConsejoFacultad'],
@@ -678,54 +1016,4 @@ export class EditarSolicitudComponent {
     return isPdfByExtension || isPdfByMime;
   }
 
-  private parseEstado(value: string | null | undefined): EstadoSolicitud | null {
-    if (!value) {
-      return null;
-    }
-
-    return this.estadoOptions.includes(value as EstadoSolicitud)
-      ? (value as EstadoSolicitud)
-      : null;
-  }
-
-  private parseSolicitud(value: unknown): SolicitudDetalle | null {
-    if (!value || typeof value !== 'object') {
-      return null;
-    }
-
-    const data = value as Partial<SolicitudDetalle> & {
-      id?: string;
-      fechaRadicado?: string;
-      estado?: string;
-    };
-    const estado = this.parseEstado(data.estado);
-
-    if (!data.id || !data.fechaRadicado || !estado) {
-      return null;
-    }
-
-    return {
-      ...data,
-      id: data.id,
-      fechaRadicado: data.fechaRadicado,
-      estado,
-      documentos: data.documentos ?? {},
-      cronograma: data.cronograma
-        ? { ...data.cronograma }
-        : {
-          mes1: '',
-          mes2: '',
-          mes3: '',
-          mes4: '',
-          mes5: '',
-          mes6: '',
-          mes7: '',
-          mes8: '',
-          mes9: '',
-          mes10: '',
-          mes11: '',
-          mes12: ''
-        }
-    };
-  }
 }

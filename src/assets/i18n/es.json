@@ -612,6 +612,7 @@
     "description": "Módulo para la gestión de las solicitudes de sabáticos",
     "cargandoSolicitudes": "Cargando solicitudes...",
     "errorCargarSolicitudes": "No se pudieron cargar las solicitudes. Intente nuevamente.",
+    "errorCargarFormulario": "No se pudo cargar el formulario de la solicitud. Intente nuevamente.",
     "sinSolicitudes": "No se encontraron solicitudes registradas.",
     "tableAriaLabel": "Tabla de historial de solicitudes",
     "columns": {
@@ -686,6 +687,8 @@
       "subtitle": "Detalle de la solicitud seleccionada",
       "save": "Guardar cambios",
       "sendReview": "Enviar a revisión",
+      "sendReviewSecretariaGeneral": "Enviar a revisión Secretaría General",
+      "subsanacion": "Subsanación",
       "observaciones": {
         "title": "Observaciones",
         "label": "Comentarios u observaciones a tener en cuenta"
@@ -807,7 +810,9 @@
       "startSabaticoAria": "Iniciar sabático",
       "confirmSendTitle": "Confirmar envío",
       "confirmSendDocenteDraft": "¿Está seguro/a de enviar a revisión su solicitud de año sabático?",
-      "confirmSendGeneral": "¿Está seguro/a de que desea enviar la solicitud a la siguiente fase de revisión/aprobación?"
+      "confirmSendGeneral": "¿Está seguro/a de que desea enviar la solicitud a la siguiente fase de revisión/aprobación?",
+      "confirmDeleteDocTitle": "Confirmar eliminación",
+      "confirmDeleteDoc": "¿Está seguro/a de que desea eliminar este documento?"
     }
   },
   "gestion_horarios": {

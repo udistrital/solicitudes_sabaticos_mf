@@ -582,6 +582,7 @@
     "description": "Module for managing sabbatical requests",
     "cargandoSolicitudes": "Loading requests...",
     "errorCargarSolicitudes": "Failed to load requests. Please try again.",
+    "errorCargarFormulario": "Failed to load the request form. Please try again.",
     "sinSolicitudes": "No requests found.",
     "tableAriaLabel": "Request history table",
     "columns": {
@@ -600,7 +601,9 @@
       "startSabaticoAria": "Start sabbatical",
       "confirmSendTitle": "Confirm submission",
       "confirmSendDocenteDraft": "Are you sure you want to submit your sabbatical year request for review?",
-      "confirmSendGeneral": "Are you sure you want to send this request to the next review/approval phase?"
+      "confirmSendGeneral": "Are you sure you want to send this request to the next review/approval phase?",
+      "confirmDeleteDocTitle": "Confirm deletion",
+      "confirmDeleteDoc": "Are you sure you want to delete this document?"
     },
     "filters": {
       "id": "Filter by ID",
@@ -666,6 +669,8 @@
       "subtitle": "Selected request details",
       "save": "Save changes",
       "sendReview": "Send for review",
+      "sendReviewSecretariaGeneral": "Send to General Secretariat for review",
+      "subsanacion": "Correction",
       "observaciones": {
         "title": "Observations",
         "label": "Comments or observations to consider"

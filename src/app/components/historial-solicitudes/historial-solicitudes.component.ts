@@ -32,18 +32,18 @@ type EstadoSolicitud =
 type FilterColumn = 'id' | 'docenteIdentificacion' | 'docenteNombre';
 
 interface CronogramaActividad {
-  enero: string;
-  febrero: string;
-  marzo: string;
-  abril: string;
-  mayo: string;
-  junio: string;
-  julio: string;
-  agosto: string;
-  septiembre: string;
-  octubre: string;
-  noviembre: string;
-  diciembre: string;
+  mes1: string;
+  mes2: string;
+  mes3: string;
+  mes4: string;
+  mes5: string;
+  mes6: string;
+  mes7: string;
+  mes8: string;
+  mes9: string;
+  mes10: string;
+  mes11: string;
+  mes12: string;
 }
 
 interface SolicitudDetalle {
@@ -69,6 +69,7 @@ interface SolicitudDetalle {
   metodologia: string;
   cronograma: CronogramaActividad;
   presupuesto: string;
+  observaciones: string;
   documentos: Record<string, string | null>;
 }
 
@@ -469,23 +470,19 @@ export class HistorialSolicitudesComponent {
     };
   }
 
-  private navigateToEditarSolicitud(solicitud: HistorialSolicitud, readOnly: boolean): void {
+  private navigateToEditarSolicitud(
+    solicitud: HistorialSolicitud,
+    readOnly: boolean
+  ): void {
     this.router.navigate(['solicitudes/editar'], {
       state: {
         rol: this.rol,
         readOnly,
-        solicitud: solicitud.detalle
-          ? {
-            ...solicitud.detalle,
-            id: solicitud.id,
-            fechaRadicado: solicitud.fechaRadicado,
-            estado: solicitud.estado
-          }
-          : {
-            id: solicitud.id,
-            fechaRadicado: solicitud.fechaRadicado,
-            estado: solicitud.estado
-          }
+        solicitud: {
+          id: solicitud.id,
+          fechaRadicado: solicitud.fechaRadicado,
+          estado: solicitud.estado,
+        }
       }
     });
   }
