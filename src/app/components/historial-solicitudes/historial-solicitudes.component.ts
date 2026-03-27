@@ -276,7 +276,7 @@ export class HistorialSolicitudesComponent {
     private readonly requestManager: RequestManager,
     private readonly tercerosService: TercerosService,
     private readonly sabaticosCrudService: SabaticosCrudService,
-    private readonly configuracionService: ConfiguracionService
+    private readonly configuracionService: ConfiguracionService,
     private readonly sabaticosMidService: SabaticosMidService
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
