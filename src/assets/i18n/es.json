@@ -672,7 +672,7 @@
     },
     "roleInfo": {
       "coordinador": "Desde esta sección podrá consultar el historial de solicitudes tramitadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar el expediente consolidado, registrar la decisión del Consejo Académico y adjuntar la resolución o los documentos que soportan la respuesta.",
-      "contratista": "Desde esta sección podrá consultar las solicitudes radicadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar su estado documental, registrar la respuesta del Consejo de Facultad y gestionar devoluciones o subsanaciones cuando corresponda.",
+      "secretariaAcademica": "Desde esta sección podrá consultar las solicitudes radicadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar su estado documental, registrar la respuesta del Consejo de Facultad y gestionar devoluciones o subsanaciones cuando corresponda.",
       "docente": "Le damos la bienvenida al módulo de solicitudes de Año Sabático, aquí usted podrá registrar y consultar sus solicitudes (GD-PR-020 del SIGUD), y dar continuidad al proceso cuando lo requiera."
     },
     "abreviaturas": {
@@ -687,8 +687,12 @@
       "subtitle": "Detalle de la solicitud seleccionada",
       "save": "Guardar cambios",
       "sendReview": "Enviar a revisión",
-      "sendReviewSecretariaGeneral": "Enviar a revisión Secretaría General",
+      "sendReviewSecretariaGeneral": "Enviar a revisión",
       "subsanacion": "Subsanación",
+      "saveSecretariaSuccess": "Cambios guardados exitosamente",
+      "saveSecretariaError": "Error al guardar los cambios",
+      "sendSecretariaSuccess": "Solicitud enviada exitosamente",
+      "sendSecretariaError": "Error al enviar la solicitud",
       "observaciones": {
         "title": "Observaciones",
         "label": "Comentarios u observaciones a tener en cuenta"
@@ -701,7 +705,9 @@
         "approved": "Aprobado",
         "rejected": "Rechazado",
         "approveAria": "Aprobar documento",
-        "rejectAria": "Rechazar documento"
+        "rejectAria": "Rechazar documento",
+        "noPreviewTitle": "Sin previsualización",
+        "noPreviewText": "La previsualización estará disponible cuando se conecte el servicio de gestión documental."
       },
       "secretaria": {
         "title": "Gestión de Secretaría",

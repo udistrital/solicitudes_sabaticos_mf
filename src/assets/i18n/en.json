@@ -654,7 +654,7 @@
     },
     "roleInfo": {
       "coordinador": "From this section, you can review the history of requests processed in SGA under SIGUD procedure GD-PR-020, review the consolidated file, record the Academic Council decision, and attach the resolution or supporting response documents.",
-      "contratista": "From this section, you can review requests filed in SGA under SIGUD procedure GD-PR-020, check their documentary status, record the Faculty Council response, and manage returns or corrections when applicable.",
+      "secretariaAcademica": "From this section, you can review requests filed in SGA under SIGUD procedure GD-PR-020, check their documentary status, record the Faculty Council response, and manage returns or corrections when applicable.",
       "docente": "Welcome to the Sabbatical Request module. Here you can register and review your requests (SIGUD GD-PR-020) and continue the process whenever needed."
     },
     "abreviaturas": {
@@ -669,8 +669,12 @@
       "subtitle": "Selected request details",
       "save": "Save changes",
       "sendReview": "Send for review",
-      "sendReviewSecretariaGeneral": "Send to General Secretariat for review",
+      "sendReviewSecretariaGeneral": "Send for review",
       "subsanacion": "Correction",
+      "saveSecretariaSuccess": "Changes saved successfully",
+      "saveSecretariaError": "Error saving changes",
+      "sendSecretariaSuccess": "Request sent successfully",
+      "sendSecretariaError": "Error sending request",
       "observaciones": {
         "title": "Observations",
         "label": "Comments or observations to consider"
@@ -683,7 +687,9 @@
         "approved": "Approved",
         "rejected": "Rejected",
         "approveAria": "Approve document",
-        "rejectAria": "Reject document"
+        "rejectAria": "Reject document",
+        "noPreviewTitle": "No preview available",
+        "noPreviewText": "The preview will be available once the document management service is connected."
       },
       "secretaria": {
         "title": "Secretariat management",

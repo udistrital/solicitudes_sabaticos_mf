@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
@@ -23,6 +23,7 @@ import {
 } from './interface';
 import { ParametrosService } from '../../services/parametros.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
+import { GestorDocumentalService } from '../../services/gestor-documental.service';
 import { SecretariaGeneralBody } from './interface/guardar-secretaria-general.type';
 
 @Component({
@@ -30,7 +31,7 @@ import { SecretariaGeneralBody } from './interface/guardar-secretaria-general.ty
   templateUrl: './editar-solicitud.component.html',
   styleUrl: './editar-solicitud.component.scss'
 })
-export class EditarSolicitudComponent {
+export class EditarSolicitudComponent implements OnDestroy {
   // Estado general
   // readonly minDocumentosRequeridos = 9;
   private readonly otrosDocumentoKey = 'otros';
@@ -48,11 +49,14 @@ export class EditarSolicitudComponent {
   isReadOnly = false;
   rol = '';
   terceroIdSolicitud = 0;
+  documentosModificados = false;
 
 
   // Estado de documentos (docente)
   documentoArchivos: Record<string, string | null> = {};
   documentoObjectUrls: Record<string, string> = {};
+  documentoBackendIds: Record<string, number> = {};
+  documentosCargando: Record<string, boolean> = {};
   documentoSeleccionado: string | null = null;
   documentosSeleccionados: string[] = [];
   documentoAprobaciones: Record<string, 'aprobado' | 'rechazado' | null> = {};
@@ -68,8 +72,13 @@ export class EditarSolicitudComponent {
   // Estado de documentos (secretaría)
   secretariaDocumentoArchivos: Record<string, string | null> = {};
   secretariaDocumentoObjectUrls: Record<string, string> = {};
+  secretariaDocumentoBackendIds: Record<string, number> = {};
+  secretariaDocumentosCargando: Record<string, boolean> = {};
   secretariaDocumentoSeleccionado: string | null = null;
   secretariaDocumentosSeleccionados: string[] = [];
+  secretariaDocumentosNuevosFiles: { [key: string]: File } = {};
+  secretariaDocumentosExistentesIds: number[] = [];
+  secretariaDocumentosNuevosIds: number[] = [];
 
   // Catálogos
   readonly cronogramaMeses = CRONOGRAMA_MESES;
@@ -84,6 +93,7 @@ export class EditarSolicitudComponent {
     private readonly sabaticosCrudService: SabaticosCrudService,
     private readonly sabaticosMidService: SabaticosMidService,
     private readonly parametrosService: ParametrosService,
+    private readonly gestorDocumentalService: GestorDocumentalService,
     private readonly translate: TranslateService
   ) {
     const solicitudId = (this.router.getCurrentNavigation()?.extras?.state ?? history.state)?.['solicitud']?.id;
@@ -117,16 +127,41 @@ export class EditarSolicitudComponent {
 
         this.documentosDocenteBackend = [...soportesBackend];
 
-        this.documentosDocenteExistentesIds = soportesBackend
+        const soportesDocente = soportesBackend.filter(
+          (s: any) => !s.RolUsuario || s.RolUsuario === 'DOCENTE'
+        );
+        const soportesSecretaria = soportesBackend.filter(
+          (s: any) => s.RolUsuario === 'SECRETARIA_ACADEMICA' || s.RolUsuario === 'COORDINADOR'
+        );
+
+        this.documentosDocenteExistentesIds = soportesDocente
           .map((item: any) => Number(item?.DocumentoId))
           .filter((id: number) => !isNaN(id) && id > 0);
 
-        this.applySoportesFromBackend(soportesBackend);
+        this.secretariaDocumentosExistentesIds = soportesSecretaria
+          .map((item: any) => Number(item?.DocumentoId))
+          .filter((id: number) => !isNaN(id) && id > 0);
+
+        this.applySoportesFromBackend(soportesDocente);
+        this.applySoportesSecretariaFromBackend(soportesSecretaria);
         this.applyFormPermissions();
       },
       error: (error) => {
         console.error('Error al llamar al servicio:', error);
         this.initializeFromMockDetalle();
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    Object.values(this.documentoObjectUrls).forEach((url) => {
+      if (url?.startsWith('blob:')) {
+        URL.revokeObjectURL(url);
+      }
+    });
+    Object.values(this.secretariaDocumentoObjectUrls).forEach((url) => {
+      if (url?.startsWith('blob:')) {
+        URL.revokeObjectURL(url);
       }
     });
   }
@@ -266,6 +301,10 @@ export class EditarSolicitudComponent {
       .filter((documento): documento is DocumentoOption => Boolean(documento));
   }
 
+  get hasUnsavedChanges(): boolean {
+    return Boolean(this.form?.dirty) || this.documentosModificados;
+  }
+
   get showSeccionSecretaria(): boolean {
     if (!this.formularioInit) {
       return false;
@@ -279,11 +318,15 @@ export class EditarSolicitudComponent {
   }
 
   get canEditarFormularioPrincipal(): boolean {
-    return !this.isReadOnly && this.rol !== 'COORDINADOR' && this.rol !== 'CONTRATISTA';
+    return !this.isReadOnly && this.rol !== 'COORDINADOR' && this.rol !== 'SECRETARIA_ACADEMICA';
   }
 
   get canAprobarDocumentos(): boolean {
-    return !this.isReadOnly && this.rol === 'CONTRATISTA';
+    return !this.isReadOnly && this.rol === 'SECRETARIA_ACADEMICA';
+  }
+
+  isDocumentoCargando(key: string): boolean {
+    return Boolean(this.documentosCargando[key]);
   }
 
   getDocumentoAprobacion(key: string): 'aprobado' | 'rechazado' | null {
@@ -325,7 +368,7 @@ export class EditarSolicitudComponent {
       return false;
     }
 
-    if (this.rol === 'CONTRATISTA') {
+    if (this.rol === 'SECRETARIA_ACADEMICA') {
       return baseKey === 'revisionRequisitosSabatico'
         || baseKey === 'actaConsejoFacultad'
         || baseKey === this.otrosSecretariaKey;
@@ -351,7 +394,7 @@ export class EditarSolicitudComponent {
       return false;
     }
 
-    if (this.rol === 'CONTRATISTA' || this.rol === 'COORDINADOR') {
+    if (this.rol === 'SECRETARIA_ACADEMICA' || this.rol === 'COORDINADOR') {
       return false;
     }
 
@@ -363,7 +406,9 @@ export class EditarSolicitudComponent {
       return false;
     }
 
-    return this.rol === 'SECRETARIA_GENERAL' || this.rol === 'CONTRATISTA';
+    return this.rol === 'SECRETARIA_GENERAL'
+      || this.rol === 'SECRETARIA_ACADEMICA'
+      || this.rol === 'COORDINADOR';
   }
 
   // =========================
@@ -387,6 +432,7 @@ export class EditarSolicitudComponent {
       if (!(keyToAdd in this.documentoArchivos)) {
         this.documentoArchivos[keyToAdd] = null;
       }
+      this.documentosModificados = true;
     }
 
     this.documentoSeleccionado = null;
@@ -411,6 +457,7 @@ export class EditarSolicitudComponent {
     );
     this.revokeDocumentoObjectUrl(key);
     delete this.documentoArchivos[key];
+    this.documentosModificados = true;
   }
 
   getDocumentoNombre(key: string): string | null {
@@ -449,21 +496,70 @@ export class EditarSolicitudComponent {
     if (!this.documentosSeleccionados.includes(key)) {
       this.documentosSeleccionados.push(key);
     }
-  
+
+    this.documentosModificados = true;
     input.value = '';
   }
 
   canPrevisualizarDocumento(key: string): boolean {
-    return Boolean(this.documentoObjectUrls[key]);
+    return Boolean(this.documentoObjectUrls[key]) || Boolean(this.documentoArchivos[key]);
   }
 
   onPrevisualizarDocumento(key: string): void {
-    const previewUrl = this.documentoObjectUrls[key];
-    if (!previewUrl) {
+    const cachedUrl = this.documentoObjectUrls[key];
+    if (cachedUrl) {
+      window.open(cachedUrl, '_blank', 'noopener,noreferrer');
       return;
     }
 
-    window.open(previewUrl, '_blank', 'noopener,noreferrer');
+    const documentoId = this.documentoBackendIds[key];
+    if (!documentoId) {
+      this.popUpManager.showAlert(
+        this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.noPreviewTitle'),
+        this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.noPreviewText')
+      );
+      return;
+    }
+
+    if (this.documentosCargando[key]) {
+      return;
+    }
+
+    this.documentosCargando[key] = true;
+
+    this.gestorDocumentalService.getDocumentoById(documentoId).subscribe({
+      next: (nuxeoDoc) => {
+        this.documentosCargando[key] = false;
+
+        if (!nuxeoDoc) {
+          this.popUpManager.showErrorAlert(
+            this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.noPreviewText')
+          );
+          return;
+        }
+
+        const nombre = nuxeoDoc.Nombre ?? nuxeoDoc.Nuxeo?.['dc:title'];
+        if (nombre) {
+          this.documentoArchivos[key] = nombre;
+        }
+
+        const blobUrl = this.gestorDocumentalService.getBlobUrlFromDocumento(nuxeoDoc);
+        if (blobUrl) {
+          this.documentoObjectUrls[key] = blobUrl;
+          window.open(blobUrl, '_blank', 'noopener,noreferrer');
+        } else {
+          this.popUpManager.showErrorAlert(
+            this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.noPreviewText')
+          );
+        }
+      },
+      error: () => {
+        this.documentosCargando[key] = false;
+        this.popUpManager.showErrorAlert(
+          this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.noPreviewText')
+        );
+      }
+    });
   }
 
   // =========================
@@ -494,6 +590,7 @@ export class EditarSolicitudComponent {
       if (!(keyToAdd in this.secretariaDocumentoArchivos)) {
         this.secretariaDocumentoArchivos[keyToAdd] = null;
       }
+      this.documentosModificados = true;
     }
 
     this.secretariaDocumentoSeleccionado = null;
@@ -518,6 +615,7 @@ export class EditarSolicitudComponent {
     );
     this.revokeSecretariaDocumentoObjectUrl(key);
     delete this.secretariaDocumentoArchivos[key];
+    this.documentosModificados = true;
   }
 
   getDocumentoSecretariaNombre(key: string): string | null {
@@ -542,29 +640,80 @@ export class EditarSolicitudComponent {
     this.revokeSecretariaDocumentoObjectUrl(key);
     if (file) {
       this.secretariaDocumentoObjectUrls[key] = URL.createObjectURL(file);
+      this.secretariaDocumentosNuevosFiles[key] = file;
+      this.documentosModificados = true;
     }
     this.secretariaDocumentoArchivos[key] = file ? file.name : null;
+    input.value = '';
   }
 
   canPrevisualizarDocumentoSecretaria(key: string): boolean {
-    return Boolean(this.secretariaDocumentoObjectUrls[key]);
+    return Boolean(this.secretariaDocumentoObjectUrls[key]) || Boolean(this.secretariaDocumentoArchivos[key]);
   }
 
   canVerDocumentoSecretaria(key: string): boolean {
     return Boolean(this.secretariaDocumentoObjectUrls[key] || this.secretariaDocumentoArchivos[key]);
   }
 
+  isDocumentoSecretariaCargando(key: string): boolean {
+    return Boolean(this.secretariaDocumentosCargando[key]);
+  }
+
   onPrevisualizarDocumentoSecretaria(key: string): void {
-    const previewUrl = this.secretariaDocumentoObjectUrls[key];
-    if (previewUrl) {
-      window.open(previewUrl, '_blank', 'noopener,noreferrer');
+    const cachedUrl = this.secretariaDocumentoObjectUrls[key];
+    if (cachedUrl) {
+      window.open(cachedUrl, '_blank', 'noopener,noreferrer');
       return;
     }
 
-    this.popUpManager.showAlert(
-      'Sin previsualización',
-      'El botón está habilitado para pruebas. La previsualización estará disponible cuando se conecte el servicio del backend.'
-    );
+    const documentoId = this.secretariaDocumentoBackendIds[key];
+    if (!documentoId) {
+      this.popUpManager.showAlert(
+        this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.noPreviewTitle'),
+        this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.noPreviewText')
+      );
+      return;
+    }
+
+    if (this.secretariaDocumentosCargando[key]) {
+      return;
+    }
+
+    this.secretariaDocumentosCargando[key] = true;
+
+    this.gestorDocumentalService.getDocumentoById(documentoId).subscribe({
+      next: (nuxeoDoc) => {
+        this.secretariaDocumentosCargando[key] = false;
+
+        if (!nuxeoDoc) {
+          this.popUpManager.showErrorAlert(
+            this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.noPreviewText')
+          );
+          return;
+        }
+
+        const nombre = nuxeoDoc.Nombre ?? nuxeoDoc.Nuxeo?.['dc:title'];
+        if (nombre) {
+          this.secretariaDocumentoArchivos[key] = nombre;
+        }
+
+        const blobUrl = this.gestorDocumentalService.getBlobUrlFromDocumento(nuxeoDoc);
+        if (blobUrl) {
+          this.secretariaDocumentoObjectUrls[key] = blobUrl;
+          window.open(blobUrl, '_blank', 'noopener,noreferrer');
+        } else {
+          this.popUpManager.showErrorAlert(
+            this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.noPreviewText')
+          );
+        }
+      },
+      error: () => {
+        this.secretariaDocumentosCargando[key] = false;
+        this.popUpManager.showErrorAlert(
+          this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.noPreviewText')
+        );
+      }
+    });
   }
 
   // =========================
@@ -609,13 +758,14 @@ export class EditarSolicitudComponent {
       next: (response) => {
         console.log('Borrador guardado exitosamente:', response);
         this.popUpManager.showSuccessAlert(
-          'Borrador guardado',
+          this.translate.instant('HISTORIAL_SOLICITUDES.edit.saveSecretariaSuccess')
         );
+        this.router.navigate(['solicitudes']);
       },
       error: (error) => {
         console.error('Error al guardar el borrador:', error);
         this.popUpManager.showErrorAlert(
-          'Error al guardar',
+          this.translate.instant('HISTORIAL_SOLICITUDES.edit.saveSecretariaError')
         );
       }
     });
@@ -660,13 +810,14 @@ export class EditarSolicitudComponent {
       next: (response) => {
         console.log('Solicitud enviada a revisión exitosamente:', response);
         this.popUpManager.showSuccessAlert(
-          'Solicitud enviada',
+          this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaSuccess')
         );
+        this.router.navigate(['solicitudes']);
       },
       error: (error) => {
         console.error('Error al enviar la solicitud a revisión:', error);
         this.popUpManager.showErrorAlert(
-          'Error al enviar',
+          this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaError')
         );
       }
     });
@@ -679,32 +830,135 @@ export class EditarSolicitudComponent {
 
     this.syncFormularioFromForm();
 
-    const body: SecretariaGeneralBody = {
-      TerceroId: 7173,
-      SolicitudId: Number(this.formularioInit?.id) || 0,
+    const solicitudId = Number(this.formularioInit?.id) || 0;
+    const terceroId = this.terceroIdSolicitud;
+
+    const formularioBody: GuardarBorradorBody = {
+      Id: this.formularioRecordId ?? 0,
+      Contenido: JSON.stringify(this.formulario),
+      Activo: true,
+      FechaModificacion: this.formatTimestampForBackend(),
+      FechaCreacion: this.formatTimestampForBackend(),
+      SolicitudId: { Id: solicitudId }
+    };
+
+    const estadoBody: SecretariaGeneralBody = {
+      TerceroId: terceroId,
+      SolicitudId: solicitudId,
       Justificacion: this.formulario.observacionesSecretaria ?? '',
       EstadoSolicitud: value ? 'ENVIADA_SG' : 'SUBSANACION_SOLICITADA',
       EstadoSoporte: value ? 'APROB' : 'NOAPROB',
     };
 
-    console.log('Enviar a revisión de secretaria general con body:', body);
-
-    this.sabaticosMidService.post('solicitud/aprobar-rechazar', body).subscribe({
+    this.subirDocumentosSecretariaNuevos(solicitudId, terceroId).pipe(
+      switchMap(() => this.sabaticosCrudService.put('formulario_solicitud', formularioBody)),
+      switchMap(() => this.sabaticosMidService.post('solicitud/aprobar-rechazar', estadoBody))
+    ).subscribe({
       next: (response) => {
-        console.log('Solicitud enviada a revisión de secretaria general exitosamente:', response);
+        console.log('Solicitud enviada exitosamente:', response);
         this.popUpManager.showSuccessAlert(
-          'Solicitud enviada a Secretaría General',
+          this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaSuccess')
         );
+        this.router.navigate(['solicitudes']);
       },
       error: (error) => {
-        console.error('Error al enviar la solicitud a revisión de secretaria general:', error);
+        console.error('Error al enviar la solicitud:', error);
         this.popUpManager.showErrorAlert(
-          'Error al enviar a Secretaría General',
+          this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaError')
         );
       }
     });
   }
 
+
+  onGuardarCambiosSecretaria(): void {
+    if (!this.canEditarSeccionSecretaria || !this.form || !this.formulario) {
+      return;
+    }
+
+    this.syncFormularioFromForm();
+
+    const solicitudId = Number(this.formularioInit?.id) || 0;
+    const terceroId = this.terceroIdSolicitud;
+
+    const body: GuardarBorradorBody = {
+      Id: this.formularioRecordId ?? 0,
+      Contenido: JSON.stringify(this.formulario),
+      Activo: true,
+      FechaModificacion: this.formatTimestampForBackend(),
+      FechaCreacion: this.formatTimestampForBackend(),
+      SolicitudId: {
+        Id: solicitudId,
+      }
+    };
+
+    this.subirDocumentosSecretariaNuevos(solicitudId, terceroId).pipe(
+      switchMap(() => {
+        console.log('Guardar cambios secretaría con body:', body);
+        return this.sabaticosCrudService.put('formulario_solicitud', body);
+      })
+    ).subscribe({
+      next: (response) => {
+        console.log('Cambios de secretaría guardados exitosamente:', response);
+        this.popUpManager.showSuccessAlert(
+          this.translate.instant('HISTORIAL_SOLICITUDES.edit.saveSecretariaSuccess')
+        );
+        this.router.navigate(['solicitudes']);
+      },
+      error: (error) => {
+        console.error('Error al guardar cambios de secretaría:', error);
+        this.popUpManager.showErrorAlert(
+          this.translate.instant('HISTORIAL_SOLICITUDES.edit.saveSecretariaError')
+        );
+      }
+    });
+  }
+
+  private subirDocumentosSecretariaNuevos(
+    solicitudId: number,
+    terceroId: number
+  ): Observable<number[]> {
+    const archivos = Object.values(this.secretariaDocumentosNuevosFiles || {});
+
+    if (!archivos.length) {
+      return of([]);
+    }
+
+    const formData = new FormData();
+    formData.append('solicitud_id', solicitudId.toString());
+    formData.append('tercero_id', terceroId.toString());
+    formData.append('rol_usuario', this.rol);
+    formData.append('estado_soporte_solicitud', 'PEN');
+
+    archivos.forEach((file) => formData.append('documentos', file));
+
+    return this.sabaticosMidService.postFile('soporte_solicitud', formData).pipe(
+      map((response: any) => {
+        const nuevosIds = Array.isArray(response?.Data?.documentos)
+          ? response.Data.documentos
+              .map((doc: any) => Number(doc?.Id))
+              .filter((id: number) => !isNaN(id) && id > 0)
+          : [];
+
+        return nuevosIds;
+      }),
+      tap((nuevosIds: number[]) => {
+        this.secretariaDocumentosNuevosIds = [
+          ...this.secretariaDocumentosNuevosIds,
+          ...nuevosIds
+        ];
+
+        this.secretariaDocumentosExistentesIds = [
+          ...new Set([
+            ...this.secretariaDocumentosExistentesIds,
+            ...nuevosIds
+          ])
+        ];
+
+        this.secretariaDocumentosNuevosFiles = {};
+      })
+    );
+  }
 
   // =========================
   // Helpers privados
@@ -730,11 +984,49 @@ export class EditarSolicitudComponent {
       archivos[key] = documentoId
         ? `Documento_${documentoId}.pdf`
         : 'Documento cargado';
+
+      if (documentoId && Number(documentoId) > 0) {
+        this.documentoBackendIds[key] = Number(documentoId);
+      }
     });
 
     this.documentosSeleccionados = selectedKeys;
     this.documentoArchivos = {
       ...this.documentoArchivos,
+      ...archivos
+    };
+  }
+
+  private applySoportesSecretariaFromBackend(soportes: any[]): void {
+    if (!Array.isArray(soportes) || !soportes.length) {
+      return;
+    }
+
+    const baseKeys = this.secretariaDocumentoOptions
+      .filter((option) => option.key !== this.otrosSecretariaKey)
+      .map((option) => option.key);
+
+    const selectedKeys: string[] = [];
+    const archivos: Record<string, string | null> = {};
+
+    soportes.forEach((soporte, index) => {
+      const fallbackKey = baseKeys[index] ?? this.otrosSecretariaKey;
+      const key = this.buildDocumentoKey(fallbackKey, selectedKeys);
+      const documentoId = soporte?.DocumentoId;
+
+      selectedKeys.push(key);
+      archivos[key] = documentoId
+        ? `Documento_${documentoId}.pdf`
+        : 'Documento cargado';
+
+      if (documentoId && Number(documentoId) > 0) {
+        this.secretariaDocumentoBackendIds[key] = Number(documentoId);
+      }
+    });
+
+    this.secretariaDocumentosSeleccionados = selectedKeys;
+    this.secretariaDocumentoArchivos = {
+      ...this.secretariaDocumentoArchivos,
       ...archivos
     };
   }
@@ -1127,7 +1419,7 @@ private subirDocumentosDocenteNuevos(
 
   private hasDocumentosSecretariaObligatorios(): boolean {
     const requiredKeysByRole: Record<string, string[]> = {
-      CONTRATISTA: ['revisionRequisitosSabatico', 'actaConsejoFacultad'],
+      SECRETARIA_ACADEMICA: ['revisionRequisitosSabatico', 'actaConsejoFacultad'],
       COORDINADOR: ['actaConsejoAcademico', 'resolucionConsejoAcademico']
     };
     const requiredKeys = requiredKeysByRole[this.rol] ?? [];
