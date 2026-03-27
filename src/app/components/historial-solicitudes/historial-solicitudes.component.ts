@@ -286,19 +286,17 @@ export class HistorialSolicitudesComponent {
 
     let roles: any = this.autenticationService.getRole();
 
-    const role = roles.__zone_symbol__value.find((x: string) => ['ADMINISTRADOR', 'DOCENTE', 'COORDINADOR', 'ADMIN_SGA'].includes(x));
+    this.rol= roles.__zone_symbol__value.find((x: string) => ['ADMINISTRADOR', 'DOCENTE', 'COORDINADOR'].includes(x));
 
-    this.configuracionService.get("perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:" + role)
+    this.configuracionService.get("perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:" + this.rol)
     .subscribe((response: any) => {
       this.permisos = response
       this.perfil = response[0]?.Perfil?.Nombre ?? '';
       console.log(this.permisos)
     });
 
-    this.rol = role === 'ADMIN_SGA' ? 'COORDINADOR' : (role ?? 'DOCENTE');
-
-    if (this.rol === 'ADMINISTRADOR') {
-      this.rol = 'SECRETARIA_ACADEMICA';
+    if (this.rol == 'ADMINISTRADOR'){
+      this.rol = 'SECRETARIA_ACADEMICA'
     }
 
     this.autenticationService.getDocument().then((documento: any) => {
