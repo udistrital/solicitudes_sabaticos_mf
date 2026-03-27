@@ -48,19 +48,19 @@
           <div class="editar-solicitud__grid">
             <mat-form-field appearance="outline" class="editar-solicitud__field">
               <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.nombreDocente' | translate }}</mat-label>
-              <input matInput formControlName="docenteNombre" [disabled]="true" />
+              <input matInput formControlName="docenteNombre" />
             </mat-form-field>
             <mat-form-field appearance="outline" class="editar-solicitud__field">
               <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.identificacionDocente' | translate }}</mat-label>
-              <input matInput formControlName="docenteIdentificacion" [disabled]="true" />
+              <input matInput formControlName="docenteIdentificacion" />
             </mat-form-field>
             <mat-form-field appearance="outline" class="editar-solicitud__field">
               <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.facultadDocente' | translate }}</mat-label>
-              <input matInput formControlName="docenteFacultad" [disabled]="true" />
+              <input matInput formControlName="docenteFacultad" />
             </mat-form-field>
             <mat-form-field appearance="outline" class="editar-solicitud__field">
               <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.proyectoDocente' | translate }}</mat-label>
-              <input matInput formControlName="docenteProyecto" [disabled]="true" />
+              <input matInput formControlName="docenteProyecto" />
             </mat-form-field>
           </div>
         </div>
@@ -288,10 +288,10 @@
           <h3 class="editar-solicitud__section-title">
             {{ 'HISTORIAL_SOLICITUDES.modal.sectionDocumentos' | translate }}
           </h3>
-          <p class="editar-solicitud__documento-help">
+          <p class="editar-solicitud__documento-help" *ngIf="!canAprobarDocumentos">
             {{ 'HISTORIAL_SOLICITUDES.modal.documentos.soloPdf' | translate }}
           </p>
-          <div class="editar-solicitud__documento-selector">
+          <div class="editar-solicitud__documento-selector" *ngIf="!canAprobarDocumentos">
             <mat-form-field appearance="outline" class="editar-solicitud__field">
               <mat-label>
                 {{ 'HISTORIAL_SOLICITUDES.modal.documentos.seleccionar' | translate }}
@@ -317,23 +317,62 @@
                   {{ getDocumentoNombre(documento.key) || ('HISTORIAL_SOLICITUDES.modal.documentos.sinArchivo' | translate) }}
                 </span>
               </div>
-              <div class="editar-solicitud__documento-actions">
+              <div class="editar-solicitud__documento-actions" *ngIf="canEditarFormularioPrincipal">
                 <button *ngIf="canPrevisualizarDocumento(documento.key); else cargarDocumento"
                   mat-icon-button type="button" class="editar-solicitud__documento-preview"
-                  (click)="onPrevisualizarDocumento(documento.key)" aria-label="Previsualizar documento">
-                  <mat-icon>visibility</mat-icon>
+                  (click)="onPrevisualizarDocumento(documento.key)"
+                  [disabled]="isDocumentoCargando(documento.key)"
+                  aria-label="Previsualizar documento">
+                  <mat-icon>{{ isDocumentoCargando(documento.key) ? 'hourglass_empty' : 'visibility' }}</mat-icon>
                 </button>
                 <ng-template #cargarDocumento>
-                  <label class="editar-solicitud__documento-action" [class.editar-solicitud__documento-action--disabled]="!canEditarFormularioPrincipal"
-                    mat-stroked-button>
+                  <label class="editar-solicitud__documento-action" mat-stroked-button>
                     {{ 'HISTORIAL_SOLICITUDES.modal.documentos.cargar' | translate }}
-                    <input type="file" accept=".pdf,application/pdf" (change)="onDocumentoChange(documento.key, $event)" [disabled]="!canEditarFormularioPrincipal" />
+                    <input type="file" accept=".pdf,application/pdf" (change)="onDocumentoChange(documento.key, $event)" />
                   </label>
                 </ng-template>
                 <button mat-icon-button type="button" class="editar-solicitud__documento-remove"
-                  (click)="onEliminarDocumento(documento.key)" [disabled]="!canEditarFormularioPrincipal"
+                  (click)="onEliminarDocumento(documento.key)"
                   [attr.aria-label]="'GLOBAL.eliminar' | translate">
                   <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+              <div class="editar-solicitud__documento-actions" *ngIf="!canEditarFormularioPrincipal && !canAprobarDocumentos">
+                <button mat-icon-button type="button" class="editar-solicitud__documento-preview"
+                  (click)="onPrevisualizarDocumento(documento.key)"
+                  [disabled]="isDocumentoCargando(documento.key)"
+                  aria-label="Previsualizar documento">
+                  <mat-icon>{{ isDocumentoCargando(documento.key) ? 'hourglass_empty' : 'visibility' }}</mat-icon>
+                </button>
+              </div>
+              <div class="editar-solicitud__documento-actions" *ngIf="canAprobarDocumentos">
+                <span class="editar-solicitud__documento-status editar-solicitud__documento-status--aprobado"
+                  *ngIf="getDocumentoAprobacion(documento.key) === 'aprobado'">
+                  <mat-icon>check_circle</mat-icon>
+                  {{ 'HISTORIAL_SOLICITUDES.edit.documentos.approved' | translate }}
+                </span>
+                <span class="editar-solicitud__documento-status editar-solicitud__documento-status--rechazado"
+                  *ngIf="getDocumentoAprobacion(documento.key) === 'rechazado'">
+                  <mat-icon>cancel</mat-icon>
+                  {{ 'HISTORIAL_SOLICITUDES.edit.documentos.rejected' | translate }}
+                </span>
+                <button mat-icon-button type="button" class="editar-solicitud__documento-approve"
+                  (click)="onAprobarDocumento(documento.key)"
+                  *ngIf="getDocumentoAprobacion(documento.key) !== 'aprobado'"
+                  [attr.aria-label]="'HISTORIAL_SOLICITUDES.edit.documentos.approveAria' | translate">
+                  <mat-icon>check</mat-icon>
+                </button>
+                <button mat-icon-button type="button" class="editar-solicitud__documento-reject"
+                  (click)="onRechazarDocumento(documento.key)"
+                  *ngIf="getDocumentoAprobacion(documento.key) !== 'rechazado'"
+                  [attr.aria-label]="'HISTORIAL_SOLICITUDES.edit.documentos.rejectAria' | translate">
+                  <mat-icon>close</mat-icon>
+                </button>
+                <button mat-icon-button type="button" class="editar-solicitud__documento-preview"
+                  (click)="onPrevisualizarDocumento(documento.key)"
+                  [disabled]="isDocumentoCargando(documento.key)"
+                  aria-label="Previsualizar documento">
+                  <mat-icon>{{ isDocumentoCargando(documento.key) ? 'hourglass_empty' : 'visibility' }}</mat-icon>
                 </button>
               </div>
             </div>
@@ -391,8 +430,10 @@
                 <div class="editar-solicitud__documento-actions">
                   <button *ngIf="canPrevisualizarDocumentoSecretaria(documento.key); else cargarDocumentoSecretaria"
                     mat-icon-button type="button" class="editar-solicitud__documento-preview"
-                    (click)="onPrevisualizarDocumentoSecretaria(documento.key)" aria-label="Previsualizar documento">
-                    <mat-icon>visibility</mat-icon>
+                    (click)="onPrevisualizarDocumentoSecretaria(documento.key)"
+                    [disabled]="isDocumentoSecretariaCargando(documento.key)"
+                    aria-label="Previsualizar documento">
+                    <mat-icon>{{ isDocumentoSecretariaCargando(documento.key) ? 'hourglass_empty' : 'visibility' }}</mat-icon>
                   </button>
                   <ng-template #cargarDocumentoSecretaria>
                     <label class="editar-solicitud__documento-action"
@@ -410,44 +451,14 @@
                 </div>
               </div>
             </div>
-            <div class="editar-solicitud__tabla-documentos mat-elevation-z2">
-              <table mat-table [dataSource]="secretariaDocumentosSeleccionadosDetalle" class="editar-solicitud__mat-table">
-                <ng-container matColumnDef="documento">
-                  <th mat-header-cell *matHeaderCellDef>Documento</th>
-                  <td mat-cell *matCellDef="let documento">{{ documento.label | translate }}</td>
-                </ng-container>
-
-                <ng-container matColumnDef="verDocumento">
-                  <th mat-header-cell *matHeaderCellDef>Ver documento</th>
-                  <td mat-cell *matCellDef="let documento">
-                    <button mat-icon-button color="primary" type="button"
-                      (click)="onPrevisualizarDocumentoSecretaria(documento.key)"
-                      aria-label="Ver documento">
-                      <mat-icon>visibility</mat-icon>
-                    </button>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="check">
-                  <th mat-header-cell *matHeaderCellDef>Check</th>
-                  <td mat-cell *matCellDef="let documento">
-                    <mat-checkbox color="primary"
-                      [checked]="isDocumentoSecretariaChecked(documento.key)"
-                      (change)="onToggleDocumentoSecretariaCheck(documento.key, $event.checked)">
-                    </mat-checkbox>
-                  </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="secretariaTablaColumnas"></tr>
-                <tr mat-row *matRowDef="let row; columns: secretariaTablaColumnas"></tr>
-              </table>
-            </div>
           </div>
         </div>
 
         <div class="editar-solicitud__actions" *ngIf="!isReadOnly">
           
-          <button *ngIf="rol === 'DOCENTE'" mat-raised-button type="button" class="editar-solicitud__save" (click)="onGuardarBorrador()">
+          <button *ngIf="rol === 'DOCENTE'" mat-raised-button type="button" class="editar-solicitud__save"
+            (click)="onGuardarBorrador()"
+            [disabled]="!hasUnsavedChanges">
             {{ 'HISTORIAL_SOLICITUDES.edit.save' | translate }}
           </button>
           <button *ngIf="rol === 'DOCENTE'" mat-raised-button color="primary" type="button" class="editar-solicitud__send"
@@ -455,6 +466,24 @@
             [disabled]="!canEnviarRevision">
             {{ 'HISTORIAL_SOLICITUDES.edit.sendReview' | translate }}
           </button>
+
+          <ng-container *ngIf="rol === 'SECRETARIA_ACADEMICA' || rol === 'COORDINADOR'">
+            <button mat-raised-button type="button" class="editar-solicitud__save"
+              (click)="onGuardarCambiosSecretaria()"
+              [disabled]="!hasUnsavedChanges">
+              {{ 'HISTORIAL_SOLICITUDES.edit.save' | translate }}
+            </button>
+            <button mat-raised-button color="warn" type="button" class="editar-solicitud__send"
+              (click)="onEnviarRevisionSecretariaGeneral(false)"
+              [disabled]="!canEnviarSecretariaGeneral">
+              {{ 'HISTORIAL_SOLICITUDES.edit.subsanacion' | translate }}
+            </button>
+            <button mat-raised-button color="primary" type="button" class="editar-solicitud__send"
+              (click)="onEnviarRevisionSecretariaGeneral(true)"
+              [disabled]="!canEnviarSecretariaGeneral">
+              {{ 'HISTORIAL_SOLICITUDES.edit.sendReviewSecretariaGeneral' | translate }}
+            </button>
+          </ng-container>
 
           <ng-container *ngIf="rol === 'SECRETARIA_GENERAL'">
             <button mat-raised-button color="warn" type="button" class="editar-solicitud__send"
