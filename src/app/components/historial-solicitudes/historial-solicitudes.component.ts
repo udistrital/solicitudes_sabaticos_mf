@@ -10,6 +10,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { CrearSolicitudModalComponent } from '../crear-solicitud-modal/crear-solicitud-modal.component';
 import { ImplicitAutenticationService } from '../../services/implicit_authentication.service';
 import { SabaticosCrudService } from '../../services/sabaticos-crud.service';
+import { SabaticosMidService } from '../../services/sabaticos-mid.service';
 import { TercerosService } from '../../services/terceros.service';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { RequestManager } from '../../../managers/requestManager';
@@ -78,6 +79,9 @@ interface HistorialSolicitud {
   id: string;
   fechaRadicado: string;
   estado: EstadoSolicitud;
+  terceroIdDocente?: number;
+  docenteIdentificacion?: string;
+  docenteNombre?: string;
   detalle?: SolicitudDetalle;
 }
 
@@ -117,7 +121,7 @@ interface DocenteInfo {
 })
 export class HistorialSolicitudesComponent {
   readonly displayedColumnsDocente = ['id', 'fechaRadicado', 'estado', 'gestion'];
-  readonly displayedColumnsContratista = ['id', 'fechaRadicado', 'docenteIdentificacion', 'docenteNombre', 'estado', 'gestion'];
+  readonly displayedColumnsSecretariaAcademica = ['id', 'fechaRadicado', 'docenteIdentificacion', 'docenteNombre', 'estado', 'gestion'];
   currentLang = 'es';
   perfil: string = '';
   permisos: any[] = [];
@@ -191,6 +195,7 @@ export class HistorialSolicitudesComponent {
   };
 
   terceroId: number | null = null;
+  private documento = '';
   cargandoSolicitudes = true;
   solicitudes: HistorialSolicitud[] = [];
   filteredSolicitudes: HistorialSolicitud[] = [];
@@ -205,7 +210,7 @@ export class HistorialSolicitudesComponent {
   }
 
   get displayedColumns(): string[] {
-    return this.canViewDocenteColumns ? this.displayedColumnsContratista : this.displayedColumnsDocente;
+    return this.canViewDocenteColumns ? this.displayedColumnsSecretariaAcademica : this.displayedColumnsDocente;
   }
 
   columnFilters: ColumnFilters = {
@@ -255,7 +260,7 @@ export class HistorialSolicitudesComponent {
       return 'HISTORIAL_SOLICITUDES.roleInfo.coordinador';
     }
     if (this.isSecretariaAcademica) {
-      return 'HISTORIAL_SOLICITUDES.roleInfo.contratista';
+      return 'HISTORIAL_SOLICITUDES.roleInfo.secretariaAcademica';
     }
     return 'HISTORIAL_SOLICITUDES.roleInfo.docente';
   }
@@ -272,6 +277,7 @@ export class HistorialSolicitudesComponent {
     private readonly tercerosService: TercerosService,
     private readonly sabaticosCrudService: SabaticosCrudService,
     private readonly configuracionService: ConfiguracionService
+    private readonly sabaticosMidService: SabaticosMidService
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
     this.dateAdapter.setLocale(this.currentLang);
@@ -300,8 +306,16 @@ export class HistorialSolicitudesComponent {
     }
 
     this.autenticationService.getDocument().then((documento: any) => {
-      this.loadDocenteInfo(documento);
-      this.loadTerceroIdAndSolicitudes(documento);
+      this.documento = String(documento ?? '');
+      this.loadDocenteInfo(this.documento);
+
+      if (this.isSecretariaAcademica) {
+        this.loadSolicitudesSecretariaAcademica();
+      } else if (this.isCoordinador) {
+        this.loadSolicitudesCoordinador();
+      } else {
+        this.loadTerceroIdAndSolicitudes(this.documento);
+      }
     });
   }
 
@@ -344,11 +358,15 @@ export class HistorialSolicitudesComponent {
   }
 
   getDocenteIdentificacion(solicitud: HistorialSolicitud): string {
-    return solicitud.detalle?.docenteIdentificacion || this.docenteInfo.documentoIdentificacion;
+    return solicitud.docenteIdentificacion
+      || solicitud.detalle?.docenteIdentificacion
+      || this.docenteInfo.documentoIdentificacion;
   }
 
   getDocenteNombre(solicitud: HistorialSolicitud): string {
-    return solicitud.detalle?.docenteNombre || this.docenteInfo.nombre;
+    return solicitud.docenteNombre
+      || solicitud.detalle?.docenteNombre
+      || this.docenteInfo.nombre;
   }
 
   onEditar(solicitud: HistorialSolicitud): void {
@@ -439,6 +457,20 @@ export class HistorialSolicitudesComponent {
       });
   }
 
+  private readonly estadosVisiblesCoordinador: EstadoSolicitud[] = [
+    'Enviada a SG',
+    'Recepcionada a SG',
+    'Trámite externo CA',
+    'Decisión CA registrada',
+    'Finalizada No aprobada',
+    'Aprobada pendiente Resolución',
+    'Finalizada Aprobada con Resolución',
+  ];
+
+  private isEstadoVisibleCoordinador(estado: EstadoSolicitud): boolean {
+    return this.estadosVisiblesCoordinador.includes(estado);
+  }
+
   private loadTerceroIdAndSolicitudes(documento: string): void {
     this.cargandoSolicitudes = true;
     const endpoint = `datos_identificacion?query=Activo:true,Numero:${documento}&sortby=FechaCreacion&order=desc`;
@@ -472,17 +504,141 @@ export class HistorialSolicitudesComponent {
     });
   }
 
+  private loadSolicitudesCoordinador(): void {
+    this.cargandoSolicitudes = true;
+    const endpoint = 'historial_solicitud?query=Activo:True&limit=100';
+
+    this.sabaticosCrudService.get(endpoint)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: any) => {
+          const data = response?.Data ?? response ?? [];
+          const apiSolicitudes = this.mapHistorialResponse(Array.isArray(data) ? data : [])
+            .filter((s) => this.isEstadoVisibleCoordinador(s.estado));
+          this.solicitudes = [...apiSolicitudes, ...this.mockSolicitudes];
+          this.applyFilters();
+          this.cargandoSolicitudes = false;
+          this.fetchDocenteInfoForSolicitudes(apiSolicitudes);
+        },
+        error: (error) => {
+          console.error('Error al cargar solicitudes del coordinador:', error);
+          this.solicitudes = [...this.mockSolicitudes];
+          this.applyFilters();
+          this.cargandoSolicitudes = false;
+        }
+      });
+  }
+
+  private loadSolicitudesSecretariaAcademica(): void {
+    this.cargandoSolicitudes = true;
+    const estados = ['S1', 'S2', 'S3', 'S5', 'S6', 'S12'];
+    const queryParams = estados.map((s) => `estadoSolicitud=${s}`).join('&');
+    const endpoint = `solicitud/formularios/${this.documento}?${queryParams}`;
+
+    this.sabaticosMidService.get(endpoint)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: any) => {
+          const data = response?.Data ?? [];
+          const apiSolicitudes = this.mapSecretariaAcademicaSolicitudes(Array.isArray(data) ? data : []);
+          this.solicitudes = [...apiSolicitudes, ...this.mockSolicitudes];
+          this.applyFilters();
+          this.cargandoSolicitudes = false;
+          this.fetchDocenteInfoForSolicitudes(apiSolicitudes);
+        },
+        error: (error) => {
+          console.error('Error al cargar solicitudes de secretaría académica:', error);
+          this.solicitudes = [...this.mockSolicitudes];
+          this.applyFilters();
+          this.cargandoSolicitudes = false;
+        }
+      });
+  }
+
+  private mapSecretariaAcademicaSolicitudes(data: any[]): HistorialSolicitud[] {
+    const latestByIdSolicitud = new Map<number, any>();
+
+    for (const item of data) {
+      const solicitudId = item?.SolicitudId?.Id;
+      if (!solicitudId) {
+        continue;
+      }
+
+      const existing = latestByIdSolicitud.get(solicitudId);
+      if (!existing || new Date(item.FechaCreacion) > new Date(existing.FechaCreacion)) {
+        latestByIdSolicitud.set(solicitudId, item);
+      }
+    }
+
+    return Array.from(latestByIdSolicitud.values()).map((item) => {
+      const estadoNombre = item.EstadoSolicitudId?.Nombre ?? 'Borrador';
+      const fechaFormateada = this.formatApiDate(item.FechaCreacion ?? '');
+      const terceroId = Number(item.SolicitudId?.TerceroId ?? item.TerceroId) || 0;
+
+      return {
+        id: String(item.SolicitudId?.Id ?? ''),
+        fechaRadicado: fechaFormateada,
+        estado: estadoNombre as EstadoSolicitud,
+        ...(terceroId > 0 ? { terceroIdDocente: terceroId } : {})
+      };
+    });
+  }
+
   private mapHistorialResponse(data: any[]): HistorialSolicitud[] {
     return data.map((item) => {
       const estadoNombre = item.EstadoSolicitudId?.Nombre ?? 'Borrador';
       const fechaRaw = item.FechaCreacion ?? '';
       const fechaFormateada = this.formatApiDate(fechaRaw);
+      const terceroId = Number(item.SolicitudId?.TerceroId) || 0;
 
       return {
         id: String(item.SolicitudId?.Id ?? item.Id ?? ''),
         fechaRadicado: fechaFormateada,
-        estado: estadoNombre as EstadoSolicitud
+        estado: estadoNombre as EstadoSolicitud,
+        ...(terceroId > 0 ? { terceroIdDocente: terceroId } : {})
       };
+    });
+  }
+
+  private fetchDocenteInfoForSolicitudes(solicitudes: HistorialSolicitud[]): void {
+    const uniqueTerceroIds = [...new Set(
+      solicitudes
+        .map((s) => s.terceroIdDocente)
+        .filter((id): id is number => Boolean(id && id > 0))
+    )];
+
+    if (!uniqueTerceroIds.length) {
+      return;
+    }
+
+    uniqueTerceroIds.forEach((terceroId) => {
+      const endpoint = `datos_identificacion?query=Activo:true,TerceroId:${terceroId}&sortby=FechaCreacion&order=desc`;
+      this.tercerosService.get(endpoint)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (response: any) => {
+            const registros = Array.isArray(response) ? response : [];
+            if (!registros.length) {
+              return;
+            }
+
+            const registro = registros[0];
+            const nombre = registro?.TerceroId?.NombreCompleto ?? '';
+            const identificacion = registro?.Numero ?? '';
+
+            this.solicitudes.forEach((sol) => {
+              if (sol.terceroIdDocente === terceroId) {
+                sol.docenteNombre = nombre;
+                sol.docenteIdentificacion = identificacion;
+              }
+            });
+
+            this.applyFilters();
+          },
+          error: (err) => {
+            console.warn(`No se pudo obtener info del docente con TerceroId ${terceroId}:`, err);
+          }
+        });
     });
   }
 
@@ -575,6 +731,16 @@ export class HistorialSolicitudesComponent {
   }
 
   private recargarSolicitudes(): void {
+    if (this.isSecretariaAcademica) {
+      this.loadSolicitudesSecretariaAcademica();
+      return;
+    }
+
+    if (this.isCoordinador) {
+      this.loadSolicitudesCoordinador();
+      return;
+    }
+
     if (!this.terceroId) return;
 
     this.cargandoSolicitudes = true;
