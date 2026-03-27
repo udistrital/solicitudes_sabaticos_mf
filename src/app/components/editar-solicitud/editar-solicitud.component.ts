@@ -10,8 +10,7 @@ import {
   DOCUMENTO_OPTIONS,
   ESTADO_OPTIONS,
   ESTADO_TRADUCCIONES,
-  SECRETARIA_DOCUMENTO_OPTIONS,
-  SECRETARIA_TABLA_COLUMNAS
+  SECRETARIA_DOCUMENTO_OPTIONS
 } from './constant';
 import {
   DocumentoOption,
@@ -56,6 +55,7 @@ export class EditarSolicitudComponent {
   documentoObjectUrls: Record<string, string> = {};
   documentoSeleccionado: string | null = null;
   documentosSeleccionados: string[] = [];
+  documentoAprobaciones: Record<string, 'aprobado' | 'rechazado' | null> = {};
   documentosDocenteExistentesIds: number[] = [];
   documentosDocenteNuevosIds: number[] = [];
 
@@ -68,7 +68,6 @@ export class EditarSolicitudComponent {
   // Estado de documentos (secretaría)
   secretariaDocumentoArchivos: Record<string, string | null> = {};
   secretariaDocumentoObjectUrls: Record<string, string> = {};
-  secretariaDocumentoChecks: Record<string, boolean> = {};
   secretariaDocumentoSeleccionado: string | null = null;
   secretariaDocumentosSeleccionados: string[] = [];
 
@@ -78,8 +77,6 @@ export class EditarSolicitudComponent {
   readonly secretariaDocumentoOptions: DocumentoOption[] = SECRETARIA_DOCUMENTO_OPTIONS;
   readonly estadoTraducciones: Record<EstadoSolicitud, string> = ESTADO_TRADUCCIONES;
   readonly estadoOptions: EstadoSolicitud[] = ESTADO_OPTIONS;
-  readonly secretariaTablaColumnas: string[] = SECRETARIA_TABLA_COLUMNAS;
-
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly router: Router,
@@ -129,6 +126,7 @@ export class EditarSolicitudComponent {
       },
       error: (error) => {
         console.error('Error al llamar al servicio:', error);
+        this.initializeFromMockDetalle();
       }
     });
   }
@@ -282,6 +280,42 @@ export class EditarSolicitudComponent {
 
   get canEditarFormularioPrincipal(): boolean {
     return !this.isReadOnly && this.rol !== 'COORDINADOR' && this.rol !== 'CONTRATISTA';
+  }
+
+  get canAprobarDocumentos(): boolean {
+    return !this.isReadOnly && this.rol === 'CONTRATISTA';
+  }
+
+  getDocumentoAprobacion(key: string): 'aprobado' | 'rechazado' | null {
+    return this.documentoAprobaciones[key] ?? null;
+  }
+
+  async onAprobarDocumento(key: string): Promise<void> {
+    const result = await this.popUpManager.showConfirmAlert(
+      this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.confirmApproveDoc'),
+      this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.confirmApproveDocTitle')
+    );
+
+    if (!result?.isConfirmed) {
+      return;
+    }
+
+    this.documentoAprobaciones[key] = 'aprobado';
+    console.log(`Documento aprobado: ${key}`);
+  }
+
+  async onRechazarDocumento(key: string): Promise<void> {
+    const result = await this.popUpManager.showConfirmAlert(
+      this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.confirmRejectDoc'),
+      this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.confirmRejectDocTitle')
+    );
+
+    if (!result?.isConfirmed) {
+      return;
+    }
+
+    this.documentoAprobaciones[key] = 'rechazado';
+    console.log(`Documento rechazado: ${key}`);
   }
 
   canGestionarDocumentoSecretaria(key: string): boolean {
@@ -460,9 +494,6 @@ export class EditarSolicitudComponent {
       if (!(keyToAdd in this.secretariaDocumentoArchivos)) {
         this.secretariaDocumentoArchivos[keyToAdd] = null;
       }
-      if (!(keyToAdd in this.secretariaDocumentoChecks)) {
-        this.secretariaDocumentoChecks[keyToAdd] = false;
-      }
     }
 
     this.secretariaDocumentoSeleccionado = null;
@@ -487,7 +518,6 @@ export class EditarSolicitudComponent {
     );
     this.revokeSecretariaDocumentoObjectUrl(key);
     delete this.secretariaDocumentoArchivos[key];
-    delete this.secretariaDocumentoChecks[key];
   }
 
   getDocumentoSecretariaNombre(key: string): string | null {
@@ -514,7 +544,6 @@ export class EditarSolicitudComponent {
       this.secretariaDocumentoObjectUrls[key] = URL.createObjectURL(file);
     }
     this.secretariaDocumentoArchivos[key] = file ? file.name : null;
-    this.secretariaDocumentoChecks[key] = Boolean(file);
   }
 
   canPrevisualizarDocumentoSecretaria(key: string): boolean {
@@ -536,14 +565,6 @@ export class EditarSolicitudComponent {
       'Sin previsualización',
       'El botón está habilitado para pruebas. La previsualización estará disponible cuando se conecte el servicio del backend.'
     );
-  }
-
-  isDocumentoSecretariaChecked(key: string): boolean {
-    return Boolean(this.secretariaDocumentoChecks[key]);
-  }
-
-  onToggleDocumentoSecretariaCheck(key: string, checked: boolean): void {
-    this.secretariaDocumentoChecks[key] = checked;
   }
 
   // =========================
@@ -1128,4 +1149,64 @@ private subirDocumentosDocenteNuevos(
     return isPdfByExtension || isPdfByMime;
   }
 
+  private initializeFromMockDetalle(): void {
+    const navigationState = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
+    const stateSolicitud = navigationState?.['solicitud'];
+    const mockDetalle = stateSolicitud?.mockDetalle;
+
+    if (!mockDetalle) {
+      return;
+    }
+
+    const formatDate = (d: Date | null): string =>
+      d instanceof Date && !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : '';
+
+    this.formulario = {
+      docente: {
+        nombre: mockDetalle.docenteNombre ?? '',
+        identificacion: mockDetalle.docenteIdentificacion ?? '',
+        facultad: mockDetalle.docenteFacultad ?? '',
+        proyecto_curricular: mockDetalle.docenteProyecto ?? ''
+      },
+      detalle_solicitud: {
+        modalidad: mockDetalle.modalidad ?? '',
+        modalidadId: 0,
+        periodo_ejecucion: mockDetalle.periodoEjecucion ?? '',
+        producto_ultimo_sabatico: mockDetalle.productoUltimo ?? '',
+        ultimo_sabatico: {
+          fecha_inicio: formatDate(mockDetalle.ultimoSabatico?.start),
+          fecha_fin: formatDate(mockDetalle.ultimoSabatico?.end),
+          producto_ultimo_sabatico: mockDetalle.productoUltimo ?? ''
+        }
+      },
+      objetivos: {
+        objetivo_general: mockDetalle.objetivoGeneral ?? '',
+        objetivos_especificos: mockDetalle.objetivosEspecificos ?? ''
+      },
+      articulacion: {
+        plan_desarrollo_institucional: mockDetalle.planDesarrolloInstitucional ?? '',
+        proyecto_educativo_facultad: mockDetalle.proyectoEducativoFacultad ?? '',
+        proyecto_educativo_programas: mockDetalle.proyectoEducativoProgramas ?? ''
+      },
+      cronograma: mockDetalle.cronograma ?? {
+        mes1: '', mes2: '', mes3: '', mes4: '', mes5: '', mes6: '',
+        mes7: '', mes8: '', mes9: '', mes10: '', mes11: '', mes12: ''
+      },
+      justificacion: mockDetalle.justificacion ?? '',
+      producto_entregable: mockDetalle.productoEntregable ?? '',
+      impacto_alcance: mockDetalle.impactoAlcance ?? '',
+      metodologia: mockDetalle.metodologia ?? '',
+      presupuesto: mockDetalle.presupuesto ?? '',
+      observaciones: mockDetalle.observaciones ?? ''
+    };
+
+    this.initializeSolicitudFromNavigation();
+
+    const documentos: Record<string, string | null> = mockDetalle.documentos ?? {};
+    const selectedKeys = Object.keys(documentos).filter((k) => Boolean(documentos[k]));
+    this.documentosSeleccionados = selectedKeys;
+    this.documentoArchivos = { ...documentos };
+
+    this.applyFormPermissions();
+  }
 }

@@ -675,6 +675,16 @@
         "title": "Observations",
         "label": "Comments or observations to consider"
       },
+      "documentos": {
+        "confirmApproveDocTitle": "Confirm approval",
+        "confirmApproveDoc": "Are you sure you want to approve this document?",
+        "confirmRejectDocTitle": "Confirm rejection",
+        "confirmRejectDoc": "Are you sure you want to reject this document?",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "approveAria": "Approve document",
+        "rejectAria": "Reject document"
+      },
       "secretaria": {
         "title": "Secretariat management",
         "observaciones": "Secretariat observations",

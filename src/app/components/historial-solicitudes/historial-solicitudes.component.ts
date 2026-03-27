@@ -119,6 +119,23 @@ export class HistorialSolicitudesComponent {
   readonly displayedColumnsContratista = ['id', 'fechaRadicado', 'docenteIdentificacion', 'docenteNombre', 'estado', 'gestion'];
   currentLang = 'es';
 
+  private readonly mockSolicitudes: HistorialSolicitud[] = [
+    { id: 'SOL-001', fechaRadicado: '2026-01-15', estado: 'Borrador', detalle: this.buildMockDetalle('SOL-001') },
+    { id: 'SOL-002', fechaRadicado: '2026-01-20', estado: 'Radicada / Enviada a SA', detalle: this.buildMockDetalle('SOL-002') },
+    { id: 'SOL-003', fechaRadicado: '2026-01-25', estado: 'Recepcionada a SA', detalle: this.buildMockDetalle('SOL-003') },
+    { id: 'SOL-004', fechaRadicado: '2026-02-25', estado: 'En verificación de SA', detalle: this.buildMockDetalle('SOL-004') },
+    { id: 'SOL-005', fechaRadicado: '2026-03-02', estado: 'Subsanación solicitada', detalle: this.buildMockDetalle('SOL-005') },
+    { id: 'SOL-006', fechaRadicado: '2026-05-14', estado: 'Trámite externo CF', detalle: this.buildMockDetalle('SOL-006') },
+    { id: 'SOL-007', fechaRadicado: '2026-06-10', estado: 'Respuesta CF registrada', detalle: this.buildMockDetalle('SOL-007') },
+    { id: 'SOL-008', fechaRadicado: '2026-11-25', estado: 'Enviada a SG', detalle: this.buildMockDetalle('SOL-008') },
+    { id: 'SOL-009', fechaRadicado: '2026-07-07', estado: 'Recepcionada a SG', detalle: this.buildMockDetalle('SOL-009') },
+    { id: 'SOL-010', fechaRadicado: '2026-08-06', estado: 'Trámite externo CA', detalle: this.buildMockDetalle('SOL-010') },
+    { id: 'SOL-011', fechaRadicado: '2026-09-12', estado: 'Decisión CA registrada', detalle: this.buildMockDetalle('SOL-011') },
+    { id: 'SOL-012', fechaRadicado: '2026-10-01', estado: 'Finalizada No aprobada', detalle: this.buildMockDetalle('SOL-012') },
+    { id: 'SOL-013', fechaRadicado: '2026-11-18', estado: 'Aprobada pendiente Resolución', detalle: this.buildMockDetalle('SOL-013') },
+    { id: 'SOL-014', fechaRadicado: '2026-12-05', estado: 'Finalizada Aprobada con Resolución', detalle: this.buildMockDetalle('SOL-014') },
+  ];
+
   readonly estadoTraducciones: Record<EstadoSolicitud, string> = {
     Borrador: 'HISTORIAL_SOLICITUDES.status.draft',
     'Radicada / Enviada a SA': 'HISTORIAL_SOLICITUDES.status.filedSentSa',
@@ -355,7 +372,9 @@ export class HistorialSolicitudesComponent {
   }
 
   private isDocenteEditable(solicitud: HistorialSolicitud): boolean {
-    return solicitud.estado === 'Borrador' || solicitud.estado === 'Subsanación solicitada';
+    return solicitud.estado === 'Borrador'
+      || solicitud.estado === 'Radicada / Enviada a SA'
+      || solicitud.estado === 'Subsanación solicitada';
   }
 
   private isCoordinadorViewOnly(solicitud: HistorialSolicitud): boolean {
@@ -375,7 +394,12 @@ export class HistorialSolicitudesComponent {
   private isContratistaViewOnly(solicitud: HistorialSolicitud): boolean {
     return solicitud.estado === 'Borrador'
       || solicitud.estado === 'Subsanación solicitada'
+      || solicitud.estado === 'Enviada a SG'
       || solicitud.estado === 'Recepcionada a SG'
+      || solicitud.estado === 'Trámite externo CA'
+      || solicitud.estado === 'Decisión CA registrada'
+      || solicitud.estado === 'Finalizada No aprobada'
+      || solicitud.estado === 'Aprobada pendiente Resolución'
       || solicitud.estado === 'Finalizada Aprobada con Resolución';
   }
 
@@ -413,16 +437,16 @@ export class HistorialSolicitudesComponent {
     ).subscribe({
       next: (response: any) => {
         const data = response?.Data ?? response ?? [];
-        this.solicitudes = this.mapHistorialResponse(Array.isArray(data) ? data : []);
+        const apiSolicitudes = this.mapHistorialResponse(Array.isArray(data) ? data : []);
+        this.solicitudes = [...apiSolicitudes, ...this.mockSolicitudes];
         this.applyFilters();
         this.cargandoSolicitudes = false;
       },
       error: (error) => {
         console.error('Error al cargar solicitudes:', error);
-        this.solicitudes = [];
+        this.solicitudes = [...this.mockSolicitudes];
         this.applyFilters();
         this.cargandoSolicitudes = false;
-        this.popUpManager.showErrorToast('HISTORIAL_SOLICITUDES.errorCargarSolicitudes');
       }
     });
   }
@@ -482,6 +506,7 @@ export class HistorialSolicitudesComponent {
           id: solicitud.id,
           fechaRadicado: solicitud.fechaRadicado,
           estado: solicitud.estado,
+          ...(solicitud.detalle ? { mockDetalle: solicitud.detalle } : {})
         }
       }
     });
@@ -534,7 +559,8 @@ export class HistorialSolicitudesComponent {
       .subscribe({
         next: (response: any) => {
           const data = response?.Data ?? response ?? [];
-          this.solicitudes = this.mapHistorialResponse(Array.isArray(data) ? data : []);
+          const apiSolicitudes = this.mapHistorialResponse(Array.isArray(data) ? data : []);
+          this.solicitudes = [...apiSolicitudes, ...this.mockSolicitudes];
           this.applyFilters();
           this.cargandoSolicitudes = false;
         },
@@ -658,5 +684,54 @@ export class HistorialSolicitudesComponent {
 
   private stripTime(date: Date): number {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  }
+
+  private buildMockDetalle(id: string): SolicitudDetalle {
+    return {
+      docenteNombre: 'Carlos Andrés Pérez Gómez',
+      docenteIdentificacion: '1023456789',
+      docenteFacultad: 'Facultad de Ingeniería',
+      docenteProyecto: 'Ingeniería de Sistemas',
+      periodoEjecucion: '2026-I',
+      ultimoSabatico: { start: new Date(2019, 0, 15), end: new Date(2019, 11, 15) },
+      productoUltimo: 'Libro publicado: Fundamentos de IA aplicada',
+      modalidad: 'Investigación',
+      objetivoGeneral: `Desarrollar un framework de análisis predictivo para datos académicos (${id}).`,
+      objetivosEspecificos: 'Diseñar la arquitectura del framework.\nImplementar módulos de procesamiento.\nValidar con datos reales.',
+      justificacion: 'La universidad requiere herramientas que permitan anticipar tendencias académicas y optimizar la toma de decisiones.',
+      planDesarrolloInstitucional: 'Alineado con el eje estratégico de innovación tecnológica del PDI 2024-2028.',
+      proyectoEducativoFacultad: 'Contribuye al fortalecimiento de la línea de investigación en ciencia de datos.',
+      proyectoEducativoProgramas: 'Aporta al componente investigativo del programa de Ingeniería de Sistemas.',
+      productoEntregable: 'Framework funcional con documentación técnica y artículo sometido a revista indexada.',
+      impactoAlcance: 'Beneficio directo para la comunidad académica de la universidad y potencial transferencia a otras IES.',
+      metodologia: 'Metodología mixta: revisión sistemática de literatura, desarrollo ágil (Scrum) y validación empírica.',
+      cronograma: {
+        mes1: 'Revisión de literatura',
+        mes2: 'Diseño de arquitectura',
+        mes3: 'Desarrollo módulo de ingesta',
+        mes4: 'Desarrollo módulo de procesamiento',
+        mes5: 'Desarrollo módulo de análisis',
+        mes6: 'Integración de módulos',
+        mes7: 'Pruebas unitarias e integración',
+        mes8: 'Validación con datos reales',
+        mes9: 'Ajustes y optimización',
+        mes10: 'Documentación técnica',
+        mes11: 'Redacción de artículo científico',
+        mes12: 'Entrega final y socialización'
+      },
+      presupuesto: 'Recursos computacionales: $5.000.000 COP\nMaterial bibliográfico: $2.000.000 COP\nViáticos: $3.000.000 COP',
+      observaciones: '',
+      documentos: {
+        avalConsejo: `Aval_Consejo_${id}.pdf`,
+        cronogramaMensual: `Cronograma_Mensual_${id}.pdf`,
+        presupuestoProyectado: `Presupuesto_${id}.pdf`,
+        certificacionLaboral: `Certificacion_Laboral_${id}.pdf`,
+        pazSalvoAcademico: `Paz_Salvo_Academico_${id}.pdf`,
+        pazSalvoInvestigaciones: `Paz_Salvo_Investigaciones_${id}.pdf`,
+        pazSalvoExtension: `Paz_Salvo_Extension_${id}.pdf`,
+        pazSalvoAlmacen: `Paz_Salvo_Almacen_${id}.pdf`,
+        pazSalvoFinanciero: `Paz_Salvo_Financiero_${id}.pdf`,
+      }
+    };
   }
 }
