@@ -30,4 +30,5 @@ export const environment = {
   SABATICOS_MID_SERVICE: 'https://pruebasapi.intranetoas.udistrital.edu.co/sabaticos_mid/v1/',
   ACADEMICA_MID_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/academica_jbpm/v2/',
   SABATICOS_CRUD_SERVICE: 'https://pruebasapi.intranetoas.udistrital.edu.co/sabaticos_crud/v1/',
+  GESTOR_DOCUMENTAL_MID_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/gestor_documental_mid/v1/',
 };
