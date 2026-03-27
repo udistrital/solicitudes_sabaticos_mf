@@ -14,6 +14,7 @@ import { SabaticosMidService } from '../../services/sabaticos-mid.service';
 import { TercerosService } from '../../services/terceros.service';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { RequestManager } from '../../../managers/requestManager';
+import { ConfiguracionService } from '../../services/configuracion.service';
 
 type EstadoSolicitud =
   | 'Borrador'
@@ -122,6 +123,8 @@ export class HistorialSolicitudesComponent {
   readonly displayedColumnsDocente = ['id', 'fechaRadicado', 'estado', 'gestion'];
   readonly displayedColumnsSecretariaAcademica = ['id', 'fechaRadicado', 'docenteIdentificacion', 'docenteNombre', 'estado', 'gestion'];
   currentLang = 'es';
+  perfil: string = '';
+  permisos: any[] = [];
 
   private readonly mockSolicitudes: HistorialSolicitud[] = [
     { id: 'SOL-001', fechaRadicado: '2026-01-15', estado: 'Borrador', detalle: this.buildMockDetalle('SOL-001') },
@@ -220,6 +223,22 @@ export class HistorialSolicitudesComponent {
   fechaFiltro: FechaFiltro = { start: null, end: null };
   rol!: string;
 
+  get canCrearSolicitud(): boolean {
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Crear_Solicitud_Sabatico');
+  }
+
+  get canEditarSolicitud(): boolean {
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Editar_Solicitud_Sabatico');
+  }
+
+  get canViewSolicitud(): boolean {
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Ver_Solicitud_Sabatico');
+  }
+
+  get canCrearSabatico(): boolean {
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Crear_Sabatico');
+  }
+
   get isDocente(): boolean {
     return this.rol === 'DOCENTE';
   }
@@ -257,6 +276,7 @@ export class HistorialSolicitudesComponent {
     private readonly requestManager: RequestManager,
     private readonly tercerosService: TercerosService,
     private readonly sabaticosCrudService: SabaticosCrudService,
+    private readonly configuracionService: ConfiguracionService,
     private readonly sabaticosMidService: SabaticosMidService
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
@@ -272,22 +292,17 @@ export class HistorialSolicitudesComponent {
 
     let roles: any = this.autenticationService.getRole();
 
-    if (
-      roles.__zone_symbol__value.find(
-        (x: string) => x == 'COORDINADOR' || x == 'ADMIN_SGA' // utest => SEC GENERAL
-      )
-    ) {
-      this.rol = 'COORDINADOR';
-    } else if (
-      roles.__zone_symbol__value.find((x: string) => x == 'ADMINISTRADOR')  // correo_personal => SEC ACADEMICA
-    ) {
-      this.rol = 'SECRETARIA_ACADEMICA';
-    } else if (
-      roles.__zone_symbol__value.find(
-        (x: string) => x == 'DOCENTE'
-      )
-    ) {
-      this.rol = 'DOCENTE';
+    this.rol= roles.__zone_symbol__value.find((x: string) => ['ADMINISTRADOR', 'DOCENTE', 'COORDINADOR'].includes(x));
+
+    this.configuracionService.get("perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:" + this.rol)
+    .subscribe((response: any) => {
+      this.permisos = response
+      this.perfil = response[0]?.Perfil?.Nombre ?? '';
+      console.log(this.permisos)
+    });
+
+    if (this.rol == 'ADMINISTRADOR'){
+      this.rol = 'SECRETARIA_ACADEMICA'
     }
 
     this.autenticationService.getDocument().then((documento: any) => {
@@ -363,20 +378,26 @@ export class HistorialSolicitudesComponent {
   }
 
   shouldShowViewOnly(solicitud: HistorialSolicitud): boolean {
-    if (this.isDocente) {
-      return !this.isDocenteEditable(solicitud);
-    }
-    if (this.isSecretariaAcademica) {
-      return this.isSecretariaAcademicaViewOnly(solicitud);
-    }
-    if (this.isCoordinador) {
-      return this.isCoordinadorViewOnly(solicitud);
+    if (this.canViewSolicitud){
+      if (this.isDocente) {
+        return !this.isDocenteEditable(solicitud);
+      }
+      if (this.isSecretariaAcademica) {
+        return this.isSecretariaAcademicaViewOnly(solicitud);
+      }
+      if (this.isCoordinador) {
+        return this.isCoordinadorViewOnly(solicitud);
+      }
     }
     return false;
   }
 
   shouldShowEditButton(solicitud: HistorialSolicitud): boolean {
-    return !this.shouldShowViewOnly(solicitud);
+    if (this.canEditarSolicitud) {
+      return !this.shouldShowViewOnly(solicitud);
+    }
+
+    return false;
   }
 
   getEditIcon(): string {
@@ -673,7 +694,11 @@ export class HistorialSolicitudesComponent {
   }
 
   shouldShowIniciarSabatico(solicitud: HistorialSolicitud): boolean {
+    if (this.canCrearSabatico) {
     return this.isSecretariaAcademica && solicitud.estado === 'Finalizada Aprobada con Resolución';
+    }
+
+    return false;
   }
 
   onCrearSolicitud(): void {
