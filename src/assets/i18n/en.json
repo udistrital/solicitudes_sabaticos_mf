@@ -689,7 +689,10 @@
         "approveAria": "Approve document",
         "rejectAria": "Reject document",
         "noPreviewTitle": "No preview available",
-        "noPreviewText": "The preview will be available once the document management service is connected."
+        "noPreviewText": "The preview will be available once the document management service is connected.",
+        "approveSuccess": "The document has been approved successfully",
+        "rejectSuccess": "The document has been rejected successfully",
+        "updateStatusError": "Error updating the document status"
       },
       "secretaria": {
         "title": "Secretariat management",

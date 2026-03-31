@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
+import Swal from 'sweetalert2';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { SabaticosCrudService } from '../../services/sabatico-crud.service';
 import {
@@ -66,8 +67,8 @@ export class EditarSolicitudComponent implements OnDestroy {
   // Para subir solo los nuevos
   documentosDocenteNuevosFiles: { [key: string]: File } = {};
 
-  // Si quieres conservar también el arreglo de soportes que vino del backend
   documentosDocenteBackend: any[] = [];
+  soporteBackendByKey: Record<string, any> = {};
 
   // Estado de documentos (secretaría)
   secretariaDocumentoArchivos: Record<string, string | null> = {};
@@ -79,6 +80,7 @@ export class EditarSolicitudComponent implements OnDestroy {
   secretariaDocumentosNuevosFiles: { [key: string]: File } = {};
   secretariaDocumentosExistentesIds: number[] = [];
   secretariaDocumentosNuevosIds: number[] = [];
+  secretariaSoporteBackendByKey: Record<string, any> = {};
 
   // Catálogos
   readonly cronogramaMeses = CRONOGRAMA_MESES;
@@ -103,7 +105,7 @@ export class EditarSolicitudComponent implements OnDestroy {
         `formulario_solicitud?query=SolicitudId:${solicitudId},Activo:True&limit=100`
       ),
       documentosResponse: this.sabaticosCrudService.get(
-        `soporte_solicitud?query=SolicitudId:${solicitudId},EstadoSoporteSolicitudId.CodigoAbreviacion:PEN`
+        `soporte_solicitud?query=SolicitudId:${solicitudId},Activo:True`
       ),
       modalidadesResponse: this.parametrosService.get('parametro?query=TipoParametroId__CodigoAbreviacion:MODSAB')
     }).subscribe({
@@ -118,7 +120,6 @@ export class EditarSolicitudComponent implements OnDestroy {
         }
 
         this.documentos = documentosResponse?.Data ?? documentosResponse;
-        console.log("Documentos obtenidos:", this.documentos);
         this.modalidadesOptions = modalidadesResponse?.Data ?? modalidadesResponse ?? [];
         this.initializeSolicitudFromNavigation();
         const soportesBackend = Array.isArray(documentosResponse?.Data)
@@ -343,8 +344,7 @@ export class EditarSolicitudComponent implements OnDestroy {
       return;
     }
 
-    this.documentoAprobaciones[key] = 'aprobado';
-    console.log(`Documento aprobado: ${key}`);
+    this.actualizarEstadoSoporte(key, 12);
   }
 
   async onRechazarDocumento(key: string): Promise<void> {
@@ -357,8 +357,7 @@ export class EditarSolicitudComponent implements OnDestroy {
       return;
     }
 
-    this.documentoAprobaciones[key] = 'rechazado';
-    console.log(`Documento rechazado: ${key}`);
+    this.actualizarEstadoSoporte(key, 11);
   }
 
   canGestionarDocumentoSecretaria(key: string): boolean {
@@ -452,11 +451,18 @@ export class EditarSolicitudComponent implements OnDestroy {
       return;
     }
 
+    const soporte = this.soporteBackendByKey[key];
+    if (soporte?.Id) {
+      this.desactivarSoporteEnBackend(soporte);
+    }
+
     this.documentosSeleccionados = this.documentosSeleccionados.filter(
       (documento) => documento !== key
     );
     this.revokeDocumentoObjectUrl(key);
     delete this.documentoArchivos[key];
+    delete this.documentoBackendIds[key];
+    delete this.soporteBackendByKey[key];
     this.documentosModificados = true;
   }
 
@@ -610,11 +616,18 @@ export class EditarSolicitudComponent implements OnDestroy {
       return;
     }
 
+    const soporte = this.secretariaSoporteBackendByKey[key];
+    if (soporte?.Id) {
+      this.desactivarSoporteEnBackend(soporte);
+    }
+
     this.secretariaDocumentosSeleccionados = this.secretariaDocumentosSeleccionados.filter(
       (documento) => documento !== key
     );
     this.revokeSecretariaDocumentoObjectUrl(key);
     delete this.secretariaDocumentoArchivos[key];
+    delete this.secretariaDocumentoBackendIds[key];
+    delete this.secretariaSoporteBackendByKey[key];
     this.documentosModificados = true;
   }
 
@@ -963,6 +976,66 @@ export class EditarSolicitudComponent implements OnDestroy {
   // =========================
   // Helpers privados
   // =========================
+  private actualizarEstadoSoporte(key: string, estadoId: number): void {
+    const soporte = this.soporteBackendByKey[key];
+    if (!soporte?.Id) {
+      return;
+    }
+
+    const body = {
+      ...soporte,
+      EstadoSoporteSolicitudId: { Id: estadoId }
+    };
+
+    const esAprobacion = estadoId === 12;
+
+    Swal.fire({
+      title: this.translate.instant('GLOBAL.cargando'),
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    this.sabaticosCrudService.put('soporte_solicitud', body).subscribe({
+      next: () => {
+        Swal.close();
+        this.documentoAprobaciones[key] = esAprobacion ? 'aprobado' : 'rechazado';
+        this.soporteBackendByKey[key] = body;
+        this.popUpManager.showSuccessAlert(
+          esAprobacion
+            ? this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.approveSuccess')
+            : this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.rejectSuccess')
+        );
+      },
+      error: (error: any) => {
+        Swal.close();
+        console.error(`Error al actualizar estado del soporte ${soporte.Id}:`, error);
+        this.popUpManager.showErrorAlert(
+          this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.updateStatusError')
+        );
+      }
+    });
+  }
+
+  private desactivarSoporteEnBackend(soporte: any): void {
+    const soporteId = soporte.Id;
+    const body = {
+      ...soporte,
+      Activo: false
+    };
+
+    this.sabaticosCrudService.put('soporte_solicitud', body).subscribe({
+      next: () => {
+        console.log(`Soporte ${soporteId} desactivado exitosamente`);
+      },
+      error: (error: any) => {
+        console.error(`Error al desactivar soporte ${soporteId}:`, error);
+        this.popUpManager.showErrorAlert(
+          this.translate.instant('HISTORIAL_SOLICITUDES.edit.saveSecretariaError')
+        );
+      }
+    });
+  }
+
   private applySoportesFromBackend(soportes: any[]): void {
     if (!Array.isArray(soportes) || !soportes.length) {
       return;
@@ -982,11 +1055,19 @@ export class EditarSolicitudComponent implements OnDestroy {
 
       selectedKeys.push(key);
       archivos[key] = documentoId
-        ? `Documento_${documentoId}.pdf`
+        ? `Documento subido`
         : 'Documento cargado';
 
       if (documentoId && Number(documentoId) > 0) {
         this.documentoBackendIds[key] = Number(documentoId);
+      }
+      this.soporteBackendByKey[key] = soporte;
+
+      const estadoId = soporte?.EstadoSoporteSolicitudId?.Id;
+      if (estadoId === 12) {
+        this.documentoAprobaciones[key] = 'aprobado';
+      } else if (estadoId === 11) {
+        this.documentoAprobaciones[key] = 'rechazado';
       }
     });
 
@@ -1016,12 +1097,13 @@ export class EditarSolicitudComponent implements OnDestroy {
 
       selectedKeys.push(key);
       archivos[key] = documentoId
-        ? `Documento_${documentoId}.pdf`
+        ? `Documento subido`
         : 'Documento cargado';
 
       if (documentoId && Number(documentoId) > 0) {
         this.secretariaDocumentoBackendIds[key] = Number(documentoId);
       }
+      this.secretariaSoporteBackendByKey[key] = soporte;
     });
 
     this.secretariaDocumentosSeleccionados = selectedKeys;
