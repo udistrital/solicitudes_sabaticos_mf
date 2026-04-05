@@ -344,7 +344,7 @@ export class EditarSolicitudComponent implements OnDestroy {
       return;
     }
 
-    this.actualizarEstadoSoporte(key, 12);
+    this.actualizarEstadoSoporte(key, 'SAOK');
   }
 
   async onRechazarDocumento(key: string): Promise<void> {
@@ -357,7 +357,7 @@ export class EditarSolicitudComponent implements OnDestroy {
       return;
     }
 
-    this.actualizarEstadoSoporte(key, 11);
+    this.actualizarEstadoSoporte(key, 'SAINV');
   }
 
   canGestionarDocumentoSecretaria(key: string): boolean {
@@ -976,18 +976,12 @@ export class EditarSolicitudComponent implements OnDestroy {
   // =========================
   // Helpers privados
   // =========================
-  private actualizarEstadoSoporte(key: string, estadoId: number): void {
+  private actualizarEstadoSoporte(key: string, codigoAbreviacionEstado: 'SAOK' | 'SAINV'): void {
     const soporte = this.soporteBackendByKey[key];
     if (!soporte?.Id) {
       return;
     }
-
-    const body = {
-      ...soporte,
-      EstadoSoporteSolicitudId: { Id: estadoId }
-    };
-
-    const esAprobacion = estadoId === 12;
+    const esAprobacion = codigoAbreviacionEstado === 'SAOK';
 
     Swal.fire({
       title: this.translate.instant('GLOBAL.cargando'),
@@ -995,20 +989,49 @@ export class EditarSolicitudComponent implements OnDestroy {
       didOpen: () => Swal.showLoading()
     });
 
-    this.sabaticosCrudService.put('soporte_solicitud', body).subscribe({
-      next: () => {
-        Swal.close();
-        this.documentoAprobaciones[key] = esAprobacion ? 'aprobado' : 'rechazado';
-        this.soporteBackendByKey[key] = body;
-        this.popUpManager.showSuccessAlert(
-          esAprobacion
-            ? this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.approveSuccess')
-            : this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.rejectSuccess')
-        );
+    this.sabaticosCrudService.get(
+      `estado_soporte_solicitud?query=codigo_abreviacion:${codigoAbreviacionEstado},activo:true`
+    ).subscribe({
+      next: (estadoResponse: any) => {
+        const estados = Array.isArray(estadoResponse?.Data) ? estadoResponse.Data : [];
+        const estadoId = Number(estados[0]?.Id);
+
+        if (!estadoId) {
+          Swal.close();
+          this.popUpManager.showErrorAlert(
+            this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.updateStatusError')
+          );
+          return;
+        }
+
+        const body = {
+          ...soporte,
+          EstadoSoporteSolicitudId: { Id: estadoId }
+        };
+
+        this.sabaticosCrudService.put('soporte_solicitud', body).subscribe({
+          next: () => {
+            Swal.close();
+            this.documentoAprobaciones[key] = esAprobacion ? 'aprobado' : 'rechazado';
+            this.soporteBackendByKey[key] = body;
+            this.popUpManager.showSuccessAlert(
+              esAprobacion
+                ? this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.approveSuccess')
+                : this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.rejectSuccess')
+            );
+          },
+          error: (error: any) => {
+            Swal.close();
+            console.error(`Error al actualizar estado del soporte ${soporte.Id}:`, error);
+            this.popUpManager.showErrorAlert(
+              this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.updateStatusError')
+            );
+          }
+        });
       },
       error: (error: any) => {
         Swal.close();
-        console.error(`Error al actualizar estado del soporte ${soporte.Id}:`, error);
+        console.error(`Error al consultar estado ${codigoAbreviacionEstado}:`, error);
         this.popUpManager.showErrorAlert(
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.updateStatusError')
         );
@@ -1063,10 +1086,10 @@ export class EditarSolicitudComponent implements OnDestroy {
       }
       this.soporteBackendByKey[key] = soporte;
 
-      const estadoId = soporte?.EstadoSoporteSolicitudId?.Id;
-      if (estadoId === 12) {
+      const codigoAbreviacion = soporte?.EstadoSoporteSolicitudId?.CodigoAbreviacion;
+      if (codigoAbreviacion === 'SAOK') {
         this.documentoAprobaciones[key] = 'aprobado';
-      } else if (estadoId === 11) {
+      } else if (codigoAbreviacion === 'SAINV') {
         this.documentoAprobaciones[key] = 'rechazado';
       }
     });
