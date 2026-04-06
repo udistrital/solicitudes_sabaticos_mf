@@ -707,7 +707,10 @@
         "approveAria": "Aprobar documento",
         "rejectAria": "Rechazar documento",
         "noPreviewTitle": "Sin previsualización",
-        "noPreviewText": "La previsualización estará disponible cuando se conecte el servicio de gestión documental."
+        "noPreviewText": "La previsualización estará disponible cuando se conecte el servicio de gestión documental.",
+        "approveSuccess": "El documento ha sido aprobado exitosamente",
+        "rejectSuccess": "El documento ha sido rechazado exitosamente",
+        "updateStatusError": "Error al actualizar el estado del documento"
       },
       "secretaria": {
         "title": "Gestión de Secretaría",
