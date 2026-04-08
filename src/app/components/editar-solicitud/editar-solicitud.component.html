@@ -475,7 +475,7 @@
             </button>
             <button mat-raised-button color="warn" type="button" class="editar-solicitud__send"
               (click)="onEnviarRevisionSecretariaGeneral(false)"
-              [disabled]="!canEnviarSecretariaGeneral">
+              [disabled]="!canSubsanar">
               {{ 'HISTORIAL_SOLICITUDES.edit.subsanacion' | translate }}
             </button>
             <button mat-raised-button color="primary" type="button" class="editar-solicitud__send"
@@ -488,7 +488,7 @@
           <ng-container *ngIf="rol === 'SECRETARIA_GENERAL'">
             <button mat-raised-button color="warn" type="button" class="editar-solicitud__send"
               (click)="onEnviarRevisionSecretariaGeneral(false)"
-              [disabled]="!canEnviarSecretariaGeneral">
+              [disabled]="!canSubsanar">
               {{ 'HISTORIAL_SOLICITUDES.edit.subsanacion' | translate }}
             </button>
             <button mat-raised-button color="primary" type="button" class="editar-solicitud__send"
