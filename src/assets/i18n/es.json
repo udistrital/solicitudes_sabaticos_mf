@@ -819,7 +819,9 @@
       "guardarExitoso": "La solicitud se ha guardado correctamente.",
       "guardarError": "Ocurrió un error al guardar la solicitud. Intente nuevamente.",
       "cargandoModalidades": "Cargando modalidades...",
-      "errorCargarModalidades": "No se pudieron cargar las modalidades. Intente nuevamente."
+      "errorCargarModalidades": "No se pudieron cargar las modalidades. Intente nuevamente.",
+      "cargandoDocumentos": "Cargando documentos...",
+      "errorCargarDocumentos": "No se pudieron cargar los documentos. Intente nuevamente."
     },
     "actions": {
       "add": "Agregar solicitud",

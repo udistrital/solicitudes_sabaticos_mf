@@ -292,7 +292,11 @@
             {{ 'HISTORIAL_SOLICITUDES.modal.documentos.soloPdf' | translate }}
           </p>
           <div class="editar-solicitud__documento-selector" *ngIf="!canAprobarDocumentos">
-            <mat-form-field appearance="outline" class="editar-solicitud__field">
+            <div *ngIf="cargandoDocumentos" class="editar-solicitud__loading">
+              <mat-spinner diameter="32"></mat-spinner>
+              <span>{{ 'HISTORIAL_SOLICITUDES.modal.cargandoDocumentos' | translate }}</span>
+            </div>
+            <mat-form-field appearance="outline" class="editar-solicitud__field" *ngIf="!cargandoDocumentos">
               <mat-label>
                 {{ 'HISTORIAL_SOLICITUDES.modal.documentos.seleccionar' | translate }}
               </mat-label>
@@ -304,7 +308,7 @@
               </mat-select>
             </mat-form-field>
             <button mat-raised-button color="primary" type="button" class="editar-solicitud__documento-add"
-              (click)="onAgregarDocumento()" [disabled]="!canEditarFormularioPrincipal || !documentoSeleccionado">
+              (click)="onAgregarDocumento()" [disabled]="cargandoDocumentos || !canEditarFormularioPrincipal || !documentoSeleccionado">
               {{ 'GLOBAL.agregar' | translate }}
             </button>
           </div>
@@ -401,7 +405,11 @@
               {{ 'HISTORIAL_SOLICITUDES.modal.documentos.soloPdf' | translate }}
             </p>
             <div class="editar-solicitud__documento-selector">
-              <mat-form-field appearance="outline" class="editar-solicitud__field">
+              <div *ngIf="cargandoDocumentosSecretaria" class="editar-solicitud__loading">
+                <mat-spinner diameter="32"></mat-spinner>
+                <span>{{ 'HISTORIAL_SOLICITUDES.modal.cargandoDocumentos' | translate }}</span>
+              </div>
+              <mat-form-field appearance="outline" class="editar-solicitud__field" *ngIf="!cargandoDocumentosSecretaria">
                 <mat-label>
                   {{ 'HISTORIAL_SOLICITUDES.modal.documentos.seleccionar' | translate }}
                 </mat-label>
@@ -414,7 +422,7 @@
               </mat-form-field>
               <button mat-raised-button color="primary" type="button" class="editar-solicitud__documento-add"
                 (click)="onAgregarDocumentoSecretaria()"
-                [disabled]="!canEditarSeccionSecretaria || !secretariaDocumentoSeleccionado || !canGestionarDocumentoSecretaria(secretariaDocumentoSeleccionado)">
+                [disabled]="cargandoDocumentosSecretaria || !canEditarSeccionSecretaria || !secretariaDocumentoSeleccionado || !canGestionarDocumentoSecretaria(secretariaDocumentoSeleccionado)">
                 {{ 'GLOBAL.agregar' | translate }}
               </button>
             </div>
