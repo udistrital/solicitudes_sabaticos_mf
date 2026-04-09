@@ -46,6 +46,8 @@ export class EditarSolicitudComponent implements OnDestroy {
   documentos: any = null;
   currentLang = 'es';
   modalidadesOptions: any[] = [];
+  cargandoDocumentos = true;
+  cargandoDocumentosSecretaria = true;
   form: FormGroup | null = null;
   isReadOnly = false;
   rol = '';
@@ -84,8 +86,8 @@ export class EditarSolicitudComponent implements OnDestroy {
 
   // Catálogos
   readonly cronogramaMeses = CRONOGRAMA_MESES;
-  readonly documentoOptions: DocumentoOption[] = DOCUMENTO_OPTIONS;
-  readonly secretariaDocumentoOptions: DocumentoOption[] = SECRETARIA_DOCUMENTO_OPTIONS;
+  documentoOptions: DocumentoOption[] = [...DOCUMENTO_OPTIONS];
+  secretariaDocumentoOptions: DocumentoOption[] = [...SECRETARIA_DOCUMENTO_OPTIONS];
   readonly estadoTraducciones: Record<EstadoSolicitud, string> = ESTADO_TRADUCCIONES;
   readonly estadoOptions: EstadoSolicitud[] = ESTADO_OPTIONS;
   constructor(
@@ -98,6 +100,8 @@ export class EditarSolicitudComponent implements OnDestroy {
     private readonly gestorDocumentalService: GestorDocumentalService,
     private readonly translate: TranslateService
   ) {
+    const navigationState = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
+    const rolNavegacion = String(navigationState?.['rol'] ?? '');
     const solicitudId = (this.router.getCurrentNavigation()?.extras?.state ?? history.state)?.['solicitud']?.id;
 
     forkJoin({
@@ -107,9 +111,15 @@ export class EditarSolicitudComponent implements OnDestroy {
       documentosResponse: this.sabaticosCrudService.get(
         `soporte_solicitud?query=SolicitudId:${solicitudId},Activo:True`
       ),
-      modalidadesResponse: this.parametrosService.get('parametro?query=TipoParametroId__CodigoAbreviacion:MODSAB')
+      modalidadesResponse: this.parametrosService.get('parametro?query=TipoParametroId__CodigoAbreviacion:MODSAB'),
+      documentosDocenteResponse: this.parametrosService.get(
+        'parametro?query=TipoParametroId__CodigoAbreviacion:DOCSOL_DOCE_SAB&limit=-1'
+      ),
+      documentosSecretariaResponse: this.parametrosService.get(
+        `parametro?query=TipoParametroId__CodigoAbreviacion:${this.getTipoParametroSecretariaByRol(rolNavegacion)}&limit=-1`
+      )
     }).subscribe({
-      next: ({ formularioResponse, documentosResponse, modalidadesResponse }: any) => {
+      next: ({ formularioResponse, documentosResponse, modalidadesResponse, documentosDocenteResponse, documentosSecretariaResponse }: any) => {
         const data = formularioResponse?.Data ?? formularioResponse ?? [];
         this.terceroIdSolicitud = Number(data[0]?.SolicitudId?.TerceroId) || 0;
         const formularioRaw = Array.isArray(data) && data.length > 0 ? data[0] : null;
@@ -121,6 +131,10 @@ export class EditarSolicitudComponent implements OnDestroy {
 
         this.documentos = documentosResponse?.Data ?? documentosResponse;
         this.modalidadesOptions = modalidadesResponse?.Data ?? modalidadesResponse ?? [];
+        this.documentoOptions = this.mapParametroDocumentos(documentosDocenteResponse, DOCUMENTO_OPTIONS);
+        this.secretariaDocumentoOptions = this.mapParametroDocumentos(documentosSecretariaResponse, SECRETARIA_DOCUMENTO_OPTIONS);
+        this.cargandoDocumentos = false;
+        this.cargandoDocumentosSecretaria = false;
         this.initializeSolicitudFromNavigation();
         const soportesBackend = Array.isArray(documentosResponse?.Data)
           ? documentosResponse.Data
@@ -149,6 +163,8 @@ export class EditarSolicitudComponent implements OnDestroy {
       },
       error: (error) => {
         console.error('Error al llamar al servicio:', error);
+        this.cargandoDocumentos = false;
+        this.cargandoDocumentosSecretaria = false;
         this.initializeFromMockDetalle();
       }
     });
@@ -366,20 +382,7 @@ export class EditarSolicitudComponent implements OnDestroy {
     if (!this.canEditarSeccionSecretaria) {
       return false;
     }
-
-    if (this.rol === 'SECRETARIA_ACADEMICA') {
-      return baseKey === 'revisionRequisitosSabatico'
-        || baseKey === 'actaConsejoFacultad'
-        || baseKey === this.otrosSecretariaKey;
-    }
-
-    if (this.rol === 'COORDINADOR') {
-      return baseKey === 'actaConsejoAcademico'
-        || baseKey === 'resolucionConsejoAcademico'
-        || baseKey === this.otrosSecretariaKey;
-    }
-
-    return baseKey === this.otrosSecretariaKey;
+    return this.secretariaDocumentoOptions.some((option) => option.key === baseKey);
   }
 
   get documentosAdjuntosCount(): number {
@@ -393,21 +396,37 @@ export class EditarSolicitudComponent implements OnDestroy {
       return false;
     }
 
-    if (this.rol === 'SECRETARIA_ACADEMICA' || this.rol === 'COORDINADOR') {
+    if (this.rol !== 'DOCENTE') {
       return false;
     }
 
-    return true
+    return this.form.valid && this.hasDocumentosDocenteObligatorios();
   }
 
   get canEnviarSecretariaGeneral(): boolean {
-    if (this.isReadOnly) {
+    if (this.isReadOnly || !this.form) {
       return false;
     }
 
-    return this.rol === 'SECRETARIA_GENERAL'
+    const canEnviarPorRol = this.rol === 'SECRETARIA_GENERAL'
       || this.rol === 'SECRETARIA_ACADEMICA'
       || this.rol === 'COORDINADOR';
+
+    if (!canEnviarPorRol) {
+      return false;
+    }
+
+    if (this.rol === 'SECRETARIA_ACADEMICA') {
+      const observacionesSecretaria = String(
+        this.form.get('observacionesSecretaria')?.value ?? ''
+      ).trim();
+
+      return observacionesSecretaria.length > 0
+        && this.hasDocumentosSecretariaObligatorios()
+        && this.hasDocumentosDocenteAprobados();
+    }
+
+    return true;
   }
 
   // =========================
@@ -437,6 +456,16 @@ export class EditarSolicitudComponent implements OnDestroy {
     this.documentoSeleccionado = null;
   }
 
+  get canSubsanar(): boolean {
+    if (this.isReadOnly || !this.form) return false;
+    const rolValido =
+      this.rol === 'SECRETARIA_GENERAL' ||
+      this.rol === 'SECRETARIA_ACADEMICA' ||
+      this.rol === 'COORDINADOR';
+    if (!rolValido) return false;
+    const obs = String(this.form.get('observacionesSecretaria')?.value ?? '').trim();
+    return obs.length > 0;
+  }
   async onEliminarDocumento(key: string): Promise<void> {
     if (!this.canEditarFormularioPrincipal) {
       return;
@@ -461,6 +490,7 @@ export class EditarSolicitudComponent implements OnDestroy {
     );
     this.revokeDocumentoObjectUrl(key);
     delete this.documentoArchivos[key];
+    delete this.documentosDocenteNuevosFiles[key];
     delete this.documentoBackendIds[key];
     delete this.soporteBackendByKey[key];
     this.documentosModificados = true;
@@ -626,6 +656,7 @@ export class EditarSolicitudComponent implements OnDestroy {
     );
     this.revokeSecretariaDocumentoObjectUrl(key);
     delete this.secretariaDocumentoArchivos[key];
+    delete this.secretariaDocumentosNuevosFiles[key];
     delete this.secretariaDocumentoBackendIds[key];
     delete this.secretariaSoporteBackendByKey[key];
     this.documentosModificados = true;
@@ -931,30 +962,40 @@ export class EditarSolicitudComponent implements OnDestroy {
     solicitudId: number,
     terceroId: number
   ): Observable<number[]> {
-    const archivos = Object.values(this.secretariaDocumentosNuevosFiles || {});
+    const archivos = Object.entries(this.secretariaDocumentosNuevosFiles || {});
 
     if (!archivos.length) {
       return of([]);
     }
 
-    const formData = new FormData();
-    formData.append('solicitud_id', solicitudId.toString());
-    formData.append('tercero_id', terceroId.toString());
-    formData.append('rol_usuario', this.rol);
-    formData.append('estado_soporte_solicitud', 'PEN');
+    const cargasPorArchivo = archivos.map(([key, file]) => {
+      const baseKey = this.getDocumentoBaseKey(key);
+      const tipoDocumentoId = this.secretariaDocumentoOptions.find(
+        (option) => option.key === baseKey
+      )?.tipoDocumentoId ?? 1;
+      const formData = new FormData();
+      formData.append('solicitud_id', solicitudId.toString());
+      formData.append('tercero_id', terceroId.toString());
+      formData.append('rol_usuario', this.rol);
+      formData.append('estado_soporte_solicitud', 'PEN');
+      formData.append('tipo_documento_id', String(tipoDocumentoId));
+      formData.append('documentos', file);
 
-    archivos.forEach((file) => formData.append('documentos', file));
+      return this.sabaticosMidService.postFile('soporte_solicitud', formData).pipe(
+        map((response: any) => {
+          const nuevosIds = Array.isArray(response?.Data?.documentos)
+            ? response.Data.documentos
+                .map((doc: any) => Number(doc?.Id))
+                .filter((id: number) => !isNaN(id) && id > 0)
+            : [];
 
-    return this.sabaticosMidService.postFile('soporte_solicitud', formData).pipe(
-      map((response: any) => {
-        const nuevosIds = Array.isArray(response?.Data?.documentos)
-          ? response.Data.documentos
-              .map((doc: any) => Number(doc?.Id))
-              .filter((id: number) => !isNaN(id) && id > 0)
-          : [];
+          return nuevosIds;
+        })
+      );
+    });
 
-        return nuevosIds;
-      }),
+    return forkJoin(cargasPorArchivo).pipe(
+      map((idsPorArchivo: number[][]) => idsPorArchivo.flat()),
       tap((nuevosIds: number[]) => {
         this.secretariaDocumentosNuevosIds = [
           ...this.secretariaDocumentosNuevosIds,
@@ -1059,6 +1100,29 @@ export class EditarSolicitudComponent implements OnDestroy {
     });
   }
 
+  private getTipoParametroSecretariaByRol(rol: string): string {
+    if (rol === 'COORDINADOR') {
+      return 'DOCSOL_SG_SAB';
+    }
+    if (rol === 'SECRETARIA_ACADEMICA') {
+      return 'DOCSOL_SA_SAB';
+    }
+    return 'DOCSOL_DOCE_SAB';
+  }
+
+  private mapParametroDocumentos(response: any, fallback: DocumentoOption[]): DocumentoOption[] {
+    const data = response?.Data ?? response ?? [];
+    const opciones = (Array.isArray(data) ? data : [])
+      .filter((item: any) => item?.Id && item?.CodigoAbreviacion && item?.Nombre)
+      .map((item: any) => ({
+        key: String(item.CodigoAbreviacion),
+        label: String(item.Nombre),
+        tipoDocumentoId: Number(item.Id)
+      }));
+
+    return opciones.length ? opciones : [...fallback];
+  }
+
   private applySoportesFromBackend(soportes: any[]): void {
     if (!Array.isArray(soportes) || !soportes.length) {
       return;
@@ -1140,30 +1204,40 @@ private subirDocumentosDocenteNuevos(
     solicitudId: number,
     terceroId: number
   ): Observable<number[]> {
-    const archivos = Object.values(this.documentosDocenteNuevosFiles || {});
+    const archivos = Object.entries(this.documentosDocenteNuevosFiles || {});
 
     if (!archivos.length) {
       return of([]);
     }
 
-    const formData = new FormData();
-    formData.append('solicitud_id', solicitudId.toString());
-    formData.append('tercero_id', terceroId.toString());
-    formData.append('rol_usuario', 'DOCENTE');
-    formData.append('estado_soporte_solicitud', 'PEN');
+    const cargasPorArchivo = archivos.map(([key, file]) => {
+      const baseKey = this.getDocumentoBaseKey(key);
+      const tipoDocumentoId = this.documentoOptions.find(
+        (option) => option.key === baseKey
+      )?.tipoDocumentoId ?? 1;
+      const formData = new FormData();
+      formData.append('solicitud_id', solicitudId.toString());
+      formData.append('tercero_id', terceroId.toString());
+      formData.append('rol_usuario', 'DOCENTE');
+      formData.append('estado_soporte_solicitud', 'PEN');
+      formData.append('tipo_documento_id', String(tipoDocumentoId));
+      formData.append('documentos', file);
 
-    archivos.forEach((file) => formData.append('documentos', file));
+      return this.sabaticosMidService.postFile('soporte_solicitud', formData).pipe(
+        map((response: any) => {
+          const nuevosIds = Array.isArray(response?.Data?.documentos)
+            ? response.Data.documentos
+                .map((doc: any) => Number(doc?.Id))
+                .filter((id: number) => !isNaN(id) && id > 0)
+            : [];
 
-    return this.sabaticosMidService.postFile('soporte_solicitud', formData).pipe(
-      map((response: any) => {
-        const nuevosIds = Array.isArray(response?.Data?.documentos)
-          ? response.Data.documentos
-              .map((doc: any) => Number(doc?.Id))
-              .filter((id: number) => !isNaN(id) && id > 0)
-          : [];
+          return nuevosIds;
+        })
+      );
+    });
 
-        return nuevosIds;
-      }),
+    return forkJoin(cargasPorArchivo).pipe(
+      map((idsPorArchivo: number[][]) => idsPorArchivo.flat()),
       tap((nuevosIds: number[]) => {
         this.documentosDocenteNuevosIds = [
           ...this.documentosDocenteNuevosIds,
@@ -1522,12 +1596,31 @@ private subirDocumentosDocenteNuevos(
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   }
 
+  private hasDocumentosDocenteObligatorios(): boolean {
+    const requeridos = this.documentoOptions
+      .filter((d) => d.key !== this.otrosDocumentoKey)
+      .map((d) => d.key);
+
+    return requeridos.every((key) => {
+      const nombre = this.documentoArchivos[key];
+      return Boolean(nombre && nombre.trim());
+    });
+  }
+
+  private hasDocumentosDocenteAprobados(): boolean {
+    if (!this.documentosSeleccionados.length) {
+      return false;
+    }
+
+    return this.documentosSeleccionados.every(
+      (key) => this.documentoAprobaciones[key] === 'aprobado'
+    );
+  }
+
   private hasDocumentosSecretariaObligatorios(): boolean {
-    const requiredKeysByRole: Record<string, string[]> = {
-      SECRETARIA_ACADEMICA: ['revisionRequisitosSabatico', 'actaConsejoFacultad'],
-      COORDINADOR: ['actaConsejoAcademico', 'resolucionConsejoAcademico']
-    };
-    const requiredKeys = requiredKeysByRole[this.rol] ?? [];
+    const requiredKeys = this.secretariaDocumentoOptions
+      .map((option) => option.key)
+      .filter((key) => key !== this.otrosSecretariaKey);
 
     if (!requiredKeys.length) {
       return false;
