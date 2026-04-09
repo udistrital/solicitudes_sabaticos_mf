@@ -393,21 +393,37 @@ export class EditarSolicitudComponent implements OnDestroy {
       return false;
     }
 
-    if (this.rol === 'SECRETARIA_ACADEMICA' || this.rol === 'COORDINADOR') {
+    if (this.rol !== 'DOCENTE') {
       return false;
     }
 
-    return true
+    return this.form.valid && this.hasDocumentosDocenteObligatorios();
   }
 
   get canEnviarSecretariaGeneral(): boolean {
-    if (this.isReadOnly) {
+    if (this.isReadOnly || !this.form) {
       return false;
     }
 
-    return this.rol === 'SECRETARIA_GENERAL'
+    const canEnviarPorRol = this.rol === 'SECRETARIA_GENERAL'
       || this.rol === 'SECRETARIA_ACADEMICA'
       || this.rol === 'COORDINADOR';
+
+    if (!canEnviarPorRol) {
+      return false;
+    }
+
+    if (this.rol === 'SECRETARIA_ACADEMICA') {
+      const observacionesSecretaria = String(
+        this.form.get('observacionesSecretaria')?.value ?? ''
+      ).trim();
+
+      return observacionesSecretaria.length > 0
+        && this.hasDocumentosSecretariaObligatorios()
+        && this.hasDocumentosDocenteAprobados();
+    }
+
+    return true;
   }
 
   // =========================
@@ -437,6 +453,16 @@ export class EditarSolicitudComponent implements OnDestroy {
     this.documentoSeleccionado = null;
   }
 
+  get canSubsanar(): boolean {
+    if (this.isReadOnly || !this.form) return false;
+    const rolValido =
+      this.rol === 'SECRETARIA_GENERAL' ||
+      this.rol === 'SECRETARIA_ACADEMICA' ||
+      this.rol === 'COORDINADOR';
+    if (!rolValido) return false;
+    const obs = String(this.form.get('observacionesSecretaria')?.value ?? '').trim();
+    return obs.length > 0;
+  }
   async onEliminarDocumento(key: string): Promise<void> {
     if (!this.canEditarFormularioPrincipal) {
       return;
@@ -1520,6 +1546,27 @@ private subirDocumentosDocenteNuevos(
     const seconds = pad(date.getSeconds());
 
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+
+  private hasDocumentosDocenteObligatorios(): boolean {
+    const requeridos = this.documentoOptions
+      .filter((d) => d.key !== this.otrosDocumentoKey)
+      .map((d) => d.key);
+
+    return requeridos.every((key) => {
+      const nombre = this.documentoArchivos[key];
+      return Boolean(nombre && nombre.trim());
+    });
+  }
+
+  private hasDocumentosDocenteAprobados(): boolean {
+    if (!this.documentosSeleccionados.length) {
+      return false;
+    }
+
+    return this.documentosSeleccionados.every(
+      (key) => this.documentoAprobaciones[key] === 'aprobado'
+    );
   }
 
   private hasDocumentosSecretariaObligatorios(): boolean {
