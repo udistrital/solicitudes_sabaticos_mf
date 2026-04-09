@@ -420,7 +420,8 @@ export class EditarSolicitudComponent implements OnDestroy {
       ).trim();
 
       return observacionesSecretaria.length > 0
-        && this.hasDocumentosSecretariaObligatorios();
+        && this.hasDocumentosSecretariaObligatorios()
+        && this.hasDocumentosDocenteAprobados();
     }
 
     return true;
@@ -1451,6 +1452,16 @@ private subirDocumentosDocenteNuevos(
       const nombre = this.documentoArchivos[key];
       return Boolean(nombre && nombre.trim());
     });
+  }
+
+  private hasDocumentosDocenteAprobados(): boolean {
+    if (!this.documentosSeleccionados.length) {
+      return false;
+    }
+
+    return this.documentosSeleccionados.every(
+      (key) => this.documentoAprobaciones[key] === 'aprobado'
+    );
   }
 
   private hasDocumentosSecretariaObligatorios(): boolean {
