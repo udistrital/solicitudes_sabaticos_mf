@@ -464,6 +464,7 @@ export class EditarSolicitudComponent implements OnDestroy {
     );
     this.revokeDocumentoObjectUrl(key);
     delete this.documentoArchivos[key];
+    delete this.documentosDocenteNuevosFiles[key];
     delete this.documentoBackendIds[key];
     delete this.soporteBackendByKey[key];
     this.documentosModificados = true;
@@ -629,6 +630,7 @@ export class EditarSolicitudComponent implements OnDestroy {
     );
     this.revokeSecretariaDocumentoObjectUrl(key);
     delete this.secretariaDocumentoArchivos[key];
+    delete this.secretariaDocumentosNuevosFiles[key];
     delete this.secretariaDocumentoBackendIds[key];
     delete this.secretariaSoporteBackendByKey[key];
     this.documentosModificados = true;
