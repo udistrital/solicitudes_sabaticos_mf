@@ -2,7 +2,7 @@ import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatStepper } from '@angular/material/stepper';
-import { of } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { PopUpManager } from '../../../managers/popUpManager';
@@ -25,6 +25,7 @@ interface CrearSolicitudModalData {
 interface DocumentoOption {
   key: string;
   label: string;
+  tipoDocumentoId?: number;
 }
 
 interface ModalidadOption {
@@ -42,6 +43,7 @@ export class CrearSolicitudModalComponent implements OnInit {
   readonly form: FormGroup;
   modalidadOptions: ModalidadOption[] = [];
   cargandoModalidades = true;
+  cargandoDocumentos = true;
   readonly cronogramaMeses = [
     { key: 'mes1', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes1' },
     { key: 'mes2', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes2' },
@@ -56,7 +58,7 @@ export class CrearSolicitudModalComponent implements OnInit {
     { key: 'mes11', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes11' },
     { key: 'mes12', label: 'HISTORIAL_SOLICITUDES.modal.cronograma.mes12' }
   ];
-  readonly documentoOptions: DocumentoOption[] = [
+  documentoOptions: DocumentoOption[] = [
     { key: 'avalConsejo', label: 'HISTORIAL_SOLICITUDES.modal.documentos.avalConsejo' },
     { key: 'cronogramaMensual', label: 'HISTORIAL_SOLICITUDES.modal.documentos.cronogramaMensual' },
     { key: 'presupuestoProyectado', label: 'HISTORIAL_SOLICITUDES.modal.documentos.presupuestoProyectado' },
@@ -161,6 +163,7 @@ export class CrearSolicitudModalComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarModalidades();
+    this.cargarDocumentos();
   }
 
   onCancelar(): void {
@@ -224,21 +227,26 @@ export class CrearSolicitudModalComponent implements OnInit {
       }),
       switchMap(({ solicitudResponse, terceroId }) => {
         const solicitudId = solicitudResponse?.Data?.Solicitud?.Id;
-        const archivos = Object.values(this.documentoFiles);
+        const archivos = Object.entries(this.documentoFiles || {});
 
         if (!solicitudId || archivos.length === 0) {
           return of(solicitudResponse);
         }
 
-        const formData = new FormData();
-        formData.append('solicitud_id', solicitudId.toString());
-        formData.append('tercero_id', terceroId.toString());
-        formData.append('rol_usuario', 'DOCENTE');
-        formData.append('estado_soporte_solicitud', 'PEN');
-        archivos.forEach((file) => formData.append('documentos', file));
+        const cargasPorArchivo = archivos.map(([key, file]) => {
+          const tipoDocumentoId = this.documentoOptions.find((option) => option.key === key)?.tipoDocumentoId ?? 1;
+          const formData = new FormData();
+          formData.append('solicitud_id', solicitudId.toString());
+          formData.append('tercero_id', terceroId.toString());
+          formData.append('rol_usuario', 'DOCENTE');
+          formData.append('estado_soporte_solicitud', 'PEN');
+          formData.append('tipo_documento_id', String(tipoDocumentoId));
+          formData.append('documentos', file);
+          return this.sabaticosMidService.postFile('soporte_solicitud', formData);
+        });
 
-        return this.sabaticosMidService.postFile('soporte_solicitud', formData).pipe(
-          map((soporteRes: any) => ({ ...solicitudResponse, soporte: soporteRes }))
+        return forkJoin(cargasPorArchivo).pipe(
+          map((soportesRes: any[]) => ({ ...solicitudResponse, soporte: soportesRes }))
         );
       })
     ).subscribe({
@@ -290,6 +298,34 @@ export class CrearSolicitudModalComponent implements OnInit {
           console.error('Error al cargar modalidades:', error);
           this.cargandoModalidades = false;
           this.popUpManager.showErrorToast('HISTORIAL_SOLICITUDES.modal.errorCargarModalidades');
+        }
+      });
+  }
+
+  private cargarDocumentos(): void {
+    this.cargandoDocumentos = true;
+    this.parametrosService
+      .get('parametro?query=TipoParametroId__CodigoAbreviacion:DOCSOL_DOCE_SAB&limit=-1')
+      .subscribe({
+        next: (response: any) => {
+          const datos = response?.Data ?? response ?? [];
+          const opciones = (Array.isArray(datos) ? datos : [])
+            .filter((item: any) => item?.Id && item?.CodigoAbreviacion && item?.Nombre)
+            .map((item: any) => ({
+              key: String(item.CodigoAbreviacion),
+              label: String(item.Nombre),
+              tipoDocumentoId: Number(item.Id)
+            }));
+
+          if (opciones.length) {
+            this.documentoOptions = opciones;
+          }
+          this.cargandoDocumentos = false;
+        },
+        error: (error) => {
+          console.error('Error al cargar documentos:', error);
+          this.cargandoDocumentos = false;
+          this.popUpManager.showErrorToast('HISTORIAL_SOLICITUDES.modal.errorCargarDocumentos');
         }
       });
   }

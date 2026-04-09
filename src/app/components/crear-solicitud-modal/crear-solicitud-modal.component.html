@@ -231,7 +231,11 @@
         {{ 'HISTORIAL_SOLICITUDES.modal.documentos.soloPdf' | translate }}
       </p>
       <div class="crear-solicitud-modal__documento-selector">
-        <mat-form-field appearance="outline" class="crear-solicitud-modal__field">
+        <div *ngIf="cargandoDocumentos" class="crear-solicitud-modal__loading">
+          <mat-spinner diameter="32"></mat-spinner>
+          <span>{{ 'HISTORIAL_SOLICITUDES.modal.cargandoDocumentos' | translate }}</span>
+        </div>
+        <mat-form-field appearance="outline" class="crear-solicitud-modal__field" *ngIf="!cargandoDocumentos">
           <mat-label>{{ 'HISTORIAL_SOLICITUDES.modal.documentos.seleccionar' | translate }}</mat-label>
           <mat-select [(value)]="documentoSeleccionado">
             <mat-option *ngFor="let documento of documentosDisponibles; trackBy: trackDocumento"
@@ -241,7 +245,7 @@
           </mat-select>
         </mat-form-field>
         <button mat-raised-button color="primary" type="button" class="crear-solicitud-modal__documento-add"
-          (click)="onAgregarDocumento()" [disabled]="!documentoSeleccionado">
+          (click)="onAgregarDocumento()" [disabled]="cargandoDocumentos || !documentoSeleccionado">
           {{ 'GLOBAL.agregar' | translate }}
         </button>
       </div>
