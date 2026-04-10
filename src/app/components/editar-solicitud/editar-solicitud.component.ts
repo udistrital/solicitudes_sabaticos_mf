@@ -2,7 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
 import Swal from 'sweetalert2';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { SabaticosCrudService } from '../../services/sabatico-crud.service';
@@ -83,6 +83,7 @@ export class EditarSolicitudComponent implements OnDestroy {
   secretariaDocumentosExistentesIds: number[] = [];
   secretariaDocumentosNuevosIds: number[] = [];
   secretariaSoporteBackendByKey: Record<string, any> = {};
+  tipoDocumentoCodigoById: Record<number, string> = {};
 
   // Catálogos
   readonly cronogramaMeses = CRONOGRAMA_MESES;
@@ -157,9 +158,18 @@ export class EditarSolicitudComponent implements OnDestroy {
           .map((item: any) => Number(item?.DocumentoId))
           .filter((id: number) => !isNaN(id) && id > 0);
 
-        this.applySoportesFromBackend(soportesDocente);
-        this.applySoportesSecretariaFromBackend(soportesSecretaria);
-        this.applyFormPermissions();
+        this.resolverTiposDocumentoPorId(soportesBackend).subscribe({
+          next: () => {
+            this.applySoportesFromBackend(soportesDocente);
+            this.applySoportesSecretariaFromBackend(soportesSecretaria);
+            this.applyFormPermissions();
+          },
+          error: () => {
+            this.applySoportesFromBackend(soportesDocente);
+            this.applySoportesSecretariaFromBackend(soportesSecretaria);
+            this.applyFormPermissions();
+          }
+        });
       },
       error: (error) => {
         console.error('Error al llamar al servicio:', error);
@@ -1123,6 +1133,68 @@ export class EditarSolicitudComponent implements OnDestroy {
     return opciones.length ? opciones : [...fallback];
   }
 
+  private resolverTiposDocumentoPorId(soportes: any[]): Observable<void> {
+    const idsUnicos = [...new Set(
+      (Array.isArray(soportes) ? soportes : [])
+        .map((s: any) => Number(s?.TipoDocumentoId))
+        .filter((id: number) => Number.isFinite(id) && id > 0)
+    )];
+
+    const idsPendientes = idsUnicos.filter((id) => !this.tipoDocumentoCodigoById[id]);
+    if (!idsPendientes.length) {
+      return of(void 0);
+    }
+
+    const consultas = idsPendientes.map((id) =>
+      this.parametrosService.get(`parametro?query=Id:${id}`).pipe(
+        map((response: any) => {
+          const data = response?.Data ?? response ?? [];
+          const item = Array.isArray(data) ? data[0] : null;
+          return {
+            id,
+            codigo: String(item?.CodigoAbreviacion ?? '')
+          };
+        }),
+        catchError(() => of({ id, codigo: '' }))
+      )
+    );
+
+    return forkJoin(consultas).pipe(
+      tap((resultados) => {
+        resultados.forEach((resultado) => {
+          if (resultado.codigo) {
+            this.tipoDocumentoCodigoById[resultado.id] = resultado.codigo;
+          }
+        });
+      }),
+      map(() => void 0)
+    );
+  }
+
+  private resolverDocumentoKeyPorTipoId(
+    tipoDocumentoId: number,
+    options: DocumentoOption[],
+    fallbackKey: string
+  ): string {
+    if (!tipoDocumentoId) {
+      return fallbackKey;
+    }
+
+    const optionById = options.find(
+      (option) => Number(option.tipoDocumentoId) === Number(tipoDocumentoId)
+    );
+    if (optionById?.key) {
+      return optionById.key;
+    }
+
+    const codigo = this.tipoDocumentoCodigoById[tipoDocumentoId];
+    if (codigo && options.some((option) => option.key === codigo)) {
+      return codigo;
+    }
+
+    return fallbackKey;
+  }
+
   private applySoportesFromBackend(soportes: any[]): void {
     if (!Array.isArray(soportes) || !soportes.length) {
       return;
@@ -1137,7 +1209,13 @@ export class EditarSolicitudComponent implements OnDestroy {
 
     soportes.forEach((soporte, index) => {
       const fallbackKey = baseKeys[index] ?? this.otrosDocumentoKey;
-      const key = this.buildDocumentoKey(fallbackKey, selectedKeys);
+      const tipoDocumentoId = Number(soporte?.TipoDocumentoId) || 0;
+      const resolvedBaseKey = this.resolverDocumentoKeyPorTipoId(
+        tipoDocumentoId,
+        this.documentoOptions,
+        fallbackKey
+      );
+      const key = this.buildDocumentoKey(resolvedBaseKey, selectedKeys);
       const documentoId = soporte?.DocumentoId;
 
       selectedKeys.push(key);
@@ -1179,7 +1257,13 @@ export class EditarSolicitudComponent implements OnDestroy {
 
     soportes.forEach((soporte, index) => {
       const fallbackKey = baseKeys[index] ?? this.otrosSecretariaKey;
-      const key = this.buildDocumentoKey(fallbackKey, selectedKeys);
+      const tipoDocumentoId = Number(soporte?.TipoDocumentoId) || 0;
+      const resolvedBaseKey = this.resolverDocumentoKeyPorTipoId(
+        tipoDocumentoId,
+        this.secretariaDocumentoOptions,
+        fallbackKey
+      );
+      const key = this.buildDocumentoKey(resolvedBaseKey, selectedKeys);
       const documentoId = soporte?.DocumentoId;
 
       selectedKeys.push(key);
