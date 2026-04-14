@@ -2,9 +2,10 @@ import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatStepper } from '@angular/material/stepper';
-import { forkJoin, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { concatMap, from, of, timer, toArray } from 'rxjs';
+import { finalize, map, switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
+import { SpinnerUtilService } from 'spinner-util';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { ParametrosService } from '../../services/parametros.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
@@ -119,7 +120,8 @@ export class CrearSolicitudModalComponent implements OnInit {
     private readonly sabaticosMidService: SabaticosMidService,
     private readonly parametrosService: ParametrosService,
     private readonly popUpManager: PopUpManager,
-    private readonly translate: TranslateService
+    private readonly translate: TranslateService,
+    private readonly spinnerUtilService: SpinnerUtilService
   ) {
     this.form = this.formBuilder.group({
       docenteNombre: [{ value: data.docente.nombre, disabled: true }],
@@ -242,11 +244,19 @@ export class CrearSolicitudModalComponent implements OnInit {
           formData.append('estado_soporte_solicitud', 'PEN');
           formData.append('tipo_documento_id', String(tipoDocumentoId));
           formData.append('documentos', file);
-          return this.sabaticosMidService.postFile('soporte_solicitud', formData);
+          return this.sabaticosMidService.postFileWithoutSpinner('soporte_solicitud', formData);
         });
 
-        return forkJoin(cargasPorArchivo).pipe(
-          map((soportesRes: any[]) => ({ ...solicitudResponse, soporte: soportesRes }))
+        this.spinnerUtilService.show();
+        return from(cargasPorArchivo).pipe(
+          concatMap((carga$, index) => (
+            index === 0
+              ? carga$
+              : timer(2000).pipe(concatMap(() => carga$))
+          )),
+          toArray(),
+          map((soportesRes: any[]) => ({ ...solicitudResponse, soporte: soportesRes })),
+          finalize(() => this.spinnerUtilService.hide())
         );
       })
     ).subscribe({

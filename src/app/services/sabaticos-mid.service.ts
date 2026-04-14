@@ -24,6 +24,11 @@ export class SabaticosMidService {
     return this.requestManager.post_file(endpoint, formData);
     }
 
+    postFileWithoutSpinner(endpoint: string, formData: FormData) {
+    this.requestManager.setPath('SABATICOS_MID_SERVICE');
+    return this.requestManager.post_file_without_spinner(endpoint, formData);
+    }
+
     put(endpoint: string, element: { Id: any; }) {
     this.requestManager.setPath('SABATICOS_MID_SERVICE');
     return this.requestManager.put(endpoint, element);

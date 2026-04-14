@@ -483,7 +483,7 @@ export class HistorialSolicitudesComponent {
         }
 
         this.terceroId = registros[0].TerceroId.Id;
-        const historialEndpoint = `historial_solicitud?query=TerceroId:${this.terceroId},Activo:true&limit=100`;
+        const historialEndpoint = `historial_solicitud?query=TerceroId:${this.terceroId},Activo:true&limit=-1`;
         return this.sabaticosCrudService.get(historialEndpoint);
       }),
       takeUntilDestroyed(this.destroyRef)
@@ -506,7 +506,7 @@ export class HistorialSolicitudesComponent {
 
   private loadSolicitudesCoordinador(): void {
     this.cargandoSolicitudes = true;
-    const endpoint = 'historial_solicitud?query=Activo:True&limit=100';
+    const endpoint = 'historial_solicitud?query=Activo:True&limit=-1';
 
     this.sabaticosCrudService.get(endpoint)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -744,7 +744,7 @@ export class HistorialSolicitudesComponent {
     if (!this.terceroId) return;
 
     this.cargandoSolicitudes = true;
-    const endpoint = `historial_solicitud?query=TerceroId:${this.terceroId},Activo:true&limit=100`;
+    const endpoint = `historial_solicitud?query=TerceroId:${this.terceroId},Activo:true&limit=-1`;
     this.sabaticosCrudService.get(endpoint)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
