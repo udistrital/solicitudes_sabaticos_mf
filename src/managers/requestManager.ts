@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpBackend, HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../environments/environment';
 import { catchError, map } from 'rxjs/operators';
 import { HttpErrorManager } from './errorManager'
@@ -17,7 +17,9 @@ import { HttpErrorManager } from './errorManager'
 export class RequestManager {
   private path!: any;
   public httpOptions: any;
-  constructor(private http: HttpClient, private errManager: HttpErrorManager) {
+  private readonly rawHttp: HttpClient;
+  constructor(private http: HttpClient, private errManager: HttpErrorManager, httpBackend: HttpBackend) {
+    this.rawHttp = new HttpClient(httpBackend);
     const acces_token = window.localStorage.getItem('access_token');
     if (acces_token !== null) {
       this.httpOptions = {
@@ -104,6 +106,17 @@ export class RequestManager {
       : new HttpHeaders();
     
     return this.http.post<any>(`${this.path}${endpoint}`, element, { headers }).pipe(
+      catchError(this.errManager.handleError),
+    );
+  }
+
+  post_file_without_spinner(endpoint: any, element: FormData) {
+    const acces_token = window.localStorage.getItem('access_token');
+    const headers = acces_token
+      ? new HttpHeaders({ 'Authorization': `Bearer ${acces_token}` })
+      : new HttpHeaders();
+
+    return this.rawHttp.post<any>(`${this.path}${endpoint}`, element, { headers }).pipe(
       catchError(this.errManager.handleError),
     );
   }
