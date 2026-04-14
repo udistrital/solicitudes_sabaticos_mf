@@ -2,8 +2,9 @@ import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { catchError, forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, concatMap, finalize, forkJoin, from, map, Observable, of, switchMap, tap, timer, toArray } from 'rxjs';
 import Swal from 'sweetalert2';
+import { SpinnerUtilService } from 'spinner-util';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { SabaticosCrudService } from '../../services/sabatico-crud.service';
 import {
@@ -99,7 +100,8 @@ export class EditarSolicitudComponent implements OnDestroy {
     private readonly sabaticosMidService: SabaticosMidService,
     private readonly parametrosService: ParametrosService,
     private readonly gestorDocumentalService: GestorDocumentalService,
-    private readonly translate: TranslateService
+    private readonly translate: TranslateService,
+    private readonly spinnerUtilService: SpinnerUtilService
   ) {
     const navigationState = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
     const rolNavegacion = String(navigationState?.['rol'] ?? '');
@@ -107,10 +109,10 @@ export class EditarSolicitudComponent implements OnDestroy {
 
     forkJoin({
       formularioResponse: this.sabaticosCrudService.get(
-        `formulario_solicitud?query=SolicitudId:${solicitudId},Activo:True&limit=100`
+        `formulario_solicitud?query=SolicitudId:${solicitudId},Activo:True&limit=-1`
       ),
       documentosResponse: this.sabaticosCrudService.get(
-        `soporte_solicitud?query=SolicitudId:${solicitudId},Activo:True`
+        `soporte_solicitud?query=SolicitudId:${solicitudId},Activo:True&limit=-1`
       ),
       modalidadesResponse: this.parametrosService.get('parametro?query=TipoParametroId__CodigoAbreviacion:MODSAB'),
       documentosDocenteResponse: this.parametrosService.get(
@@ -991,7 +993,7 @@ export class EditarSolicitudComponent implements OnDestroy {
       formData.append('tipo_documento_id', String(tipoDocumentoId));
       formData.append('documentos', file);
 
-      return this.sabaticosMidService.postFile('soporte_solicitud', formData).pipe(
+      return this.sabaticosMidService.postFileWithoutSpinner('soporte_solicitud', formData).pipe(
         map((response: any) => {
           const nuevosIds = Array.isArray(response?.Data?.documentos)
             ? response.Data.documentos
@@ -1004,7 +1006,14 @@ export class EditarSolicitudComponent implements OnDestroy {
       );
     });
 
-    return forkJoin(cargasPorArchivo).pipe(
+    this.spinnerUtilService.show();
+    return from(cargasPorArchivo).pipe(
+      concatMap((carga$, index) => (
+        index === 0
+          ? carga$
+          : timer(2000).pipe(concatMap(() => carga$))
+      )),
+      toArray(),
       map((idsPorArchivo: number[][]) => idsPorArchivo.flat()),
       tap((nuevosIds: number[]) => {
         this.secretariaDocumentosNuevosIds = [
@@ -1020,7 +1029,8 @@ export class EditarSolicitudComponent implements OnDestroy {
         ];
 
         this.secretariaDocumentosNuevosFiles = {};
-      })
+      }),
+      finalize(() => this.spinnerUtilService.hide())
     );
   }
 
@@ -1041,7 +1051,7 @@ export class EditarSolicitudComponent implements OnDestroy {
     });
 
     this.sabaticosCrudService.get(
-      `estado_soporte_solicitud?query=codigo_abreviacion:${codigoAbreviacionEstado},activo:true`
+      `estado_soporte_solicitud?query=codigo_abreviacion:${codigoAbreviacionEstado},activo:true&limit=-1`
     ).subscribe({
       next: (estadoResponse: any) => {
         const estados = Array.isArray(estadoResponse?.Data) ? estadoResponse.Data : [];
@@ -1307,7 +1317,7 @@ private subirDocumentosDocenteNuevos(
       formData.append('tipo_documento_id', String(tipoDocumentoId));
       formData.append('documentos', file);
 
-      return this.sabaticosMidService.postFile('soporte_solicitud', formData).pipe(
+      return this.sabaticosMidService.postFileWithoutSpinner('soporte_solicitud', formData).pipe(
         map((response: any) => {
           const nuevosIds = Array.isArray(response?.Data?.documentos)
             ? response.Data.documentos
@@ -1320,7 +1330,14 @@ private subirDocumentosDocenteNuevos(
       );
     });
 
-    return forkJoin(cargasPorArchivo).pipe(
+    this.spinnerUtilService.show();
+    return from(cargasPorArchivo).pipe(
+      concatMap((carga$, index) => (
+        index === 0
+          ? carga$
+          : timer(2000).pipe(concatMap(() => carga$))
+      )),
+      toArray(),
       map((idsPorArchivo: number[][]) => idsPorArchivo.flat()),
       tap((nuevosIds: number[]) => {
         this.documentosDocenteNuevosIds = [
@@ -1337,7 +1354,8 @@ private subirDocumentosDocenteNuevos(
 
         // Ya quedaron persistidos, así que se limpian como "pendientes"
         this.documentosDocenteNuevosFiles = {};
-      })
+      }),
+      finalize(() => this.spinnerUtilService.hide())
     );
   }
 
@@ -1682,13 +1700,23 @@ private subirDocumentosDocenteNuevos(
 
   private hasDocumentosDocenteObligatorios(): boolean {
     const requeridos = this.documentoOptions
-      .filter((d) => d.key !== this.otrosDocumentoKey)
+      .filter((d) => !this.isDocumentoDocenteOpcional(d))
       .map((d) => d.key);
 
     return requeridos.every((key) => {
       const nombre = this.documentoArchivos[key];
       return Boolean(nombre && nombre.trim());
     });
+  }
+
+  private isDocumentoDocenteOpcional(documento: DocumentoOption): boolean {
+    const key = String(documento?.key ?? '').toLowerCase();
+    const label = String(documento?.label ?? '').toLowerCase();
+
+    return key === this.otrosDocumentoKey.toLowerCase()
+      || key === 'otr_soportes'
+      || key.includes('otro')
+      || label.includes('otro');
   }
 
   private hasDocumentosDocenteAprobados(): boolean {
@@ -1704,7 +1732,7 @@ private subirDocumentosDocenteNuevos(
   private hasDocumentosSecretariaObligatorios(): boolean {
     const requiredKeys = this.secretariaDocumentoOptions
       .map((option) => option.key)
-      .filter((key) => key !== this.otrosSecretariaKey);
+      .filter((key) => !this.isDocumentoSecretariaOpcional(key));
 
     if (!requiredKeys.length) {
       return false;
@@ -1714,6 +1742,14 @@ private subirDocumentosDocenteNuevos(
       const nombre = this.secretariaDocumentoArchivos[key];
       return Boolean(nombre && nombre.trim());
     });
+  }
+
+  private isDocumentoSecretariaOpcional(key: string): boolean {
+    const normalizedKey = String(key ?? '').toLowerCase();
+    return normalizedKey === this.otrosSecretariaKey.toLowerCase()
+      || normalizedKey === 'otr_soportes_sa'
+      || normalizedKey === 'otr_soportes_sg'
+      || normalizedKey.includes('otro');
   }
 
   private isPdfFile(file: File): boolean {
