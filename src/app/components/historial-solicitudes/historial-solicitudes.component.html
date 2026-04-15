@@ -147,13 +147,23 @@
           {{ 'HISTORIAL_SOLICITUDES.tableSection.subtitle' | translate }}
         </mat-card-subtitle>
       </div>
-      <button mat-raised-button color="primary" type="button" (click)="onCrearSolicitud()" *ngIf="isDocente">
+      <button mat-raised-button color="primary" type="button" (click)="onCrearSolicitud()" *ngIf="canCrearSolicitud">
         {{ 'HISTORIAL_SOLICITUDES.actions.add' | translate }}
       </button>
     </div>
 
 
-    <div class="historial-solicitudes__tabla-wrapper">
+    <div *ngIf="cargandoSolicitudes" class="historial-solicitudes__loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>{{ 'HISTORIAL_SOLICITUDES.cargandoSolicitudes' | translate }}</span>
+    </div>
+
+    <div *ngIf="!cargandoSolicitudes && solicitudes.length === 0" class="historial-solicitudes__empty">
+      <mat-icon>inbox</mat-icon>
+      <span>{{ 'HISTORIAL_SOLICITUDES.sinSolicitudes' | translate }}</span>
+    </div>
+
+    <div class="historial-solicitudes__tabla-wrapper" *ngIf="!cargandoSolicitudes && solicitudes.length > 0">
       <table mat-table [dataSource]="paginatedSolicitudes" [trackBy]="trackBySolicitud"
         class="historial-solicitudes__tabla mat-elevation-z2"
         [attr.aria-label]="'HISTORIAL_SOLICITUDES.tableAriaLabel' | translate">
@@ -271,11 +281,6 @@
               [attr.aria-label]="'HISTORIAL_SOLICITUDES.actions.viewAria' | translate">
               <mat-icon>visibility</mat-icon>
             </button>
-            <button mat-icon-button class="historial-solicitudes__accion historial-solicitudes__accion--send"
-              type="button" (click)="onEnviar(solicitud)" *ngIf="shouldShowSendButton(solicitud)"
-              [attr.aria-label]="'HISTORIAL_SOLICITUDES.actions.sendAria' | translate">
-              <mat-icon>send</mat-icon>
-            </button>
             <button mat-icon-button class="historial-solicitudes__accion historial-solicitudes__accion--start"
               type="button" (click)="onIniciarSabatico(solicitud.id)" *ngIf="shouldShowIniciarSabatico(solicitud)"
               [attr.aria-label]="'HISTORIAL_SOLICITUDES.actions.startSabaticoAria' | translate">
@@ -291,7 +296,7 @@
     </div>
   </mat-card-content>
 
-  <mat-card-actions class="historial-solicitudes__paginador">
+  <mat-card-actions class="historial-solicitudes__paginador" *ngIf="!cargandoSolicitudes && solicitudes.length > 0">
     <mat-paginator [length]="filteredSolicitudes.length" [pageIndex]="pageIndex" [pageSize]="pageSize"
       [pageSizeOptions]="pageSizeOptions" showFirstLastButtons (page)="onPageChange($event)"></mat-paginator>
   </mat-card-actions>

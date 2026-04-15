@@ -2,6 +2,19 @@
   font-family: Open Sans, "Helvetica Neue", sans-serif !important;
 }
 
+.historial-solicitudes__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
 .historial-solicitudes {
   padding: 2rem;
   display: flex;
@@ -159,6 +172,33 @@
     gap: 1rem;
   }
 
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 3rem 1rem;
+    color: #6b7280;
+    font-size: 0.95rem;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 3rem 1rem;
+    color: #9ca3af;
+    font-size: 0.95rem;
+
+    mat-icon {
+      font-size: 2.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+  }
+
   &__tabla-wrapper {
     width: 100%;
     overflow-x: auto;
@@ -254,14 +294,6 @@
 
     &:hover {
       background-color: rgba(3, 103, 143, 0.05);
-    }
-  }
-
-  &__accion--send {
-    color: #9EB7E5;
-
-    &:hover {
-      background-color: rgba(158, 183, 229, 0.05);
     }
   }
 

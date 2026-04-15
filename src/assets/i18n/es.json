@@ -610,6 +610,10 @@
   "HISTORIAL_SOLICITUDES": {
     "title": "Solicitudes de Sabáticos",
     "description": "Módulo para la gestión de las solicitudes de sabáticos",
+    "cargandoSolicitudes": "Cargando solicitudes...",
+    "errorCargarSolicitudes": "No se pudieron cargar las solicitudes. Intente nuevamente.",
+    "errorCargarFormulario": "No se pudo cargar el formulario de la solicitud. Intente nuevamente.",
+    "sinSolicitudes": "No se encontraron solicitudes registradas.",
     "tableAriaLabel": "Tabla de historial de solicitudes",
     "columns": {
       "id": "ID",
@@ -668,7 +672,7 @@
     },
     "roleInfo": {
       "coordinador": "Desde esta sección podrá consultar el historial de solicitudes tramitadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar el expediente consolidado, registrar la decisión del Consejo Académico y adjuntar la resolución o los documentos que soportan la respuesta.",
-      "contratista": "Desde esta sección podrá consultar las solicitudes radicadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar su estado documental, registrar la respuesta del Consejo de Facultad y gestionar devoluciones o subsanaciones cuando corresponda.",
+      "secretariaAcademica": "Desde esta sección podrá consultar las solicitudes radicadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar su estado documental, registrar la respuesta del Consejo de Facultad y gestionar devoluciones o subsanaciones cuando corresponda.",
       "docente": "Le damos la bienvenida al módulo de solicitudes de Año Sabático, aquí usted podrá registrar y consultar sus solicitudes (GD-PR-020 del SIGUD), y dar continuidad al proceso cuando lo requiera."
     },
     "abreviaturas": {
@@ -683,9 +687,30 @@
       "subtitle": "Detalle de la solicitud seleccionada",
       "save": "Guardar cambios",
       "sendReview": "Enviar a revisión",
+      "sendReviewSecretariaGeneral": "Enviar a revisión",
+      "subsanacion": "Subsanación",
+      "saveSecretariaSuccess": "Cambios guardados exitosamente",
+      "saveSecretariaError": "Error al guardar los cambios",
+      "sendSecretariaSuccess": "Solicitud enviada exitosamente",
+      "sendSecretariaError": "Error al enviar la solicitud",
       "observaciones": {
         "title": "Observaciones",
         "label": "Comentarios u observaciones a tener en cuenta"
+      },
+      "documentos": {
+        "confirmApproveDocTitle": "Confirmar aprobación",
+        "confirmApproveDoc": "¿Está seguro/a de que desea aprobar este documento?",
+        "confirmRejectDocTitle": "Confirmar rechazo",
+        "confirmRejectDoc": "¿Está seguro/a de que desea rechazar este documento?",
+        "approved": "Aprobado",
+        "rejected": "Rechazado",
+        "approveAria": "Aprobar documento",
+        "rejectAria": "Rechazar documento",
+        "noPreviewTitle": "Sin previsualización",
+        "noPreviewText": "La previsualización estará disponible cuando se conecte el servicio de gestión documental.",
+        "approveSuccess": "El documento ha sido aprobado exitosamente",
+        "rejectSuccess": "El documento ha sido rechazado exitosamente",
+        "updateStatusError": "Error al actualizar el estado del documento"
       },
       "secretaria": {
         "title": "Gestión de Secretaría",
@@ -790,18 +815,25 @@
         "opcion7": "Actualización para el dominio de lenguas diferentes a la lengua materna."
       },
       "cancelar": "Cancelar",
-      "guardar": "Guardar"
+      "guardar": "Guardar",
+      "guardarExitoso": "La solicitud se ha guardado correctamente.",
+      "guardarError": "Ocurrió un error al guardar la solicitud. Intente nuevamente.",
+      "cargandoModalidades": "Cargando modalidades...",
+      "errorCargarModalidades": "No se pudieron cargar las modalidades. Intente nuevamente.",
+      "cargandoDocumentos": "Cargando documentos...",
+      "errorCargarDocumentos": "No se pudieron cargar los documentos. Intente nuevamente."
     },
     "actions": {
       "add": "Agregar solicitud",
       "editAria": "Editar solicitud",
       "reviewAria": "Revisar solicitud",
       "viewAria": "Ver solicitud",
-      "sendAria": "Enviar solicitud",
       "startSabaticoAria": "Iniciar sabático",
       "confirmSendTitle": "Confirmar envío",
       "confirmSendDocenteDraft": "¿Está seguro/a de enviar a revisión su solicitud de año sabático?",
-      "confirmSendGeneral": "¿Está seguro/a de que desea enviar la solicitud a la siguiente fase de revisión/aprobación?"
+      "confirmSendGeneral": "¿Está seguro/a de que desea enviar la solicitud a la siguiente fase de revisión/aprobación?",
+      "confirmDeleteDocTitle": "Confirmar eliminación",
+      "confirmDeleteDoc": "¿Está seguro/a de que desea eliminar este documento?"
     }
   },
   "gestion_horarios": {
