@@ -7,7 +7,7 @@ import { RequestManager } from '../../managers/requestManager';
 export class SabaticosCrudService {
 
   constructor(
-    private requestManager: RequestManager
+    private readonly requestManager: RequestManager
   ) {
     this.requestManager.setPath('SABATICOS_CRUD_SERVICE');
   }
