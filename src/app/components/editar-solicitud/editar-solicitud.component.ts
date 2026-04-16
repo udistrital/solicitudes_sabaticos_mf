@@ -403,6 +403,21 @@ export class EditarSolicitudComponent implements OnDestroy {
     ).length;
   }
 
+  get puedeEnviarRevision(): boolean {
+    const conPanel = ["Borrador", "Subsanación solicitada"];
+    const estado = this.formularioInit?.estado;
+
+    const resultado = (
+      this.rol === 'DOCENTE' &&
+      estado !== undefined &&
+      conPanel.includes(estado)
+    );
+
+    console.log('puedeEnviarRevision:', resultado);
+
+    return resultado;
+  }
+
   get canEnviarRevision(): boolean {
     if (this.isReadOnly || !this.form || !this.formulario) {
       return false;

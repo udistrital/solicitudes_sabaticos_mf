@@ -469,7 +469,7 @@
             [disabled]="!hasUnsavedChanges">
             {{ 'HISTORIAL_SOLICITUDES.edit.save' | translate }}
           </button>
-          <button *ngIf="rol === 'DOCENTE'" mat-raised-button color="primary" type="button" class="editar-solicitud__send"
+          <button *ngIf="puedeEnviarRevision" mat-raised-button color="primary" type="button" class="editar-solicitud__send"
             (click)="onEnviarRevision()"
             [disabled]="!canEnviarRevision">
             {{ 'HISTORIAL_SOLICITUDES.edit.sendReview' | translate }}
@@ -486,7 +486,7 @@
               [disabled]="!canSubsanar">
               {{ 'HISTORIAL_SOLICITUDES.edit.subsanacion' | translate }}
             </button>
-            <button mat-raised-button color="primary" type="button" class="editar-solicitud__send"
+            <button *ngIf="puedeEnviarRevision"  mat-raised-button color="primary" type="button" class="editar-solicitud__send"
               (click)="onEnviarRevisionSecretariaGeneral(true)"
               [disabled]="!canEnviarSecretariaGeneral">
               {{ 'HISTORIAL_SOLICITUDES.edit.sendReviewSecretariaGeneral' | translate }}
@@ -499,7 +499,7 @@
               [disabled]="!canSubsanar">
               {{ 'HISTORIAL_SOLICITUDES.edit.subsanacion' | translate }}
             </button>
-            <button mat-raised-button color="primary" type="button" class="editar-solicitud__send"
+            <button *ngIf="puedeEnviarRevision"  mat-raised-button color="primary" type="button" class="editar-solicitud__send"
               (click)="onEnviarRevisionSecretariaGeneral(true)"
               [disabled]="!canEnviarSecretariaGeneral">
               {{ 'HISTORIAL_SOLICITUDES.edit.sendReviewSecretariaGeneral' | translate }}
