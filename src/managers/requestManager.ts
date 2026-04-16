@@ -18,7 +18,7 @@ export class RequestManager {
   private path!: any;
   public httpOptions: any;
   private readonly rawHttp: HttpClient;
-  constructor(private http: HttpClient, private errManager: HttpErrorManager, httpBackend: HttpBackend) {
+  constructor(private readonly http: HttpClient, private readonly errManager: HttpErrorManager, httpBackend: HttpBackend) {
     this.rawHttp = new HttpClient(httpBackend);
     const acces_token = window.localStorage.getItem('access_token');
     if (acces_token !== null) {

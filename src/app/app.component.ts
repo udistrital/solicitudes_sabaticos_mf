@@ -16,7 +16,7 @@ export class AppComponent {
   }
 
   constructor(
-    private translate: TranslateService
+    private readonly translate: TranslateService
   ) { }
 
   validateLang() {
