@@ -832,6 +832,8 @@
       "confirmSendTitle": "Confirmar envío",
       "confirmSendDocenteDraft": "¿Está seguro/a de enviar a revisión su solicitud de año sabático?",
       "confirmSendGeneral": "¿Está seguro/a de que desea enviar la solicitud a la siguiente fase de revisión/aprobación?",
+      "confirmSubsanacionTitle": "Confirmar subsanación",
+      "confirmSubsanacion": "¿Está seguro/a de que desea devolver esta solicitud para subsanación?",
       "confirmDeleteDocTitle": "Confirmar eliminación",
       "confirmDeleteDoc": "¿Está seguro/a de que desea eliminar este documento?"
     }

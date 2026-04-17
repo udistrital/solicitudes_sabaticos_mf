@@ -298,7 +298,6 @@ export class HistorialSolicitudesComponent {
     .subscribe((response: any) => {
       this.permisos = response
       this.perfil = response[0]?.Perfil?.Nombre ?? '';
-      console.log(this.permisos)
     });
 
     if (this.rol == 'ADMINISTRADOR'){
