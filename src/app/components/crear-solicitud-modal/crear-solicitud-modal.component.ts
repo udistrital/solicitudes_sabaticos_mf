@@ -3,9 +3,8 @@ import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/fo
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatStepper } from '@angular/material/stepper';
 import { concatMap, from, of, timer, toArray } from 'rxjs';
-import { finalize, map, switchMap } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
-import { SpinnerUtilService } from 'spinner-util';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { ParametrosService } from '../../services/parametros.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
@@ -35,9 +34,10 @@ interface ModalidadOption {
 }
 
 @Component({
-  selector: 'app-crear-solicitud-modal',
-  templateUrl: './crear-solicitud-modal.component.html',
-  styleUrl: './crear-solicitud-modal.component.scss'
+    selector: 'app-crear-solicitud-modal',
+    templateUrl: './crear-solicitud-modal.component.html',
+    styleUrl: './crear-solicitud-modal.component.scss',
+    standalone: false
 })
 export class CrearSolicitudModalComponent implements OnInit {
   @ViewChild('stepper') stepper!: MatStepper;
@@ -121,7 +121,6 @@ export class CrearSolicitudModalComponent implements OnInit {
     private readonly parametrosService: ParametrosService,
     private readonly popUpManager: PopUpManager,
     private readonly translate: TranslateService,
-    private readonly spinnerUtilService: SpinnerUtilService
   ) {
     this.form = this.formBuilder.group({
       docenteNombre: [{ value: data.docente.nombre, disabled: true }],
@@ -247,7 +246,6 @@ export class CrearSolicitudModalComponent implements OnInit {
           return this.sabaticosMidService.postFileWithoutSpinner('soporte_solicitud', formData);
         });
 
-        this.spinnerUtilService.show();
         return from(cargasPorArchivo).pipe(
           concatMap((carga$, index) => (
             index === 0
@@ -255,8 +253,7 @@ export class CrearSolicitudModalComponent implements OnInit {
               : timer(2000).pipe(concatMap(() => carga$))
           )),
           toArray(),
-          map((soportesRes: any[]) => ({ ...solicitudResponse, soporte: soportesRes })),
-          finalize(() => this.spinnerUtilService.hide())
+          map((soportesRes: any[]) => ({ ...solicitudResponse, soporte: soportesRes }))
         );
       })
     ).subscribe({

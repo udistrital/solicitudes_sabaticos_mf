@@ -115,9 +115,10 @@ interface DocenteInfo {
 }
 
 @Component({
-  selector: 'app-historial-solicitudes',
-  templateUrl: './historial-solicitudes.component.html',
-  styleUrl: './historial-solicitudes.component.scss'
+    selector: 'app-historial-solicitudes',
+    templateUrl: './historial-solicitudes.component.html',
+    styleUrl: './historial-solicitudes.component.scss',
+    standalone: false
 })
 export class HistorialSolicitudesComponent {
   readonly displayedColumnsDocente = ['id', 'fechaRadicado', 'estado', 'gestion'];

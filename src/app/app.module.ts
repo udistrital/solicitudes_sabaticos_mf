@@ -2,12 +2,11 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
-import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
 import localeEn from '@angular/common/locales/en';
 
-import { SpinnerUtilInterceptor, SpinnerUtilModule } from 'spinner-util';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -82,58 +81,46 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
   return paginatorIntl;
 }
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    CrearSolicitudModalComponent,
-    EditarSolicitudComponent,
-    HistorialSolicitudesComponent
-  ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    RouterModule,
-    AppRoutingModule,
-    SpinnerUtilModule,
-    HttpClientModule,
-    ReactiveFormsModule,
-    MatButtonModule,
-    MatDatepickerModule,
-    MatDialogModule,
-    MatExpansionModule,
-    MatFormFieldModule,
-    MatStepperModule,
-    MatInputModule,
-    MatIconModule,
-    MatNativeDateModule,
-    MatPaginatorModule,
-    MatSelectModule,
-    MatProgressSpinnerModule,
-    MatSnackBarModule,
-    MatTableModule,
-    MatCardModule,
-    MatCheckboxModule,
-    TranslateModule.forRoot({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: createTranslateLoader,
-        deps: [HttpClient],
-      },
-    })
-  ],
-  providers: [
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: SpinnerUtilInterceptor,
-      multi: true,
-    },
-    {
-      provide: MatPaginatorIntl,
-      useFactory: createPaginatorIntl,
-      deps: [TranslateService]
-    }
-  ],
-  bootstrap: [AppComponent],
-})
+@NgModule({ declarations: [
+        AppComponent,
+        CrearSolicitudModalComponent,
+        EditarSolicitudComponent,
+        HistorialSolicitudesComponent
+    ],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        BrowserAnimationsModule,
+        RouterModule,
+        AppRoutingModule,
+        ReactiveFormsModule,
+        MatButtonModule,
+        MatDatepickerModule,
+        MatDialogModule,
+        MatExpansionModule,
+        MatFormFieldModule,
+        MatStepperModule,
+        MatInputModule,
+        MatIconModule,
+        MatNativeDateModule,
+        MatPaginatorModule,
+        MatSelectModule,
+        MatProgressSpinnerModule,
+        MatSnackBarModule,
+        MatTableModule,
+        MatCardModule,
+        MatCheckboxModule,
+        TranslateModule.forRoot({
+            loader: {
+                provide: TranslateLoader,
+                useFactory: createTranslateLoader,
+                deps: [HttpClient],
+            },
+        })], providers: [
+        {
+            provide: MatPaginatorIntl,
+            useFactory: createPaginatorIntl,
+            deps: [TranslateService]
+        },
+        provideHttpClient(withInterceptorsFromDi())
+    ] })
 export class AppModule { }
 
