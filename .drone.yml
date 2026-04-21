@@ -23,7 +23,7 @@ steps:
     - push
 
 - name: nodejs_develop
-  image: node:20.14-alpine
+  image: node:20.19-alpine
   commands:
   - node --version
   - npm i
@@ -36,7 +36,7 @@ steps:
     - push    
 
 - name: nodejs_release
-  image: node:lts-bullseye
+  image: node:20.19-alpine
   commands:
   - node --version
   - npm i
