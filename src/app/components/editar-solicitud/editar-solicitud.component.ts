@@ -102,9 +102,9 @@ export class EditarSolicitudComponent implements OnDestroy {
     private readonly gestorDocumentalService: GestorDocumentalService,
     private readonly translate: TranslateService,
   ) {
-    const navigationState = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
+    const navigationState = this.router.currentNavigation()?.extras?.state ?? history.state;
     const rolNavegacion = String(navigationState?.['rol'] ?? '');
-    const solicitudId = (this.router.getCurrentNavigation()?.extras?.state ?? history.state)?.['solicitud']?.id;
+    const solicitudId = (this.router.currentNavigation()?.extras?.state ?? history.state)?.['solicitud']?.id;
 
     forkJoin({
       formularioResponse: this.sabaticosCrudService.get(
@@ -198,7 +198,7 @@ export class EditarSolicitudComponent implements OnDestroy {
   // Inicialización
   // =========================
   private initializeSolicitudFromNavigation(): void {
-    const navigationState = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
+    const navigationState = this.router.currentNavigation()?.extras?.state ?? history.state;
     const stateSolicitud = navigationState?.['solicitud'];
     this.isReadOnly = Boolean(navigationState?.['readOnly']);
     this.rol = String(navigationState?.['rol'] ?? '');
@@ -1818,7 +1818,7 @@ private subirDocumentosDocenteNuevos(
   }
 
   private initializeFromMockDetalle(): void {
-    const navigationState = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
+    const navigationState = this.router.currentNavigation()?.extras?.state ?? history.state;
     const stateSolicitud = navigationState?.['solicitud'];
     const mockDetalle = stateSolicitud?.mockDetalle;
 
