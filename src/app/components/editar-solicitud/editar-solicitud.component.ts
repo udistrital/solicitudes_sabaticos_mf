@@ -2,9 +2,8 @@ import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { catchError, concatMap, finalize, forkJoin, from, map, Observable, of, switchMap, tap, timer, toArray } from 'rxjs';
+import { catchError, concatMap, forkJoin, from, map, Observable, of, switchMap, tap, timer, toArray } from 'rxjs';
 import Swal from 'sweetalert2';
-import { SpinnerUtilService } from 'spinner-util';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { SabaticosCrudService } from '../../services/sabatico-crud.service';
 import {
@@ -102,7 +101,6 @@ export class EditarSolicitudComponent implements OnDestroy {
     private readonly parametrosService: ParametrosService,
     private readonly gestorDocumentalService: GestorDocumentalService,
     private readonly translate: TranslateService,
-    private readonly spinnerUtilService: SpinnerUtilService
   ) {
     const navigationState = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
     const rolNavegacion = String(navigationState?.['rol'] ?? '');
@@ -1050,7 +1048,6 @@ export class EditarSolicitudComponent implements OnDestroy {
       );
     });
 
-    this.spinnerUtilService.show();
     return from(cargasPorArchivo).pipe(
       concatMap((carga$, index) => (
         index === 0
@@ -1064,17 +1061,16 @@ export class EditarSolicitudComponent implements OnDestroy {
           ...this.secretariaDocumentosNuevosIds,
           ...nuevosIds
         ];
-
+      
         this.secretariaDocumentosExistentesIds = [
           ...new Set([
             ...this.secretariaDocumentosExistentesIds,
             ...nuevosIds
           ])
         ];
-
+      
         this.secretariaDocumentosNuevosFiles = {};
-      }),
-      finalize(() => this.spinnerUtilService.hide())
+      })
     );
   }
 
@@ -1374,7 +1370,6 @@ private subirDocumentosDocenteNuevos(
       );
     });
 
-    this.spinnerUtilService.show();
     return from(cargasPorArchivo).pipe(
       concatMap((carga$, index) => (
         index === 0
@@ -1388,18 +1383,16 @@ private subirDocumentosDocenteNuevos(
           ...this.documentosDocenteNuevosIds,
           ...nuevosIds
         ];
-
+      
         this.documentosDocenteExistentesIds = [
           ...new Set([
             ...this.documentosDocenteExistentesIds,
             ...nuevosIds
           ])
         ];
-
-        // Ya quedaron persistidos, así que se limpian como "pendientes"
+      
         this.documentosDocenteNuevosFiles = {};
-      }),
-      finalize(() => this.spinnerUtilService.hide())
+      })
     );
   }
 

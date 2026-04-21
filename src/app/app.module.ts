@@ -7,7 +7,6 @@ import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
 import localeEn from '@angular/common/locales/en';
 
-import { SpinnerUtilInterceptor, SpinnerUtilModule } from 'spinner-util';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -92,7 +91,6 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
         BrowserAnimationsModule,
         RouterModule,
         AppRoutingModule,
-        SpinnerUtilModule,
         ReactiveFormsModule,
         MatButtonModule,
         MatDatepickerModule,
@@ -117,11 +115,6 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
                 deps: [HttpClient],
             },
         })], providers: [
-        {
-            provide: HTTP_INTERCEPTORS,
-            useClass: SpinnerUtilInterceptor,
-            multi: true,
-        },
         {
             provide: MatPaginatorIntl,
             useFactory: createPaginatorIntl,

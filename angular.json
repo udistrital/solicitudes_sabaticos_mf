@@ -90,13 +90,13 @@
           "builder": "@angular-builders/custom-webpack:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "solicitudes-sabaticos-mf:build:production"
+              "buildTarget": "solicitudes-sabaticos-mf:build:production"
             },
             "development": {
-              "browserTarget": "solicitudes-sabaticos-mf:build:development"
+              "buildTarget": "solicitudes-sabaticos-mf:build:development"
             },
             "local": {
-              "browserTarget": "solicitudes-sabaticos-mf:build:local"
+              "buildTarget": "solicitudes-sabaticos-mf:build:local"
             }
           },
           "defaultConfiguration": "local"

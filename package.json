@@ -14,13 +14,13 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^19.2.21",
-    "@angular/cdk": "^18.2.14",
+   "@angular/animations": "^19.2.21",
+    "@angular/cdk": "^19.2.19",
     "@angular/common": "^19.2.21",
     "@angular/compiler": "^19.2.21",
     "@angular/core": "^19.2.21",
     "@angular/forms": "^19.2.21",
-    "@angular/material": "^18.2.14",
+    "@angular/material": "^19.2.19",
     "@angular/platform-browser": "^19.2.21",
     "@angular/platform-browser-dynamic": "^19.2.21",
     "@angular/router": "^19.2.21",
@@ -30,13 +30,12 @@
     "rxjs": "~7.8.0",
     "single-spa": ">=4.0.0",
     "single-spa-angular": "^9.2.0",
-    "spinner-util": "^0.0.4",
     "sweetalert2": "11.7",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.1"
   },
   "devDependencies": {
-    "@angular-builders/custom-webpack": "^17.0.2",
+    "@angular-builders/custom-webpack": "^19.0.1",
     "@angular-devkit/build-angular": "^19.2.24",
     "@angular/cli": "^19.2.24",
     "@angular/compiler-cli": "^19.2.21",
@@ -51,3 +50,4 @@
     "typescript": "~5.8.3"
   }
 }
+ 
