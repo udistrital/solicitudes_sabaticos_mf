@@ -30,6 +30,7 @@ steps:
   - npm run build
   when:
     branch:
+    - feature/*
     - develop
     event:
     - push    
