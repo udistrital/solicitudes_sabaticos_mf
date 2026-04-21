@@ -35,9 +35,10 @@ interface ModalidadOption {
 }
 
 @Component({
-  selector: 'app-crear-solicitud-modal',
-  templateUrl: './crear-solicitud-modal.component.html',
-  styleUrl: './crear-solicitud-modal.component.scss'
+    selector: 'app-crear-solicitud-modal',
+    templateUrl: './crear-solicitud-modal.component.html',
+    styleUrl: './crear-solicitud-modal.component.scss',
+    standalone: false
 })
 export class CrearSolicitudModalComponent implements OnInit {
   @ViewChild('stepper') stepper!: MatStepper;

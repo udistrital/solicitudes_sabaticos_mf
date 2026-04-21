@@ -29,9 +29,10 @@ import { GestorDocumentalService } from '../../services/gestor-documental.servic
 import { SecretariaGeneralBody } from './interface/guardar-secretaria-general.type';
 
 @Component({
-  selector: 'app-editar-solicitud',
-  templateUrl: './editar-solicitud.component.html',
-  styleUrl: './editar-solicitud.component.scss'
+    selector: 'app-editar-solicitud',
+    templateUrl: './editar-solicitud.component.html',
+    styleUrl: './editar-solicitud.component.scss',
+    standalone: false
 })
 export class EditarSolicitudComponent implements OnDestroy {
   // Estado general
