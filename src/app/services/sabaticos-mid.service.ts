@@ -6,7 +6,7 @@ import { RequestManager } from '../../managers/requestManager';
 })
 export class SabaticosMidService {
 
-    constructor(private requestManager: RequestManager) {
+    constructor(private readonly requestManager: RequestManager) {
     this.requestManager.setPath('SABATICOS_MID_SERVICE');
     }
     get(endpoint: string) {

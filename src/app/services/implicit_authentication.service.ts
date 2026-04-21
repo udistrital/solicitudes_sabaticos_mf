@@ -13,13 +13,13 @@ export class ImplicitAutenticationService {
   timeActiveAlert: number = 4000;
   isLogin = false;
 
-  private userSubject = new BehaviorSubject({});
+  private readonly userSubject = new BehaviorSubject({});
   public user$ = this.userSubject.asObservable();
 
-  private menuSubject = new BehaviorSubject({});
+  private readonly menuSubject  = new BehaviorSubject({});
   public menu$ = this.menuSubject.asObservable();
 
-  private logoutSubject = new BehaviorSubject('');
+  private readonly logoutSubject = new BehaviorSubject('');
   public logout$ = this.logoutSubject.asObservable();
 
   constructor() {

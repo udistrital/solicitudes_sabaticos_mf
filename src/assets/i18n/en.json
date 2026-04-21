@@ -602,6 +602,8 @@
       "confirmSendTitle": "Confirm submission",
       "confirmSendDocenteDraft": "Are you sure you want to submit your sabbatical year request for review?",
       "confirmSendGeneral": "Are you sure you want to send this request to the next review/approval phase?",
+      "confirmSubsanacionTitle": "Confirm correction",
+      "confirmSubsanacion": "Are you sure you want to return this request for correction?",
       "confirmDeleteDocTitle": "Confirm deletion",
       "confirmDeleteDoc": "Are you sure you want to delete this document?"
     },
