@@ -248,17 +248,17 @@ export class HistorialSolicitudesComponent {
     return this.rol === 'SECRETARIA_ACADEMICA';
   }
 
-  get isCoordinador(): boolean {
-    return this.rol === 'COORDINADOR';
+  get isSecretariaGeneral(): boolean {
+    return this.rol === 'SECRETARIA_GENERAL';
   }
 
   get canViewDocenteColumns(): boolean {
-    return this.isSecretariaAcademica || this.isCoordinador;
+    return this.isSecretariaAcademica || this.isSecretariaGeneral;
   }
 
   get roleInfoMessageKey(): string {
-    if (this.isCoordinador) {
-      return 'HISTORIAL_SOLICITUDES.roleInfo.coordinador';
+    if (this.isSecretariaGeneral) {
+      return 'HISTORIAL_SOLICITUDES.roleInfo.secretariaGeneral';
     }
     if (this.isSecretariaAcademica) {
       return 'HISTORIAL_SOLICITUDES.roleInfo.secretariaAcademica';
@@ -293,7 +293,7 @@ export class HistorialSolicitudesComponent {
 
     let roles: any = this.autenticationService.getRole();
 
-    this.rol= roles.__zone_symbol__value.find((x: string) => ['ADMINISTRADOR', 'DOCENTE', 'COORDINADOR'].includes(x));
+    this.rol= roles.__zone_symbol__value.find((x: string) => ['ADMINISTRADOR', 'DOCENTE', 'SECRETARIA_GENERAL'].includes(x));
 
     this.configuracionService.get("perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:" + this.rol)
     .subscribe((response: any) => {
@@ -311,8 +311,8 @@ export class HistorialSolicitudesComponent {
 
       if (this.isSecretariaAcademica) {
         this.loadSolicitudesSecretariaAcademica();
-      } else if (this.isCoordinador) {
-        this.loadSolicitudesCoordinador();
+      } else if (this.isSecretariaGeneral) {
+        this.loadSolicitudesSecretariaGeneral();
       } else {
         this.loadTerceroIdAndSolicitudes(this.documento);
       }
@@ -385,8 +385,8 @@ export class HistorialSolicitudesComponent {
       if (this.isSecretariaAcademica) {
         return this.isSecretariaAcademicaViewOnly(solicitud);
       }
-      if (this.isCoordinador) {
-        return this.isCoordinadorViewOnly(solicitud);
+      if (this.isSecretariaGeneral) {
+        return this.isSecretariaGeneralViewOnly(solicitud);
       }
     }
     return false;
@@ -401,11 +401,11 @@ export class HistorialSolicitudesComponent {
   }
 
   getEditIcon(): string {
-    return (this.isSecretariaAcademica || this.isCoordinador) ? 'library_add_check' : 'edit';
+    return (this.isSecretariaAcademica || this.isSecretariaGeneral) ? 'library_add_check' : 'edit';
   }
 
   getEditAriaKey(): string {
-    return (this.isSecretariaAcademica || this.isCoordinador)
+    return (this.isSecretariaAcademica || this.isSecretariaGeneral)
       ? 'HISTORIAL_SOLICITUDES.actions.reviewAria'
       : 'HISTORIAL_SOLICITUDES.actions.editAria';
   }
@@ -416,7 +416,7 @@ export class HistorialSolicitudesComponent {
       || solicitud.estado === 'Subsanación solicitada';
   }
 
-  private isCoordinadorViewOnly(solicitud: HistorialSolicitud): boolean {
+  private isSecretariaGeneralViewOnly(solicitud: HistorialSolicitud): boolean {
     const viewOnlyStates: EstadoSolicitud[] = [
       'Borrador',
       'Radicada / Enviada a SA',
@@ -504,7 +504,7 @@ export class HistorialSolicitudesComponent {
     });
   }
 
-  private loadSolicitudesCoordinador(): void {
+  private loadSolicitudesSecretariaGeneral(): void {
     this.cargandoSolicitudes = true;
     const endpoint = 'historial_solicitud?query=Activo:True&limit=-1';
 
@@ -736,8 +736,8 @@ export class HistorialSolicitudesComponent {
       return;
     }
 
-    if (this.isCoordinador) {
-      this.loadSolicitudesCoordinador();
+    if (this.isSecretariaGeneral) {
+      this.loadSolicitudesSecretariaGeneral();
       return;
     }
 
