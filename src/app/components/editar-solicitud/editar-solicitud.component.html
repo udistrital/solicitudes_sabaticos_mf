@@ -469,7 +469,8 @@
             [disabled]="!hasUnsavedChanges">
             {{ 'HISTORIAL_SOLICITUDES.edit.save' | translate }}
           </button>
-          <button *ngIf="rol === 'DOCENTE'" mat-raised-button color="primary" type="button" class="editar-solicitud__send"
+          <button *ngIf="rol === 'DOCENTE' && formularioInit?.estado !== 'Radicada / Enviada a SA'"
+            mat-raised-button color="primary" type="button" class="editar-solicitud__send"
             (click)="onEnviarRevision()"
             [disabled]="!canEnviarRevision">
             {{ 'HISTORIAL_SOLICITUDES.edit.sendReview' | translate }}

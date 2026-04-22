@@ -2,9 +2,8 @@ import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { catchError, concatMap, finalize, forkJoin, from, map, Observable, of, switchMap, tap, timer, toArray } from 'rxjs';
+import { catchError, concatMap, forkJoin, from, map, Observable, of, switchMap, tap, timer, toArray } from 'rxjs';
 import Swal from 'sweetalert2';
-import { SpinnerUtilService } from 'spinner-util';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { SabaticosCrudService } from '../../services/sabatico-crud.service';
 import {
@@ -29,9 +28,10 @@ import { GestorDocumentalService } from '../../services/gestor-documental.servic
 import { SecretariaGeneralBody } from './interface/guardar-secretaria-general.type';
 
 @Component({
-  selector: 'app-editar-solicitud',
-  templateUrl: './editar-solicitud.component.html',
-  styleUrl: './editar-solicitud.component.scss'
+    selector: 'app-editar-solicitud',
+    templateUrl: './editar-solicitud.component.html',
+    styleUrl: './editar-solicitud.component.scss',
+    standalone: false
 })
 export class EditarSolicitudComponent implements OnDestroy {
   // Estado general
@@ -101,11 +101,10 @@ export class EditarSolicitudComponent implements OnDestroy {
     private readonly parametrosService: ParametrosService,
     private readonly gestorDocumentalService: GestorDocumentalService,
     private readonly translate: TranslateService,
-    private readonly spinnerUtilService: SpinnerUtilService
   ) {
-    const navigationState = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
+    const navigationState = this.router.currentNavigation()?.extras?.state ?? history.state;
     const rolNavegacion = String(navigationState?.['rol'] ?? '');
-    const solicitudId = (this.router.getCurrentNavigation()?.extras?.state ?? history.state)?.['solicitud']?.id;
+    const solicitudId = (this.router.currentNavigation()?.extras?.state ?? history.state)?.['solicitud']?.id;
 
     forkJoin({
       formularioResponse: this.sabaticosCrudService.get(
@@ -199,7 +198,7 @@ export class EditarSolicitudComponent implements OnDestroy {
   // Inicialización
   // =========================
   private initializeSolicitudFromNavigation(): void {
-    const navigationState = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
+    const navigationState = this.router.currentNavigation()?.extras?.state ?? history.state;
     const stateSolicitud = navigationState?.['solicitud'];
     this.isReadOnly = Boolean(navigationState?.['readOnly']);
     this.rol = String(navigationState?.['rol'] ?? '');
@@ -816,19 +815,28 @@ export class EditarSolicitudComponent implements OnDestroy {
         this.popUpManager.showSuccessAlert(
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.saveSecretariaSuccess')
         );
-        this.router.navigate(['solicitudes']);
+        this.marcarFormularioGuardado();
       },
       error: (error) => {
-        console.error('Error al guardar el borrador:', error);
-        this.popUpManager.showErrorAlert(
-          this.translate.instant('HISTORIAL_SOLICITUDES.edit.saveSecretariaError')
+        this.showErrorAndReload(
+          'HISTORIAL_SOLICITUDES.edit.saveSecretariaError',
+          error
         );
       }
     });
   }
 
-  onEnviarRevision(): void {
+  async onEnviarRevision(): Promise<void> {
   if (!this.canEnviarRevision || !this.formulario) {
+    return;
+  }
+
+  const confirm = await this.popUpManager.showConfirmAlert(
+    this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmSendDocenteDraft'),
+    this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmSendTitle')
+  );
+
+  if (!confirm?.isConfirmed) {
     return;
   }
 
@@ -844,7 +852,25 @@ export class EditarSolicitudComponent implements OnDestroy {
     return;
   }
 
+  const debeGuardarBorrador = this.hasUnsavedChanges;
+
+  const formularioBody: GuardarBorradorBody = {
+    Id: this.formularioRecordId ?? 0,
+    Contenido: JSON.stringify(this.formulario),
+    Activo: true,
+    FechaModificacion: this.formatTimestampForBackend(),
+    FechaCreacion: this.formularioInit ? this.formatTimestampForBackend() : '',
+    SolicitudId: {
+      Id: solicitudId,
+    }
+  };
+
   this.subirDocumentosDocenteNuevos(solicitudId, terceroId).pipe(
+      switchMap(() => (
+        debeGuardarBorrador
+          ? this.sabaticosCrudService.put('formulario_solicitud', formularioBody)
+          : of(null)
+      )),
       switchMap(() => {
         const body: RadicarBody = {
           Id: solicitudId,
@@ -854,9 +880,9 @@ export class EditarSolicitudComponent implements OnDestroy {
           FechaCreacion: this.formatTimestampForBackend(),
           Formulario: this.formulario as FormularioSolicitud
         };
-      
+
         console.log('Enviar a revisión con body:', body);
-      
+
         return this.sabaticosMidService.post(
           `solicitud/radicar/${this.formularioInit?.id ?? 0}`,
           body
@@ -871,9 +897,9 @@ export class EditarSolicitudComponent implements OnDestroy {
         this.router.navigate(['solicitudes']);
       },
       error: (error) => {
-        console.error('Error al enviar la solicitud a revisión:', error);
-        this.popUpManager.showErrorAlert(
-          this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaError')
+        this.showErrorAndReload(
+          'HISTORIAL_SOLICITUDES.edit.sendSecretariaError',
+          error
         );
       }
     });
@@ -881,6 +907,22 @@ export class EditarSolicitudComponent implements OnDestroy {
 
   async onEnviarRevisionSecretariaGeneral(value: boolean): Promise<void> {
     if (!this.canEditarSeccionSecretaria || !this.formulario) {
+      return;
+    }
+
+    const confirmMessageKey = value
+      ? 'HISTORIAL_SOLICITUDES.actions.confirmSendGeneral'
+      : 'HISTORIAL_SOLICITUDES.actions.confirmSubsanacion';
+    const confirmTitleKey = value
+      ? 'HISTORIAL_SOLICITUDES.actions.confirmSendTitle'
+      : 'HISTORIAL_SOLICITUDES.actions.confirmSubsanacionTitle';
+
+    const confirm = await this.popUpManager.showConfirmAlert(
+      this.translate.instant(confirmMessageKey),
+      this.translate.instant(confirmTitleKey)
+    );
+
+    if (!confirm?.isConfirmed) {
       return;
     }
 
@@ -918,9 +960,9 @@ export class EditarSolicitudComponent implements OnDestroy {
         this.router.navigate(['solicitudes']);
       },
       error: (error) => {
-        console.error('Error al enviar la solicitud:', error);
-        this.popUpManager.showErrorAlert(
-          this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaError')
+        this.showErrorAndReload(
+          'HISTORIAL_SOLICITUDES.edit.sendSecretariaError',
+          error
         );
       }
     });
@@ -959,12 +1001,12 @@ export class EditarSolicitudComponent implements OnDestroy {
         this.popUpManager.showSuccessAlert(
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.saveSecretariaSuccess')
         );
-        this.router.navigate(['solicitudes']);
+        this.marcarFormularioGuardado();
       },
       error: (error) => {
-        console.error('Error al guardar cambios de secretaría:', error);
-        this.popUpManager.showErrorAlert(
-          this.translate.instant('HISTORIAL_SOLICITUDES.edit.saveSecretariaError')
+        this.showErrorAndReload(
+          'HISTORIAL_SOLICITUDES.edit.saveSecretariaError',
+          error
         );
       }
     });
@@ -1006,7 +1048,6 @@ export class EditarSolicitudComponent implements OnDestroy {
       );
     });
 
-    this.spinnerUtilService.show();
     return from(cargasPorArchivo).pipe(
       concatMap((carga$, index) => (
         index === 0
@@ -1020,17 +1061,16 @@ export class EditarSolicitudComponent implements OnDestroy {
           ...this.secretariaDocumentosNuevosIds,
           ...nuevosIds
         ];
-
+      
         this.secretariaDocumentosExistentesIds = [
           ...new Set([
             ...this.secretariaDocumentosExistentesIds,
             ...nuevosIds
           ])
         ];
-
+      
         this.secretariaDocumentosNuevosFiles = {};
-      }),
-      finalize(() => this.spinnerUtilService.hide())
+      })
     );
   }
 
@@ -1330,7 +1370,6 @@ private subirDocumentosDocenteNuevos(
       );
     });
 
-    this.spinnerUtilService.show();
     return from(cargasPorArchivo).pipe(
       concatMap((carga$, index) => (
         index === 0
@@ -1344,18 +1383,16 @@ private subirDocumentosDocenteNuevos(
           ...this.documentosDocenteNuevosIds,
           ...nuevosIds
         ];
-
+      
         this.documentosDocenteExistentesIds = [
           ...new Set([
             ...this.documentosDocenteExistentesIds,
             ...nuevosIds
           ])
         ];
-
-        // Ya quedaron persistidos, así que se limpian como "pendientes"
+      
         this.documentosDocenteNuevosFiles = {};
-      }),
-      finalize(() => this.spinnerUtilService.hide())
+      })
     );
   }
 
@@ -1698,6 +1735,27 @@ private subirDocumentosDocenteNuevos(
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   }
 
+  private showErrorAndReload(messageKey: string, error?: unknown): void {
+    if (error !== undefined) {
+      console.error('Error en operación, se recargará la página:', error);
+    }
+
+    Swal.fire({
+      icon: 'error',
+      title: this.translate.instant('GLOBAL.error'),
+      text: this.translate.instant(messageKey),
+      confirmButtonText: this.translate.instant('GLOBAL.aceptar'),
+    }).then(() => {
+      window.location.reload();
+    });
+  }
+
+  private marcarFormularioGuardado(): void {
+    this.form?.markAsPristine();
+    this.form?.markAsUntouched();
+    this.documentosModificados = false;
+  }
+
   private hasDocumentosDocenteObligatorios(): boolean {
     const requeridos = this.documentoOptions
       .filter((d) => !this.isDocumentoDocenteOpcional(d))
@@ -1760,7 +1818,7 @@ private subirDocumentosDocenteNuevos(
   }
 
   private initializeFromMockDetalle(): void {
-    const navigationState = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
+    const navigationState = this.router.currentNavigation()?.extras?.state ?? history.state;
     const stateSolicitud = navigationState?.['solicitud'];
     const mockDetalle = stateSolicitud?.mockDetalle;
 

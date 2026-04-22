@@ -14,8 +14,8 @@ export class PopUpManager {
   };
 
   constructor(
-    private snackBar: MatSnackBar,
-    private translate: TranslateService
+    private readonly snackBar: MatSnackBar,
+    private readonly translate: TranslateService
   ) { }
 
   showToast(message: string, duration: number = 3000) {

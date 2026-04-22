@@ -259,12 +259,12 @@
   }
 
   &__save {
-    --mdc-protected-button-container-color: #6a994e;
-    --mdc-protected-button-label-text-color: #ffffff;
+    --mat-button-protected-container-color: #6a994e;
+    --mat-button-protected-label-text-color: #ffffff;
     --mat-mdc-button-persistent-ripple-color: rgba(255, 255, 255, 0.25);
 
     &:hover {
-      --mdc-protected-button-container-color: #5d8745;
+      --mat-button-protected-container-color: #5d8745;
     }
   }
 

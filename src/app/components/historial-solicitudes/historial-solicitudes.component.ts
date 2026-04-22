@@ -115,9 +115,10 @@ interface DocenteInfo {
 }
 
 @Component({
-  selector: 'app-historial-solicitudes',
-  templateUrl: './historial-solicitudes.component.html',
-  styleUrl: './historial-solicitudes.component.scss'
+    selector: 'app-historial-solicitudes',
+    templateUrl: './historial-solicitudes.component.html',
+    styleUrl: './historial-solicitudes.component.scss',
+    standalone: false
 })
 export class HistorialSolicitudesComponent {
   readonly displayedColumnsDocente = ['id', 'fechaRadicado', 'estado', 'gestion'];
@@ -298,7 +299,6 @@ export class HistorialSolicitudesComponent {
     .subscribe((response: any) => {
       this.permisos = response
       this.perfil = response[0]?.Perfil?.Nombre ?? '';
-      console.log(this.permisos)
     });
 
     if (this.rol == 'ADMINISTRADOR'){

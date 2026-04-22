@@ -4,9 +4,10 @@ import { fromEvent } from 'rxjs';
 import { getCookie } from '../utils/cookie';
 
 @Component({
-  selector: 'solicitudes-sabaticos-mf',
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+    selector: 'solicitudes-sabaticos-mf',
+    templateUrl: './app.component.html',
+    styleUrl: './app.component.scss',
+    standalone: false
 })
 export class AppComponent {
   whatLang$ = fromEvent(window, 'lang');
@@ -16,7 +17,7 @@ export class AppComponent {
   }
 
   constructor(
-    private translate: TranslateService
+    private readonly translate: TranslateService
   ) { }
 
   validateLang() {

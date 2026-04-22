@@ -1,17 +1,12 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { PopUpManager } from '../managers/popUpManager';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
 
-  constructor(
-    private popUpManager: PopUpManager,
-    private translate: TranslateService,
-  ) { }
+  constructor() { }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
     const menuInfo = localStorage.getItem('menu');
@@ -29,9 +24,7 @@ export class AuthGuard implements CanActivate {
         return true;
       }
     }
-    //TODO Quitar comentario cuando ya se pueda acceder desde el menu
-    // this.popUpManager.showErrorAlert(this.translate.instant('ERROR.rol_insuficiente_titulo'));
-    // return false;
+
     return true;
   }
 
@@ -57,12 +50,12 @@ function checkUrlExists(menuItems: any, targetUrl: string, params: any) {
 // Verificar los parámetros de la ruta
 function checkParams(expectedParams: any, actualParams: any): boolean {
   if (!expectedParams) {
-    return true; // No se requieren parámetros específicos
+    return true;
   }
   for (let key in expectedParams) {
     if (expectedParams[key] !== actualParams[key]) {
-      return false; // Un parámetro no coincide
+      return false;
     }
   }
-  return true; // Todos los parámetros coinciden
+  return true;
 }

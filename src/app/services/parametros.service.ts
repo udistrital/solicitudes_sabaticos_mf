@@ -6,7 +6,7 @@ import { RequestManager } from '../../managers/requestManager';
 })
 export class ParametrosService {
 
-  constructor(private requestManager: RequestManager) {
+  constructor(private readonly requestManager: RequestManager) {
   this.requestManager.setPath('PARAMETROS_SERVICE');
   }
   get(endpoint: string) {
