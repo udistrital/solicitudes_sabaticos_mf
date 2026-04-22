@@ -5,6 +5,7 @@ import { MatStepper } from '@angular/material/stepper';
 import { concatMap, from, of, timer, toArray } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
+import Swal from 'sweetalert2';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { ParametrosService } from '../../services/parametros.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
@@ -268,9 +269,23 @@ export class CrearSolicitudModalComponent implements OnInit {
       },
       error: (error) => {
         this.guardando = false;
-        console.error('Error al crear solicitud:', error);
-        this.popUpManager.showErrorToast('HISTORIAL_SOLICITUDES.modal.guardarError');
+        this.showErrorAndReload('HISTORIAL_SOLICITUDES.modal.guardarError', error);
       }
+    });
+  }
+
+  private showErrorAndReload(messageKey: string, error?: unknown): void {
+    if (error !== undefined) {
+      console.error('Error al crear solicitud, se recargará la página:', error);
+    }
+
+    Swal.fire({
+      icon: 'error',
+      title: this.translate.instant('GLOBAL.error'),
+      text: this.translate.instant(messageKey),
+      confirmButtonText: this.translate.instant('GLOBAL.aceptar'),
+    }).then(() => {
+      window.location.reload();
     });
   }
 

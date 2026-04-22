@@ -34,6 +34,10 @@
               "src/styles.scss"
             ],
             "scripts": [],
+            "allowedCommonJsDependencies": [
+              "sweetalert2",
+              "style-loader"
+            ],
             "customWebpackConfig": {
               "path": "extra-webpack.config.js",
               "libraryName": "solicitudes-sabaticos-mf",
@@ -80,8 +84,7 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true,
-              "outputHashing": "none",
-              "deployUrl": "http://localhost:4219/"
+              "outputHashing": "none"
             }
           },
           "defaultConfiguration": "local"
