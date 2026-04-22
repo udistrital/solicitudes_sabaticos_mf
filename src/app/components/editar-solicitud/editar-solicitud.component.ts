@@ -148,7 +148,7 @@ export class EditarSolicitudComponent implements OnDestroy {
           (s: any) => !s.RolUsuario || s.RolUsuario === 'DOCENTE'
         );
         const soportesSecretaria = soportesBackend.filter(
-          (s: any) => s.RolUsuario === 'SECRETARIA_ACADEMICA' || s.RolUsuario === 'COORDINADOR'
+          (s: any) => s.RolUsuario === 'SECRETARIA_ACADEMICA' || s.RolUsuario === 'SECRETARIA_GENERAL'
         );
 
         this.documentosDocenteExistentesIds = soportesDocente
@@ -346,7 +346,7 @@ export class EditarSolicitudComponent implements OnDestroy {
   }
 
   get canEditarFormularioPrincipal(): boolean {
-    return !this.isReadOnly && this.rol !== 'COORDINADOR' && this.rol !== 'SECRETARIA_ACADEMICA';
+    return !this.isReadOnly && this.rol !== 'SECRETARIA_GENERAL' && this.rol !== 'SECRETARIA_ACADEMICA';
   }
 
   get canAprobarDocumentos(): boolean {
@@ -420,8 +420,7 @@ export class EditarSolicitudComponent implements OnDestroy {
     }
 
     const canEnviarPorRol = this.rol === 'SECRETARIA_GENERAL'
-      || this.rol === 'SECRETARIA_ACADEMICA'
-      || this.rol === 'COORDINADOR';
+      || this.rol === 'SECRETARIA_ACADEMICA';
 
     if (!canEnviarPorRol) {
       return false;
@@ -471,8 +470,7 @@ export class EditarSolicitudComponent implements OnDestroy {
     if (this.isReadOnly || !this.form) return false;
     const rolValido =
       this.rol === 'SECRETARIA_GENERAL' ||
-      this.rol === 'SECRETARIA_ACADEMICA' ||
-      this.rol === 'COORDINADOR';
+      this.rol === 'SECRETARIA_ACADEMICA';
     if (!rolValido) return false;
     const obs = String(this.form.get('observacionesSecretaria')?.value ?? '').trim();
     return obs.length > 0;
@@ -529,7 +527,6 @@ export class EditarSolicitudComponent implements OnDestroy {
   
     // Nombre
     this.documentoArchivos[key] = file.name;
-    console.log("documentoArchivos:", this.documentoArchivos);
   
     // Revoke anterior si existe
     if (this.documentoObjectUrls[key]) {
@@ -806,12 +803,10 @@ export class EditarSolicitudComponent implements OnDestroy {
   
     this.subirDocumentosDocenteNuevos(solicitudId, terceroId).pipe(
       switchMap(() => {
-        console.log('Guardar borrador con body:', body);
         return this.sabaticosCrudService.put('formulario_solicitud', body);
       })
     ).subscribe({
       next: (response) => {
-        console.log('Borrador guardado exitosamente:', response);
         this.popUpManager.showSuccessAlert(
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.saveSecretariaSuccess')
         );
@@ -881,8 +876,6 @@ export class EditarSolicitudComponent implements OnDestroy {
           Formulario: this.formulario as FormularioSolicitud
         };
 
-        console.log('Enviar a revisión con body:', body);
-
         return this.sabaticosMidService.post(
           `solicitud/radicar/${this.formularioInit?.id ?? 0}`,
           body
@@ -890,7 +883,6 @@ export class EditarSolicitudComponent implements OnDestroy {
       })
     ).subscribe({
       next: (response) => {
-        console.log('Solicitud enviada a revisión exitosamente:', response);
         this.popUpManager.showSuccessAlert(
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaSuccess')
         );
@@ -953,7 +945,6 @@ export class EditarSolicitudComponent implements OnDestroy {
       switchMap(() => this.sabaticosMidService.post('solicitud/aprobar-rechazar', estadoBody))
     ).subscribe({
       next: (response) => {
-        console.log('Solicitud enviada exitosamente:', response);
         this.popUpManager.showSuccessAlert(
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaSuccess')
         );
@@ -992,12 +983,10 @@ export class EditarSolicitudComponent implements OnDestroy {
 
     this.subirDocumentosSecretariaNuevos(solicitudId, terceroId).pipe(
       switchMap(() => {
-        console.log('Guardar cambios secretaría con body:', body);
         return this.sabaticosCrudService.put('formulario_solicitud', body);
       })
     ).subscribe({
       next: (response) => {
-        console.log('Cambios de secretaría guardados exitosamente:', response);
         this.popUpManager.showSuccessAlert(
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.saveSecretariaSuccess')
         );
@@ -1149,7 +1138,6 @@ export class EditarSolicitudComponent implements OnDestroy {
 
     this.sabaticosCrudService.put('soporte_solicitud', body).subscribe({
       next: () => {
-        console.log(`Soporte ${soporteId} desactivado exitosamente`);
       },
       error: (error: any) => {
         console.error(`Error al desactivar soporte ${soporteId}:`, error);
@@ -1161,7 +1149,7 @@ export class EditarSolicitudComponent implements OnDestroy {
   }
 
   private getTipoParametroSecretariaByRol(rol: string): string {
-    if (rol === 'COORDINADOR') {
+    if (rol === 'SECRETARIA_GENERAL') {
       return 'DOCSOL_SG_SAB';
     }
     if (rol === 'SECRETARIA_ACADEMICA') {

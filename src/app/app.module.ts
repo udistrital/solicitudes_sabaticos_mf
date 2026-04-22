@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
-import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
 import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es';
 import localeEn from '@angular/common/locales/en';
@@ -34,6 +34,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CrearSolicitudModalComponent } from './components/crear-solicitud-modal/crear-solicitud-modal.component';
 import { EditarSolicitudComponent } from './components/editar-solicitud/editar-solicitud.component';
 import { HistorialSolicitudesComponent } from './components/historial-solicitudes/historial-solicitudes.component';
+import { AppLoaderComponent } from './components/app-loader/app-loader.component';
+import { loaderInterceptor } from './interceptors/loader.interceptor';
 
 registerLocaleData(localeEs);
 registerLocaleData(localeEn);
@@ -85,7 +87,8 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
         AppComponent,
         CrearSolicitudModalComponent,
         EditarSolicitudComponent,
-        HistorialSolicitudesComponent
+        HistorialSolicitudesComponent,
+        AppLoaderComponent
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         BrowserAnimationsModule,
@@ -120,7 +123,10 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
             useFactory: createPaginatorIntl,
             deps: [TranslateService]
         },
-        provideHttpClient(withInterceptorsFromDi())
+        provideHttpClient(
+            withInterceptors([loaderInterceptor]),
+            withInterceptorsFromDi()
+        )
     ] })
 export class AppModule { }
 
