@@ -2,9 +2,10 @@ import { Component, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { catchError, concatMap, forkJoin, from, map, Observable, of, switchMap, tap, timer, toArray } from 'rxjs';
+import { catchError, concatMap, finalize, forkJoin, from, map, Observable, of, switchMap, tap, timer, toArray } from 'rxjs';
 import Swal from 'sweetalert2';
 import { PopUpManager } from '../../../managers/popUpManager';
+import { LoaderService } from '../../services/loader.service';
 import { SabaticosCrudService } from '../../services/sabatico-crud.service';
 import {
   CRONOGRAMA_MESES,
@@ -84,6 +85,9 @@ export class EditarSolicitudComponent implements OnDestroy {
   secretariaDocumentosExistentesIds: number[] = [];
   secretariaDocumentosNuevosIds: number[] = [];
   secretariaSoporteBackendByKey: Record<string, any> = {};
+  secretariaDocumentoAprobaciones: Record<string, 'aprobado' | 'rechazado' | null> = {};
+  private secretariaTiposPropiosIds: Set<number> = new Set();
+  private secretariaKeysPropios: Set<string> = new Set();
   tipoDocumentoCodigoById: Record<number, string> = {};
 
   // Catálogos
@@ -101,6 +105,7 @@ export class EditarSolicitudComponent implements OnDestroy {
     private readonly parametrosService: ParametrosService,
     private readonly gestorDocumentalService: GestorDocumentalService,
     private readonly translate: TranslateService,
+    private readonly loaderService: LoaderService,
   ) {
     const navigationState = this.router.currentNavigation()?.extras?.state ?? history.state;
     const rolNavegacion = String(navigationState?.['rol'] ?? '');
@@ -117,9 +122,7 @@ export class EditarSolicitudComponent implements OnDestroy {
       documentosDocenteResponse: this.parametrosService.get(
         'parametro?query=TipoParametroId__CodigoAbreviacion:DOCSOL_DOCE_SAB&limit=-1'
       ),
-      documentosSecretariaResponse: this.parametrosService.get(
-        `parametro?query=TipoParametroId__CodigoAbreviacion:${this.getTipoParametroSecretariaByRol(rolNavegacion)}&limit=-1`
-      )
+      documentosSecretariaResponse: this.cargarOpcionesDocumentosSecretaria(rolNavegacion)
     }).subscribe({
       next: ({ formularioResponse, documentosResponse, modalidadesResponse, documentosDocenteResponse, documentosSecretariaResponse }: any) => {
         const data = formularioResponse?.Data ?? formularioResponse ?? [];
@@ -134,7 +137,7 @@ export class EditarSolicitudComponent implements OnDestroy {
         this.documentos = documentosResponse?.Data ?? documentosResponse;
         this.modalidadesOptions = modalidadesResponse?.Data ?? modalidadesResponse ?? [];
         this.documentoOptions = this.mapParametroDocumentos(documentosDocenteResponse, DOCUMENTO_OPTIONS);
-        this.secretariaDocumentoOptions = this.mapParametroDocumentos(documentosSecretariaResponse, SECRETARIA_DOCUMENTO_OPTIONS);
+        this.secretariaDocumentoOptions = documentosSecretariaResponse as DocumentoOption[];
         this.cargandoDocumentos = false;
         this.cargandoDocumentosSecretaria = false;
         this.initializeSolicitudFromNavigation();
@@ -350,7 +353,16 @@ export class EditarSolicitudComponent implements OnDestroy {
   }
 
   get canAprobarDocumentos(): boolean {
-    return !this.isReadOnly && this.rol === 'SECRETARIA_ACADEMICA';
+    return !this.isReadOnly
+      && (this.rol === 'SECRETARIA_ACADEMICA' || this.rol === 'SECRETARIA_GENERAL');
+  }
+
+  private get codigoEstadoAprobado(): 'SAOK' | 'SGOK' {
+    return this.rol === 'SECRETARIA_GENERAL' ? 'SGOK' : 'SAOK';
+  }
+
+  private get codigoEstadoRechazado(): 'SAINV' | 'SGINV' {
+    return this.rol === 'SECRETARIA_GENERAL' ? 'SGINV' : 'SAINV';
   }
 
   isDocumentoCargando(key: string): boolean {
@@ -371,7 +383,7 @@ export class EditarSolicitudComponent implements OnDestroy {
       return;
     }
 
-    this.actualizarEstadoSoporte(key, 'SAOK');
+    this.actualizarEstadoSoporte(key, this.codigoEstadoAprobado);
   }
 
   async onRechazarDocumento(key: string): Promise<void> {
@@ -384,7 +396,41 @@ export class EditarSolicitudComponent implements OnDestroy {
       return;
     }
 
-    this.actualizarEstadoSoporte(key, 'SAINV');
+    this.actualizarEstadoSoporte(key, this.codigoEstadoRechazado);
+  }
+
+  get canAprobarDocumentosSecretaria(): boolean {
+    return !this.isReadOnly && this.rol === 'SECRETARIA_GENERAL';
+  }
+
+  getDocumentoSecretariaAprobacion(key: string): 'aprobado' | 'rechazado' | null {
+    return this.secretariaDocumentoAprobaciones[key] ?? null;
+  }
+
+  async onAprobarDocumentoSecretaria(key: string): Promise<void> {
+    const result = await this.popUpManager.showConfirmAlert(
+      this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.confirmApproveDoc'),
+      this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.confirmApproveDocTitle')
+    );
+
+    if (!result?.isConfirmed) {
+      return;
+    }
+
+    this.actualizarEstadoSoporte(key, this.codigoEstadoAprobado, 'secretaria');
+  }
+
+  async onRechazarDocumentoSecretaria(key: string): Promise<void> {
+    const result = await this.popUpManager.showConfirmAlert(
+      this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.confirmRejectDoc'),
+      this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.confirmRejectDocTitle')
+    );
+
+    if (!result?.isConfirmed) {
+      return;
+    }
+
+    this.actualizarEstadoSoporte(key, this.codigoEstadoRechazado, 'secretaria');
   }
 
   canGestionarDocumentoSecretaria(key: string): boolean {
@@ -393,7 +439,40 @@ export class EditarSolicitudComponent implements OnDestroy {
     if (!this.canEditarSeccionSecretaria) {
       return false;
     }
-    return this.secretariaDocumentoOptions.some((option) => option.key === baseKey);
+
+    if (!this.secretariaDocumentoOptions.some((option) => option.key === baseKey)) {
+      return false;
+    }
+
+    if (this.rol === 'SECRETARIA_GENERAL') {
+      return this.esDocumentoSecretariaPropio(key, baseKey);
+    }
+
+    return true;
+  }
+
+  private esDocumentoSecretariaPropio(key: string, baseKey: string): boolean {
+    const soporte = this.secretariaSoporteBackendByKey[key];
+    if (soporte) {
+      const rolUsuario = soporte?.RolUsuario;
+      if (rolUsuario === 'SECRETARIA_GENERAL') {
+        return true;
+      }
+      if (rolUsuario === 'SECRETARIA_ACADEMICA') {
+        return false;
+      }
+      const tipoId = Number(soporte?.TipoDocumentoId) || 0;
+      if (tipoId > 0) {
+        return this.secretariaTiposPropiosIds.has(tipoId);
+      }
+    }
+
+    const opcion = this.secretariaDocumentoOptions.find((option) => option.key === baseKey);
+    const tipoIdOpcion = Number(opcion?.tipoDocumentoId) || 0;
+    if (tipoIdOpcion > 0) {
+      return this.secretariaTiposPropiosIds.has(tipoIdOpcion);
+    }
+    return this.secretariaKeysPropios.has(baseKey);
   }
 
   get documentosAdjuntosCount(): number {
@@ -426,14 +505,21 @@ export class EditarSolicitudComponent implements OnDestroy {
       return false;
     }
 
-    if (this.rol === 'SECRETARIA_ACADEMICA') {
-      const observacionesSecretaria = String(
-        this.form.get('observacionesSecretaria')?.value ?? ''
-      ).trim();
+    const observacionesSecretaria = String(
+      this.form.get('observacionesSecretaria')?.value ?? ''
+    ).trim();
 
+    if (this.rol === 'SECRETARIA_ACADEMICA') {
       return observacionesSecretaria.length > 0
         && this.hasDocumentosSecretariaObligatorios()
         && this.hasDocumentosDocenteAprobados();
+    }
+
+    if (this.rol === 'SECRETARIA_GENERAL') {
+      return observacionesSecretaria.length > 0
+        && this.hasDocumentosDocenteAprobados()
+        && this.hasDocumentosSecretariaAcademicaAprobados()
+        && this.hasDocumentosSecretariaPropiosSubidos();
     }
 
     return true;
@@ -667,6 +753,7 @@ export class EditarSolicitudComponent implements OnDestroy {
     delete this.secretariaDocumentosNuevosFiles[key];
     delete this.secretariaDocumentoBackendIds[key];
     delete this.secretariaSoporteBackendByKey[key];
+    delete this.secretariaDocumentoAprobaciones[key];
     this.documentosModificados = true;
   }
 
@@ -932,13 +1019,33 @@ export class EditarSolicitudComponent implements OnDestroy {
       SolicitudId: { Id: solicitudId }
     };
 
+    const esSecretariaGeneral = this.rol === 'SECRETARIA_GENERAL';
+
+    const estadoSolicitudEnviar = esSecretariaGeneral
+      ? 'APROBADA_PENDIENTE_RESOLUCION' 
+      : 'ENVIADA_SG';
+    const estadoSolicitudSubsanar = esSecretariaGeneral
+      ? 'SUBSANACION_SOLICITADA' 
+      : 'SUBSANACION_SOLICITADA';
+
+    const estadoSoporteEnviar: string | undefined = esSecretariaGeneral
+      ? undefined
+      : 'SG_PENDIENTE_REVISION_SG';
+    const estadoSoporteSubsanar = esSecretariaGeneral
+      ? 'SA_INVALIDO'
+      : 'SA_INVALIDO';
+
     const estadoBody: SecretariaGeneralBody = {
       TerceroId: terceroId,
       SolicitudId: solicitudId,
       Justificacion: this.formulario.observacionesSecretaria ?? '',
-      EstadoSolicitud: value ? 'ENVIADA_SG' : 'SUBSANACION_SOLICITADA',
-      EstadoSoporte: value ? 'APROB' : 'NOAPROB',
+      EstadoSolicitud: value ? estadoSolicitudEnviar : estadoSolicitudSubsanar,
     };
+
+    const estadoSoporte = value ? estadoSoporteEnviar : estadoSoporteSubsanar;
+    if (estadoSoporte !== undefined) {
+      estadoBody.EstadoSoporte = estadoSoporte;
+    }
 
     this.subirDocumentosSecretariaNuevos(solicitudId, terceroId).pipe(
       switchMap(() => this.sabaticosCrudService.put('formulario_solicitud', formularioBody)),
@@ -1011,6 +1118,8 @@ export class EditarSolicitudComponent implements OnDestroy {
       return of([]);
     }
 
+    this.loaderService.show();
+
     const cargasPorArchivo = archivos.map(([key, file]) => {
       const baseKey = this.getDocumentoBaseKey(key);
       const tipoDocumentoId = this.secretariaDocumentoOptions.find(
@@ -1059,19 +1168,32 @@ export class EditarSolicitudComponent implements OnDestroy {
         ];
       
         this.secretariaDocumentosNuevosFiles = {};
-      })
+      }),
+      finalize(() => this.loaderService.hide())
     );
   }
 
   // =========================
   // Helpers privados
   // =========================
-  private actualizarEstadoSoporte(key: string, codigoAbreviacionEstado: 'SAOK' | 'SAINV'): void {
-    const soporte = this.soporteBackendByKey[key];
+  private actualizarEstadoSoporte(
+    key: string,
+    codigoAbreviacionEstado: 'SAOK' | 'SAINV' | 'SGOK' | 'SGINV',
+    contexto: 'docente' | 'secretaria' = 'docente'
+  ): void {
+    const soporteStore = contexto === 'secretaria'
+      ? this.secretariaSoporteBackendByKey
+      : this.soporteBackendByKey;
+    const aprobacionesStore = contexto === 'secretaria'
+      ? this.secretariaDocumentoAprobaciones
+      : this.documentoAprobaciones;
+
+    const soporte = soporteStore[key];
     if (!soporte?.Id) {
       return;
     }
-    const esAprobacion = codigoAbreviacionEstado === 'SAOK';
+    const esAprobacion = codigoAbreviacionEstado === 'SAOK'
+      || codigoAbreviacionEstado === 'SGOK';
 
     Swal.fire({
       title: this.translate.instant('GLOBAL.cargando'),
@@ -1102,8 +1224,8 @@ export class EditarSolicitudComponent implements OnDestroy {
         this.sabaticosCrudService.put('soporte_solicitud', body).subscribe({
           next: () => {
             Swal.close();
-            this.documentoAprobaciones[key] = esAprobacion ? 'aprobado' : 'rechazado';
-            this.soporteBackendByKey[key] = body;
+            aprobacionesStore[key] = esAprobacion ? 'aprobado' : 'rechazado';
+            soporteStore[key] = body;
             this.popUpManager.showSuccessAlert(
               esAprobacion
                 ? this.translate.instant('HISTORIAL_SOLICITUDES.edit.documentos.approveSuccess')
@@ -1156,6 +1278,71 @@ export class EditarSolicitudComponent implements OnDestroy {
       return 'DOCSOL_SA_SAB';
     }
     return 'DOCSOL_DOCE_SAB';
+  }
+
+  private cargarOpcionesDocumentosSecretaria(rol: string): Observable<DocumentoOption[]> {
+    this.secretariaTiposPropiosIds = new Set();
+    this.secretariaKeysPropios = new Set();
+
+    if (rol === 'SECRETARIA_GENERAL') {
+      const sa$ = this.parametrosService.get(
+        'parametro?query=TipoParametroId__CodigoAbreviacion:DOCSOL_SA_SAB&limit=-1'
+      );
+      const sg$ = this.parametrosService.get(
+        'parametro?query=TipoParametroId__CodigoAbreviacion:DOCSOL_SG_SAB&limit=-1'
+      );
+
+      return forkJoin([sa$, sg$]).pipe(
+        map(([respSa, respSg]: [any, any]) => {
+          const opcionesSa = this.mapParametroDocumentos(respSa, []);
+          const opcionesSg = this.mapParametroDocumentos(respSg, []);
+
+          opcionesSg.forEach((option) => {
+            const tipoId = Number(option.tipoDocumentoId) || 0;
+            if (tipoId > 0) {
+              this.secretariaTiposPropiosIds.add(tipoId);
+            }
+            this.secretariaKeysPropios.add(option.key);
+          });
+
+          const fusionadas = [...opcionesSg, ...opcionesSa];
+          const vistosTipoId = new Set<number>();
+          const vistosKey = new Set<string>();
+          const deduplicadas = fusionadas.filter((option) => {
+            const tipoId = Number(option.tipoDocumentoId) || 0;
+            if (tipoId > 0 && vistosTipoId.has(tipoId)) {
+              return false;
+            }
+            if (vistosKey.has(option.key)) {
+              return false;
+            }
+            if (tipoId > 0) {
+              vistosTipoId.add(tipoId);
+            }
+            vistosKey.add(option.key);
+            return true;
+          });
+
+          return deduplicadas.length ? deduplicadas : [...SECRETARIA_DOCUMENTO_OPTIONS];
+        })
+      );
+    }
+
+    return this.parametrosService.get(
+      `parametro?query=TipoParametroId__CodigoAbreviacion:${this.getTipoParametroSecretariaByRol(rol)}&limit=-1`
+    ).pipe(
+      map((response: any) => {
+        const opciones = this.mapParametroDocumentos(response, SECRETARIA_DOCUMENTO_OPTIONS);
+        opciones.forEach((option) => {
+          const tipoId = Number(option.tipoDocumentoId) || 0;
+          if (tipoId > 0) {
+            this.secretariaTiposPropiosIds.add(tipoId);
+          }
+          this.secretariaKeysPropios.add(option.key);
+        });
+        return opciones;
+      })
+    );
   }
 
   private mapParametroDocumentos(response: any, fallback: DocumentoOption[]): DocumentoOption[] {
@@ -1267,7 +1454,13 @@ export class EditarSolicitudComponent implements OnDestroy {
       this.soporteBackendByKey[key] = soporte;
 
       const codigoAbreviacion = soporte?.EstadoSoporteSolicitudId?.CodigoAbreviacion;
-      if (codigoAbreviacion === 'SAOK') {
+      if (this.rol === 'SECRETARIA_GENERAL') {
+        if (codigoAbreviacion === 'SGOK') {
+          this.documentoAprobaciones[key] = 'aprobado';
+        } else if (codigoAbreviacion === 'SGINV') {
+          this.documentoAprobaciones[key] = 'rechazado';
+        }
+      } else if (codigoAbreviacion === 'SAOK') {
         this.documentoAprobaciones[key] = 'aprobado';
       } else if (codigoAbreviacion === 'SAINV') {
         this.documentoAprobaciones[key] = 'rechazado';
@@ -1313,6 +1506,13 @@ export class EditarSolicitudComponent implements OnDestroy {
         this.secretariaDocumentoBackendIds[key] = Number(documentoId);
       }
       this.secretariaSoporteBackendByKey[key] = soporte;
+
+      const codigoAbreviacion = soporte?.EstadoSoporteSolicitudId?.CodigoAbreviacion;
+      if (codigoAbreviacion === 'SGOK') {
+        this.secretariaDocumentoAprobaciones[key] = 'aprobado';
+      } else if (codigoAbreviacion === 'SGINV') {
+        this.secretariaDocumentoAprobaciones[key] = 'rechazado';
+      }
     });
 
     this.secretariaDocumentosSeleccionados = selectedKeys;
@@ -1331,6 +1531,8 @@ private subirDocumentosDocenteNuevos(
     if (!archivos.length) {
       return of([]);
     }
+
+    this.loaderService.show();
 
     const cargasPorArchivo = archivos.map(([key, file]) => {
       const baseKey = this.getDocumentoBaseKey(key);
@@ -1380,7 +1582,8 @@ private subirDocumentosDocenteNuevos(
         ];
       
         this.documentosDocenteNuevosFiles = {};
-      })
+      }),
+      finalize(() => this.loaderService.hide())
     );
   }
 
@@ -1788,6 +1991,40 @@ private subirDocumentosDocenteNuevos(
       const nombre = this.secretariaDocumentoArchivos[key];
       return Boolean(nombre && nombre.trim());
     });
+  }
+
+  private hasDocumentosSecretariaPropiosSubidos(): boolean {
+    const requiredKeys = this.secretariaDocumentoOptions
+      .filter((option) => {
+        const tipoId = Number(option.tipoDocumentoId) || 0;
+        const esPropio = (tipoId > 0 && this.secretariaTiposPropiosIds.has(tipoId))
+          || this.secretariaKeysPropios.has(option.key);
+        return esPropio && !this.isDocumentoSecretariaOpcional(option.key);
+      })
+      .map((option) => option.key);
+
+    if (!requiredKeys.length) {
+      return true;
+    }
+
+    return requiredKeys.every((key) => {
+      const nombre = this.secretariaDocumentoArchivos[key];
+      return Boolean(nombre && nombre.trim());
+    });
+  }
+
+  private hasDocumentosSecretariaAcademicaAprobados(): boolean {
+    const saKeys = this.secretariaDocumentosSeleccionados.filter(
+      (key) => !this.canGestionarDocumentoSecretaria(key)
+    );
+
+    if (!saKeys.length) {
+      return true;
+    }
+
+    return saKeys.every(
+      (key) => this.secretariaDocumentoAprobaciones[key] === 'aprobado'
+    );
   }
 
   private isDocumentoSecretariaOpcional(key: string): boolean {
