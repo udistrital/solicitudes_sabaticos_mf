@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { CrearSolicitudModalComponent } from '../crear-solicitud-modal/crear-solicitud-modal.component';
+import { IniciarSabaticoModalComponent } from '../iniciar-sabatico-modal/iniciar-sabatico-modal.component';
 import { ImplicitAutenticationService } from '../../services/implicit_authentication.service';
 import { SabaticosCrudService } from '../../services/sabaticos-crud.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
@@ -15,6 +16,8 @@ import { TercerosService } from '../../services/terceros.service';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { RequestManager } from '../../../managers/requestManager';
 import { ConfiguracionService } from '../../services/configuracion.service';
+import { LoaderService } from '../../services/loader.service';
+import { finalize } from 'rxjs/operators';
 
 type EstadoSolicitud =
   | 'Borrador'
@@ -278,7 +281,8 @@ export class HistorialSolicitudesComponent {
     private readonly tercerosService: TercerosService,
     private readonly sabaticosCrudService: SabaticosCrudService,
     private readonly configuracionService: ConfiguracionService,
-    private readonly sabaticosMidService: SabaticosMidService
+    private readonly sabaticosMidService: SabaticosMidService,
+    private readonly loaderService: LoaderService
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
     this.dateAdapter.setLocale(this.currentLang);
@@ -293,17 +297,13 @@ export class HistorialSolicitudesComponent {
 
     let roles: any = this.autenticationService.getRole();
 
-    this.rol= roles.__zone_symbol__value.find((x: string) => ['ADMINISTRADOR', 'DOCENTE', 'SECRETARIA_GENERAL'].includes(x));
+    this.rol= roles.__zone_symbol__value.find((x: string) => ['SECRETARIA_ACADEMICA', 'DOCENTE', 'SECRETARIA_GENERAL'].includes(x));
 
     this.configuracionService.get("perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:" + this.rol)
     .subscribe((response: any) => {
       this.permisos = response
       this.perfil = response[0]?.Perfil?.Nombre ?? '';
     });
-
-    if (this.rol == 'ADMINISTRADOR'){
-      this.rol = 'SECRETARIA_ACADEMICA'
-    }
 
     this.autenticationService.getDocument().then((documento: any) => {
       this.documento = String(documento ?? '');
@@ -531,7 +531,7 @@ export class HistorialSolicitudesComponent {
 
   private loadSolicitudesSecretariaAcademica(): void {
     this.cargandoSolicitudes = true;
-    const estados = ['S1', 'S2', 'S3', 'S5', 'S6', 'S12'];
+    const estados = ['S1', 'S2', 'S3', 'S5', 'S6', 'S11B', 'S12'];
     const queryParams = estados.map((s) => `estadoSolicitud=${s}`).join('&');
     const endpoint = `solicitud/formularios/${this.documento}?${queryParams}`;
 
@@ -689,13 +689,71 @@ export class HistorialSolicitudesComponent {
     });
   }
 
-  onIniciarSabatico(id: string): void {
-    console.log(`Iniciar sabático para solicitud ${id}`);
+  onIniciarSabatico(solicitud: HistorialSolicitud): void {
+    const dialogRef = this.dialog.open(IniciarSabaticoModalComponent, {
+      width: '420px',
+      maxWidth: '90vw',
+      disableClose: true,
+      autoFocus: false,
+      backdropClass: 'sga-sabaticos-blurred-backdrop',
+      data: { solicitudId: solicitud.id }
+    });
+
+    dialogRef.afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (!result) {
+          return;
+        }
+        this.crearSabatico(solicitud, result.fechaInicio, result.fechaFin);
+      });
+  }
+
+  private crearSabatico(solicitud: HistorialSolicitud, fechaInicio: Date, fechaFin: Date): void {
+    const solicitudIdNumerico = Number(String(solicitud.id).replace(/[^\d]/g, ''));
+    const terceroId = solicitud.terceroIdDocente ?? this.terceroId ?? 0;
+
+    const payload = {
+      solicitud_id: solicitudIdNumerico,
+      tercero_id: terceroId,
+      observaciones: 'Creación de año sabático',
+      fecha_inicio: this.formatDate(fechaInicio),
+      fecha_fin: this.formatDate(fechaFin)
+    };
+
+    this.loaderService.show();
+    this.sabaticosMidService.post('sabatico', payload)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loaderService.hide())
+      )
+      .subscribe({
+        next: () => {
+          this.popUpManager.showToast('HISTORIAL_SOLICITUDES.iniciarSabatico.exito');
+          this.recargarSolicitudes();
+        },
+        error: (error) => {
+          console.error('Error al iniciar sabático:', error);
+          this.popUpManager.showErrorAlert(
+            this.translate.instant('HISTORIAL_SOLICITUDES.iniciarSabatico.errorEnviar')
+          );
+        }
+      });
+  }
+
+  private formatDate(date: Date | null): string {
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+      return '';
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   shouldShowIniciarSabatico(solicitud: HistorialSolicitud): boolean {
     if (this.canCrearSabatico) {
-    return this.isSecretariaAcademica && solicitud.estado === 'Finalizada Aprobada con Resolución';
+    return this.isSecretariaAcademica && solicitud.estado === 'Aprobada pendiente Resolución';
     }
 
     return false;

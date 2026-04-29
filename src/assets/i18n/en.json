@@ -607,6 +607,16 @@
       "confirmDeleteDocTitle": "Confirm deletion",
       "confirmDeleteDoc": "Are you sure you want to delete this document?"
     },
+    "iniciarSabatico": {
+      "title": "Formalize Sabbatical",
+      "fechaInicio": "Start date",
+      "fechaFin": "End date",
+      "cancelar": "Cancel",
+      "confirmar": "Start Sabbatical",
+      "rangoInvalido": "The start date cannot be after the end date.",
+      "exito": "The sabbatical year has been started successfully.",
+      "errorEnviar": "An error occurred while starting the sabbatical year. Please try again."
+    },
     "filters": {
       "id": "Filter by ID",
       "fechaRadicadoDesde": "Start date",
