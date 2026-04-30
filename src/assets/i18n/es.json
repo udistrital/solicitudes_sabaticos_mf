@@ -638,6 +638,8 @@
       "receivedSa": "Recepcionada a SA",
       "verificationSa": "En verificación de SA",
       "correctionRequested": "Subsanación solicitada",
+      "correctionRequestedSa": "Subsanación solicitada por SA",
+      "correctionRequestedSg": "Subsanación solicitada por SG",
       "externalProcessCf": "Trámite externo CF",
       "responseCfRecorded": "Respuesta CF registrada",
       "sentSg": "Enviada a SG",
@@ -688,7 +690,8 @@
       "save": "Guardar cambios",
       "sendReview": "Enviar a revisión",
       "sendReviewSecretariaGeneral": "Enviar a revisión",
-      "subsanacion": "Subsanación",
+      "subsanacion": "Subsanar",
+      "rechazarSolicitud": "Rechazar solicitud",
       "saveSecretariaSuccess": "Cambios guardados exitosamente",
       "saveSecretariaError": "Error al guardar los cambios",
       "sendSecretariaSuccess": "Solicitud enviada exitosamente",
@@ -834,8 +837,20 @@
       "confirmSendGeneral": "¿Está seguro/a de que desea enviar la solicitud a la siguiente fase de revisión/aprobación?",
       "confirmSubsanacionTitle": "Confirmar subsanación",
       "confirmSubsanacion": "¿Está seguro/a de que desea devolver esta solicitud para subsanación?",
+      "confirmRechazarSolicitudTitle": "Confirmar rechazo de solicitud",
+      "confirmRechazarSolicitud": "¿Está seguro/a de que desea rechazar esta solicitud? Esta acción la dejará como No aprobada.",
       "confirmDeleteDocTitle": "Confirmar eliminación",
       "confirmDeleteDoc": "¿Está seguro/a de que desea eliminar este documento?"
+    },
+    "iniciarSabatico": {
+      "title": "Formalizar Sabático",
+      "fechaInicio": "Fecha de inicio",
+      "fechaFin": "Fecha de finalización",
+      "cancelar": "Cancelar",
+      "confirmar": "Iniciar Sabático",
+      "rangoInvalido": "La fecha de inicio no puede ser posterior a la fecha de finalización.",
+      "exito": "El año sabático se ha iniciado correctamente.",
+      "errorEnviar": "Ocurrió un error al iniciar el año sabático. Intente nuevamente."
     }
   },
   "gestion_horarios": {

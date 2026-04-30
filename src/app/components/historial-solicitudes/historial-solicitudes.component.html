@@ -282,7 +282,7 @@
               <mat-icon>visibility</mat-icon>
             </button>
             <button mat-icon-button class="historial-solicitudes__accion historial-solicitudes__accion--start"
-              type="button" (click)="onIniciarSabatico(solicitud.id)" *ngIf="shouldShowIniciarSabatico(solicitud)"
+              type="button" (click)="onIniciarSabatico(solicitud)" *ngIf="shouldShowIniciarSabatico(solicitud)"
               [attr.aria-label]="'HISTORIAL_SOLICITUDES.actions.startSabaticoAria' | translate">
               <mat-icon>play_circle_filled</mat-icon>
             </button>

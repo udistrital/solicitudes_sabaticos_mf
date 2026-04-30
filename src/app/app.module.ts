@@ -34,6 +34,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CrearSolicitudModalComponent } from './components/crear-solicitud-modal/crear-solicitud-modal.component';
 import { EditarSolicitudComponent } from './components/editar-solicitud/editar-solicitud.component';
 import { HistorialSolicitudesComponent } from './components/historial-solicitudes/historial-solicitudes.component';
+import { IniciarSabaticoModalComponent } from './components/iniciar-sabatico-modal/iniciar-sabatico-modal.component';
 import { AppLoaderComponent } from './components/app-loader/app-loader.component';
 import { loaderInterceptor } from './interceptors/loader.interceptor';
 
@@ -88,6 +89,7 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
         CrearSolicitudModalComponent,
         EditarSolicitudComponent,
         HistorialSolicitudesComponent,
+        IniciarSabaticoModalComponent,
         AppLoaderComponent
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
