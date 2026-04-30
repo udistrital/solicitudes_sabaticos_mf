@@ -1,0 +1,45 @@
+<h2 mat-dialog-title class="iniciar-sabatico-modal__title">
+  {{ 'HISTORIAL_SOLICITUDES.iniciarSabatico.title' | translate }}
+</h2>
+
+<mat-dialog-content class="iniciar-sabatico-modal__content">
+  <form [formGroup]="form" class="iniciar-sabatico-modal__form">
+    <mat-form-field appearance="outline" class="iniciar-sabatico-modal__field">
+      <mat-label>{{ 'HISTORIAL_SOLICITUDES.iniciarSabatico.fechaInicio' | translate }}</mat-label>
+      <input matInput
+             [matDatepicker]="pickerInicio"
+             formControlName="fechaInicio"
+             (focus)="pickerInicio.open()" />
+      <mat-datepicker-toggle matIconSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+      <mat-datepicker #pickerInicio panelClass="sga-sabaticos-datepicker"></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="iniciar-sabatico-modal__field">
+      <mat-label>{{ 'HISTORIAL_SOLICITUDES.iniciarSabatico.fechaFin' | translate }}</mat-label>
+      <input matInput
+             [matDatepicker]="pickerFin"
+             formControlName="fechaFin"
+             (focus)="pickerFin.open()" />
+      <mat-datepicker-toggle matIconSuffix [for]="pickerFin"></mat-datepicker-toggle>
+      <mat-datepicker #pickerFin panelClass="sga-sabaticos-datepicker"></mat-datepicker>
+    </mat-form-field>
+
+    <p *ngIf="form.hasError('rangoInvalido')" class="iniciar-sabatico-modal__error">
+      {{ 'HISTORIAL_SOLICITUDES.iniciarSabatico.rangoInvalido' | translate }}
+    </p>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="center" class="iniciar-sabatico-modal__actions">
+  <button mat-raised-button type="button"
+          class="iniciar-sabatico-modal__cancel"
+          (click)="onCancelar()">
+    {{ 'HISTORIAL_SOLICITUDES.iniciarSabatico.cancelar' | translate }}
+  </button>
+  <button mat-raised-button color="primary" type="button"
+          class="iniciar-sabatico-modal__confirm"
+          [disabled]="form.invalid"
+          (click)="onIniciar()">
+    {{ 'HISTORIAL_SOLICITUDES.iniciarSabatico.confirmar' | translate }}
+  </button>
+</mat-dialog-actions>

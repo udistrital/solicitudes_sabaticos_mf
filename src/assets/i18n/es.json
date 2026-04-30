@@ -836,6 +836,16 @@
       "confirmSubsanacion": "¿Está seguro/a de que desea devolver esta solicitud para subsanación?",
       "confirmDeleteDocTitle": "Confirmar eliminación",
       "confirmDeleteDoc": "¿Está seguro/a de que desea eliminar este documento?"
+    },
+    "iniciarSabatico": {
+      "title": "Formalizar Sabático",
+      "fechaInicio": "Fecha de inicio",
+      "fechaFin": "Fecha de finalización",
+      "cancelar": "Cancelar",
+      "confirmar": "Iniciar Sabático",
+      "rangoInvalido": "La fecha de inicio no puede ser posterior a la fecha de finalización.",
+      "exito": "El año sabático se ha iniciado correctamente.",
+      "errorEnviar": "Ocurrió un error al iniciar el año sabático. Intente nuevamente."
     }
   },
   "gestion_horarios": {
