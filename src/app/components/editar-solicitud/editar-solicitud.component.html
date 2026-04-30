@@ -494,8 +494,10 @@
           </div>
         </div>
 
-        <div class="editar-solicitud__actions" *ngIf="!isReadOnly">
-          
+        <div class="editar-solicitud__actions"
+          [class.editar-solicitud__actions--split]="rol === 'SECRETARIA_ACADEMICA' || rol === 'SECRETARIA_GENERAL'"
+          *ngIf="!isReadOnly">
+
           <button *ngIf="rol === 'DOCENTE'" mat-raised-button type="button" class="editar-solicitud__save"
             (click)="onGuardarBorrador()"
             [disabled]="!hasUnsavedChanges">
@@ -509,21 +511,31 @@
           </button>
 
           <ng-container *ngIf="rol === 'SECRETARIA_ACADEMICA' || rol === 'SECRETARIA_GENERAL'">
-            <button mat-raised-button type="button" class="editar-solicitud__save"
-              (click)="onGuardarCambiosSecretaria()"
-              [disabled]="!hasUnsavedChanges">
-              {{ 'HISTORIAL_SOLICITUDES.edit.save' | translate }}
-            </button>
-            <button mat-raised-button color="warn" type="button" class="editar-solicitud__send"
-              (click)="onEnviarRevisionSecretariaGeneral(false)"
-              [disabled]="!canSubsanar">
-              {{ 'HISTORIAL_SOLICITUDES.edit.subsanacion' | translate }}
-            </button>
-            <button mat-raised-button color="primary" type="button" class="editar-solicitud__send"
-              (click)="onEnviarRevisionSecretariaGeneral(true)"
-              [disabled]="!canEnviarSecretariaGeneral">
-              {{ 'HISTORIAL_SOLICITUDES.edit.sendReviewSecretariaGeneral' | translate }}
-            </button>
+            <div class="editar-solicitud__actions-group editar-solicitud__actions-group--left">
+              <button mat-raised-button type="button"
+                class="editar-solicitud__send editar-solicitud__reject"
+                (click)="onRechazarSolicitud()"
+                [disabled]="!canSubsanar">
+                {{ 'HISTORIAL_SOLICITUDES.edit.rechazarSolicitud' | translate }}
+              </button>
+              <button mat-raised-button color="warn" type="button" class="editar-solicitud__send"
+                (click)="onEnviarRevisionSecretariaGeneral(false)"
+                [disabled]="!canSubsanar">
+                {{ 'HISTORIAL_SOLICITUDES.edit.subsanacion' | translate }}
+              </button>
+            </div>
+            <div class="editar-solicitud__actions-group editar-solicitud__actions-group--right">
+              <button mat-raised-button color="primary" type="button" class="editar-solicitud__send"
+                (click)="onEnviarRevisionSecretariaGeneral(true)"
+                [disabled]="!canEnviarSecretariaGeneral">
+                {{ 'HISTORIAL_SOLICITUDES.edit.sendReviewSecretariaGeneral' | translate }}
+              </button>
+              <button mat-raised-button type="button" class="editar-solicitud__save"
+                (click)="onGuardarCambiosSecretaria()"
+                [disabled]="!hasUnsavedChanges">
+                {{ 'HISTORIAL_SOLICITUDES.edit.save' | translate }}
+              </button>
+            </div>
           </ng-container>
         </div>
       </form>

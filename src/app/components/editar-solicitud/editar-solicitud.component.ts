@@ -947,6 +947,9 @@ export class EditarSolicitudComponent implements OnDestroy {
     }
   };
 
+  const reenviaDirectoASg =
+    this.formularioInit?.estado === 'Subsanación solicitada SG';
+
   this.subirDocumentosDocenteNuevos(solicitudId, terceroId).pipe(
       switchMap(() => (
         debeGuardarBorrador
@@ -954,6 +957,21 @@ export class EditarSolicitudComponent implements OnDestroy {
           : of(null)
       )),
       switchMap(() => {
+        if (reenviaDirectoASg) {
+          const estadoBody: SecretariaGeneralBody = {
+            TerceroId: terceroId,
+            SolicitudId: solicitudId,
+            Justificacion: this.formulario?.observaciones ?? '',
+            EstadoSolicitud: 'ENVIADA_SG',
+            EstadoSoporte: 'SG_PENDIENTE_REVISION_SG',
+          };
+
+          return this.sabaticosMidService.post(
+            'solicitud/aprobar-rechazar',
+            estadoBody
+          );
+        }
+
         const body: RadicarBody = {
           Id: solicitudId,
           SolicitudId: solicitudId,
@@ -1025,14 +1043,14 @@ export class EditarSolicitudComponent implements OnDestroy {
       ? 'APROBADA_PENDIENTE_RESOLUCION' 
       : 'ENVIADA_SG';
     const estadoSolicitudSubsanar = esSecretariaGeneral
-      ? 'SUBSANACION_SOLICITADA' 
-      : 'SUBSANACION_SOLICITADA';
+      ? 'SUBSANACION_SOLICITADA_SG' 
+      : 'SUBSANACION_SOLICITADA_SA';
 
     const estadoSoporteEnviar: string | undefined = esSecretariaGeneral
       ? undefined
       : 'SG_PENDIENTE_REVISION_SG';
     const estadoSoporteSubsanar = esSecretariaGeneral
-      ? 'SA_INVALIDO'
+      ? 'SG_INVALIDO'
       : 'SA_INVALIDO';
 
     const estadoBody: SecretariaGeneralBody = {
@@ -1052,6 +1070,60 @@ export class EditarSolicitudComponent implements OnDestroy {
       switchMap(() => this.sabaticosMidService.post('solicitud/aprobar-rechazar', estadoBody))
     ).subscribe({
       next: (response) => {
+        this.popUpManager.showSuccessAlert(
+          this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaSuccess')
+        );
+        this.router.navigate(['solicitudes']);
+      },
+      error: (error) => {
+        this.showErrorAndReload(
+          'HISTORIAL_SOLICITUDES.edit.sendSecretariaError',
+          error
+        );
+      }
+    });
+  }
+
+  async onRechazarSolicitud(): Promise<void> {
+    if (!this.canEditarSeccionSecretaria || !this.canSubsanar || !this.formulario) {
+      return;
+    }
+
+    const confirm = await this.popUpManager.showConfirmAlert(
+      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmRechazarSolicitud'),
+      this.translate.instant('HISTORIAL_SOLICITUDES.actions.confirmRechazarSolicitudTitle')
+    );
+
+    if (!confirm?.isConfirmed) {
+      return;
+    }
+
+    this.syncFormularioFromForm();
+
+    const solicitudId = Number(this.formularioInit?.id) || 0;
+    const terceroId = this.terceroIdSolicitud;
+
+    const formularioBody: GuardarBorradorBody = {
+      Id: this.formularioRecordId ?? 0,
+      Contenido: JSON.stringify(this.formulario),
+      Activo: true,
+      FechaModificacion: this.formatTimestampForBackend(),
+      FechaCreacion: this.formatTimestampForBackend(),
+      SolicitudId: { Id: solicitudId }
+    };
+
+    const estadoBody: SecretariaGeneralBody = {
+      TerceroId: terceroId,
+      SolicitudId: solicitudId,
+      Justificacion: this.formulario.observacionesSecretaria ?? '',
+      EstadoSolicitud: 'FINALIZADA_NO_APROBADA',
+    };
+
+    this.subirDocumentosSecretariaNuevos(solicitudId, terceroId).pipe(
+      switchMap(() => this.sabaticosCrudService.put('formulario_solicitud', formularioBody)),
+      switchMap(() => this.sabaticosMidService.post('solicitud/aprobar-rechazar', estadoBody))
+    ).subscribe({
+      next: () => {
         this.popUpManager.showSuccessAlert(
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaSuccess')
         );
