@@ -24,7 +24,8 @@ type EstadoSolicitud =
   | 'Radicada / Enviada a SA'
   | 'Recepcionada a SA'
   | 'En verificación de SA'
-  | 'Subsanación solicitada'
+  | 'Subsanación solicitada SA'
+  | 'Subsanación solicitada SG'
   | 'Trámite externo CF'
   | 'Respuesta CF registrada'
   | 'Enviada a SG'
@@ -135,7 +136,8 @@ export class HistorialSolicitudesComponent {
     { id: 'SOL-002', fechaRadicado: '2026-01-20', estado: 'Radicada / Enviada a SA', detalle: this.buildMockDetalle('SOL-002') },
     { id: 'SOL-003', fechaRadicado: '2026-01-25', estado: 'Recepcionada a SA', detalle: this.buildMockDetalle('SOL-003') },
     { id: 'SOL-004', fechaRadicado: '2026-02-25', estado: 'En verificación de SA', detalle: this.buildMockDetalle('SOL-004') },
-    { id: 'SOL-005', fechaRadicado: '2026-03-02', estado: 'Subsanación solicitada', detalle: this.buildMockDetalle('SOL-005') },
+    { id: 'SOL-005', fechaRadicado: '2026-03-02', estado: 'Subsanación solicitada SA', detalle: this.buildMockDetalle('SOL-005') },
+    { id: 'SOL-005B', fechaRadicado: '2026-03-02', estado: 'Subsanación solicitada SG', detalle: this.buildMockDetalle('SOL-005B') },
     { id: 'SOL-006', fechaRadicado: '2026-05-14', estado: 'Trámite externo CF', detalle: this.buildMockDetalle('SOL-006') },
     { id: 'SOL-007', fechaRadicado: '2026-06-10', estado: 'Respuesta CF registrada', detalle: this.buildMockDetalle('SOL-007') },
     { id: 'SOL-008', fechaRadicado: '2026-11-25', estado: 'Enviada a SG', detalle: this.buildMockDetalle('SOL-008') },
@@ -152,7 +154,8 @@ export class HistorialSolicitudesComponent {
     'Radicada / Enviada a SA': 'HISTORIAL_SOLICITUDES.status.filedSentSa',
     'Recepcionada a SA': 'HISTORIAL_SOLICITUDES.status.receivedSa',
     'En verificación de SA': 'HISTORIAL_SOLICITUDES.status.verificationSa',
-    'Subsanación solicitada': 'HISTORIAL_SOLICITUDES.status.correctionRequested',
+    'Subsanación solicitada SA': 'HISTORIAL_SOLICITUDES.status.correctionRequestedSa',
+    'Subsanación solicitada SG': 'HISTORIAL_SOLICITUDES.status.correctionRequestedSg',
     'Trámite externo CF': 'HISTORIAL_SOLICITUDES.status.externalProcessCf',
     'Respuesta CF registrada': 'HISTORIAL_SOLICITUDES.status.responseCfRecorded',
     'Enviada a SG': 'HISTORIAL_SOLICITUDES.status.sentSg',
@@ -169,7 +172,8 @@ export class HistorialSolicitudesComponent {
     'Radicada / Enviada a SA',
     'Recepcionada a SA',
     'En verificación de SA',
-    'Subsanación solicitada',
+    'Subsanación solicitada SA',
+    'Subsanación solicitada SG',
     'Trámite externo CF',
     'Respuesta CF registrada',
     'Enviada a SG',
@@ -331,7 +335,8 @@ export class HistorialSolicitudesComponent {
       case 'Recepcionada a SA':
       case 'En verificación de SA':
         return 'estado--sa';
-      case 'Subsanación solicitada':
+      case 'Subsanación solicitada SA':
+      case 'Subsanación solicitada SG':
         return 'estado--subsanacion';
       case 'Trámite externo CF':
       case 'Respuesta CF registrada':
@@ -413,7 +418,8 @@ export class HistorialSolicitudesComponent {
   private isDocenteEditable(solicitud: HistorialSolicitud): boolean {
     return solicitud.estado === 'Borrador'
       || solicitud.estado === 'Radicada / Enviada a SA'
-      || solicitud.estado === 'Subsanación solicitada';
+      || solicitud.estado === 'Subsanación solicitada SA'
+      || solicitud.estado === 'Subsanación solicitada SG';
   }
 
   private isSecretariaGeneralViewOnly(solicitud: HistorialSolicitud): boolean {
@@ -422,7 +428,8 @@ export class HistorialSolicitudesComponent {
       'Radicada / Enviada a SA',
       'Recepcionada a SA',
       'En verificación de SA',
-      'Subsanación solicitada',
+      'Subsanación solicitada SA',
+      'Subsanación solicitada SG',
       'Trámite externo CF',
       'Respuesta CF registrada',
       'Finalizada Aprobada con Resolución',
@@ -432,7 +439,8 @@ export class HistorialSolicitudesComponent {
 
   private isSecretariaAcademicaViewOnly(solicitud: HistorialSolicitud): boolean {
     return solicitud.estado === 'Borrador'
-      || solicitud.estado === 'Subsanación solicitada'
+      || solicitud.estado === 'Subsanación solicitada SA'
+      || solicitud.estado === 'Subsanación solicitada SG'
       || solicitud.estado === 'Enviada a SG'
       || solicitud.estado === 'Recepcionada a SG'
       || solicitud.estado === 'Trámite externo CA'
@@ -531,7 +539,7 @@ export class HistorialSolicitudesComponent {
 
   private loadSolicitudesSecretariaAcademica(): void {
     this.cargandoSolicitudes = true;
-    const estados = ['S1', 'S2', 'S3', 'S5', 'S6', 'S11B', 'S12'];
+    const estados = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S11B', 'S12'];
     const queryParams = estados.map((s) => `estadoSolicitud=${s}`).join('&');
     const endpoint = `solicitud/formularios/${this.documento}?${queryParams}`;
 
