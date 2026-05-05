@@ -138,6 +138,10 @@ export class EditarSolicitudComponent implements OnDestroy {
         this.modalidadesOptions = modalidadesResponse?.Data ?? modalidadesResponse ?? [];
         this.documentoOptions = this.mapParametroDocumentos(documentosDocenteResponse, DOCUMENTO_OPTIONS);
         this.secretariaDocumentoOptions = documentosSecretariaResponse as DocumentoOption[];
+        this.cachearCodigosDesdeOpciones([
+          ...this.documentoOptions,
+          ...this.secretariaDocumentoOptions
+        ]);
         this.cargandoDocumentos = false;
         this.cargandoDocumentosSecretaria = false;
         this.initializeSolicitudFromNavigation();
@@ -1356,19 +1360,37 @@ export class EditarSolicitudComponent implements OnDestroy {
     this.secretariaTiposPropiosIds = new Set();
     this.secretariaKeysPropios = new Set();
 
-    if (rol === 'SECRETARIA_GENERAL') {
-      const sa$ = this.parametrosService.get(
-        'parametro?query=TipoParametroId__CodigoAbreviacion:DOCSOL_SA_SAB&limit=-1'
+    if (rol === 'SECRETARIA_ACADEMICA') {
+      return this.parametrosService.get(
+        `parametro?query=TipoParametroId__CodigoAbreviacion:${this.getTipoParametroSecretariaByRol(rol)}&limit=-1`
+      ).pipe(
+        map((response: any) => {
+          const opciones = this.mapParametroDocumentos(response, SECRETARIA_DOCUMENTO_OPTIONS);
+          opciones.forEach((option) => {
+            const tipoId = Number(option.tipoDocumentoId) || 0;
+            if (tipoId > 0) {
+              this.secretariaTiposPropiosIds.add(tipoId);
+            }
+            this.secretariaKeysPropios.add(option.key);
+          });
+          return opciones;
+        })
       );
-      const sg$ = this.parametrosService.get(
-        'parametro?query=TipoParametroId__CodigoAbreviacion:DOCSOL_SG_SAB&limit=-1'
-      );
+    }
 
-      return forkJoin([sa$, sg$]).pipe(
-        map(([respSa, respSg]: [any, any]) => {
-          const opcionesSa = this.mapParametroDocumentos(respSa, []);
-          const opcionesSg = this.mapParametroDocumentos(respSg, []);
+    const sa$ = this.parametrosService.get(
+      'parametro?query=TipoParametroId__CodigoAbreviacion:DOCSOL_SA_SAB&limit=-1'
+    );
+    const sg$ = this.parametrosService.get(
+      'parametro?query=TipoParametroId__CodigoAbreviacion:DOCSOL_SG_SAB&limit=-1'
+    );
 
+    return forkJoin([sa$, sg$]).pipe(
+      map(([respSa, respSg]: [any, any]) => {
+        const opcionesSa = this.mapParametroDocumentos(respSa, []);
+        const opcionesSg = this.mapParametroDocumentos(respSg, []);
+
+        if (rol === 'SECRETARIA_GENERAL') {
           opcionesSg.forEach((option) => {
             const tipoId = Number(option.tipoDocumentoId) || 0;
             if (tipoId > 0) {
@@ -1376,43 +1398,27 @@ export class EditarSolicitudComponent implements OnDestroy {
             }
             this.secretariaKeysPropios.add(option.key);
           });
+        }
 
-          const fusionadas = [...opcionesSg, ...opcionesSa];
-          const vistosTipoId = new Set<number>();
-          const vistosKey = new Set<string>();
-          const deduplicadas = fusionadas.filter((option) => {
-            const tipoId = Number(option.tipoDocumentoId) || 0;
-            if (tipoId > 0 && vistosTipoId.has(tipoId)) {
-              return false;
-            }
-            if (vistosKey.has(option.key)) {
-              return false;
-            }
-            if (tipoId > 0) {
-              vistosTipoId.add(tipoId);
-            }
-            vistosKey.add(option.key);
-            return true;
-          });
-
-          return deduplicadas.length ? deduplicadas : [...SECRETARIA_DOCUMENTO_OPTIONS];
-        })
-      );
-    }
-
-    return this.parametrosService.get(
-      `parametro?query=TipoParametroId__CodigoAbreviacion:${this.getTipoParametroSecretariaByRol(rol)}&limit=-1`
-    ).pipe(
-      map((response: any) => {
-        const opciones = this.mapParametroDocumentos(response, SECRETARIA_DOCUMENTO_OPTIONS);
-        opciones.forEach((option) => {
+        const fusionadas = [...opcionesSg, ...opcionesSa];
+        const vistosTipoId = new Set<number>();
+        const vistosKey = new Set<string>();
+        const deduplicadas = fusionadas.filter((option) => {
           const tipoId = Number(option.tipoDocumentoId) || 0;
-          if (tipoId > 0) {
-            this.secretariaTiposPropiosIds.add(tipoId);
+          if (tipoId > 0 && vistosTipoId.has(tipoId)) {
+            return false;
           }
-          this.secretariaKeysPropios.add(option.key);
+          if (vistosKey.has(option.key)) {
+            return false;
+          }
+          if (tipoId > 0) {
+            vistosTipoId.add(tipoId);
+          }
+          vistosKey.add(option.key);
+          return true;
         });
-        return opciones;
+
+        return deduplicadas.length ? deduplicadas : [...SECRETARIA_DOCUMENTO_OPTIONS];
       })
     );
   }
@@ -1428,6 +1434,15 @@ export class EditarSolicitudComponent implements OnDestroy {
       }));
 
     return opciones.length ? opciones : [...fallback];
+  }
+
+  private cachearCodigosDesdeOpciones(opciones: DocumentoOption[]): void {
+    opciones.forEach((option) => {
+      const id = Number(option?.tipoDocumentoId) || 0;
+      if (id > 0 && option?.key) {
+        this.tipoDocumentoCodigoById[id] = option.key;
+      }
+    });
   }
 
   private resolverTiposDocumentoPorId(soportes: any[]): Observable<void> {

@@ -465,18 +465,8 @@ export class HistorialSolicitudesComponent {
       });
   }
 
-  private readonly estadosVisiblesCoordinador: EstadoSolicitud[] = [
-    'Enviada a SG',
-    'Recepcionada a SG',
-    'Trámite externo CA',
-    'Decisión CA registrada',
-    'Finalizada No aprobada',
-    'Aprobada pendiente Resolución',
-    'Finalizada Aprobada con Resolución',
-  ];
-
   private isEstadoVisibleCoordinador(estado: EstadoSolicitud): boolean {
-    return this.estadosVisiblesCoordinador.includes(estado);
+    return estado === 'Enviada a SG';
   }
 
   private loadTerceroIdAndSolicitudes(documento: string): void {
@@ -539,7 +529,7 @@ export class HistorialSolicitudesComponent {
 
   private loadSolicitudesSecretariaAcademica(): void {
     this.cargandoSolicitudes = true;
-    const estados = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S11B', 'S12'];
+    const estados = ['S1', 'S11B'];
     const queryParams = estados.map((s) => `estadoSolicitud=${s}`).join('&');
     const endpoint = `solicitud/formularios/${this.documento}?${queryParams}`;
 
