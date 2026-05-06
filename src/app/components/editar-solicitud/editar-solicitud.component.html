@@ -500,7 +500,7 @@
 
           <button *ngIf="rol === 'DOCENTE'" mat-raised-button type="button" class="editar-solicitud__save"
             (click)="onGuardarBorrador()"
-            [disabled]="!hasUnsavedChanges">
+            [disabled]="!hasUnsavedChanges || !permisoGuardarCambios">
             {{ 'HISTORIAL_SOLICITUDES.edit.save' | translate }}
           </button>
           <button *ngIf="rol === 'DOCENTE' && formularioInit?.estado !== 'Radicada / Enviada a SA'"
@@ -515,12 +515,12 @@
               <button mat-raised-button type="button"
                 class="editar-solicitud__send editar-solicitud__reject"
                 (click)="onRechazarSolicitud()"
-                [disabled]="!canSubsanar">
+                [disabled]="!canSubsanar || !permisoRechazar">
                 {{ 'HISTORIAL_SOLICITUDES.edit.rechazarSolicitud' | translate }}
               </button>
               <button mat-raised-button color="warn" type="button" class="editar-solicitud__send"
                 (click)="onEnviarRevisionSecretariaGeneral(false)"
-                [disabled]="!canSubsanar">
+                [disabled]="!canSubsanar || !permisoSubsanar">
                 {{ 'HISTORIAL_SOLICITUDES.edit.subsanacion' | translate }}
               </button>
             </div>
@@ -532,7 +532,7 @@
               </button>
               <button mat-raised-button type="button" class="editar-solicitud__save"
                 (click)="onGuardarCambiosSecretaria()"
-                [disabled]="!hasUnsavedChanges">
+                [disabled]="!hasUnsavedChanges || !permisoGuardarCambios">
                 {{ 'HISTORIAL_SOLICITUDES.edit.save' | translate }}
               </button>
             </div>
