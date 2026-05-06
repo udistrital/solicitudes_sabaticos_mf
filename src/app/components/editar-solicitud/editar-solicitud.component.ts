@@ -23,6 +23,7 @@ import {
   GuardarBorradorBody,
   RadicarBody
 } from './interface';
+import { ConfiguracionService } from '../../services/configuracion.service';
 import { ParametrosService } from '../../services/parametros.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
 import { GestorDocumentalService } from '../../services/gestor-documental.service';
@@ -55,6 +56,8 @@ export class EditarSolicitudComponent implements OnDestroy {
   rol = '';
   terceroIdSolicitud = 0;
   documentosModificados = false;
+  permisos: any[] = [];
+  perfil: string = '';
 
 
   // Estado de documentos (docente)
@@ -106,10 +109,20 @@ export class EditarSolicitudComponent implements OnDestroy {
     private readonly gestorDocumentalService: GestorDocumentalService,
     private readonly translate: TranslateService,
     private readonly loaderService: LoaderService,
+    private readonly configuracionService: ConfiguracionService,
   ) {
     const navigationState = this.router.currentNavigation()?.extras?.state ?? history.state;
     const rolNavegacion = String(navigationState?.['rol'] ?? '');
     const solicitudId = (this.router.currentNavigation()?.extras?.state ?? history.state)?.['solicitud']?.id;
+
+    if (rolNavegacion) {
+      this.configuracionService
+        .get('perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:' + rolNavegacion)
+        .subscribe((response: any) => {
+          this.permisos = Array.isArray(response) ? response : (response?.Data ?? []);
+          this.perfil = this.permisos[0]?.Perfil?.Nombre ?? '';
+        });
+    }
 
     forkJoin({
       formularioResponse: this.sabaticosCrudService.get(
@@ -356,9 +369,30 @@ export class EditarSolicitudComponent implements OnDestroy {
     return !this.isReadOnly && this.rol !== 'SECRETARIA_GENERAL' && this.rol !== 'SECRETARIA_ACADEMICA';
   }
 
+  get permisoAprobarRechazarSoportes(): boolean {
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Aprobar_Rechazar_Soportes_Solicitudes_Sabatico');
+  }
+
+  get permisoEnviarRevision(): boolean {
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Enviar_Revision_Solicitud_Sabatico');
+  }
+
+  get permisoGuardarCambios(): boolean {
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Guardar_Cambios_Solicitud_Sabatico');
+  }
+
+  get permisoSubsanar(): boolean {
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Subsanar_Solicitud_Sabatico');
+  }
+
+  get permisoRechazar(): boolean {
+    return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Rechazar_Solicitud_Sabatico');
+  }
+
   get canAprobarDocumentos(): boolean {
     return !this.isReadOnly
-      && (this.rol === 'SECRETARIA_ACADEMICA' || this.rol === 'SECRETARIA_GENERAL');
+      && (this.rol === 'SECRETARIA_ACADEMICA' || this.rol === 'SECRETARIA_GENERAL')
+      && this.permisoAprobarRechazarSoportes;
   }
 
   private get codigoEstadoAprobado(): 'SAOK' | 'SGOK' {
@@ -404,7 +438,9 @@ export class EditarSolicitudComponent implements OnDestroy {
   }
 
   get canAprobarDocumentosSecretaria(): boolean {
-    return !this.isReadOnly && this.rol === 'SECRETARIA_GENERAL';
+    return !this.isReadOnly
+      && this.rol === 'SECRETARIA_GENERAL'
+      && this.permisoAprobarRechazarSoportes;
   }
 
   getDocumentoSecretariaAprobacion(key: string): 'aprobado' | 'rechazado' | null {
@@ -494,7 +530,9 @@ export class EditarSolicitudComponent implements OnDestroy {
       return false;
     }
 
-    return this.form.valid && this.hasDocumentosDocenteObligatorios();
+    return this.form.valid
+      && this.hasDocumentosDocenteObligatorios()
+      && this.permisoEnviarRevision;
   }
 
   get canEnviarSecretariaGeneral(): boolean {
@@ -506,6 +544,10 @@ export class EditarSolicitudComponent implements OnDestroy {
       || this.rol === 'SECRETARIA_ACADEMICA';
 
     if (!canEnviarPorRol) {
+      return false;
+    }
+
+    if (!this.permisoEnviarRevision) {
       return false;
     }
 
