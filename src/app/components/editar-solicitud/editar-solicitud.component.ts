@@ -1402,24 +1402,6 @@ export class EditarSolicitudComponent implements OnDestroy {
     this.secretariaTiposPropiosIds = new Set();
     this.secretariaKeysPropios = new Set();
 
-    if (rol === 'SECRETARIA_ACADEMICA') {
-      return this.parametrosService.get(
-        `parametro?query=TipoParametroId__CodigoAbreviacion:${this.getTipoParametroSecretariaByRol(rol)}&limit=-1`
-      ).pipe(
-        map((response: any) => {
-          const opciones = this.mapParametroDocumentos(response, SECRETARIA_DOCUMENTO_OPTIONS);
-          opciones.forEach((option) => {
-            const tipoId = Number(option.tipoDocumentoId) || 0;
-            if (tipoId > 0) {
-              this.secretariaTiposPropiosIds.add(tipoId);
-            }
-            this.secretariaKeysPropios.add(option.key);
-          });
-          return opciones;
-        })
-      );
-    }
-
     const sa$ = this.parametrosService.get(
       'parametro?query=TipoParametroId__CodigoAbreviacion:DOCSOL_SA_SAB&limit=-1'
     );
@@ -1432,15 +1414,18 @@ export class EditarSolicitudComponent implements OnDestroy {
         const opcionesSa = this.mapParametroDocumentos(respSa, []);
         const opcionesSg = this.mapParametroDocumentos(respSg, []);
 
-        if (rol === 'SECRETARIA_GENERAL') {
-          opcionesSg.forEach((option) => {
-            const tipoId = Number(option.tipoDocumentoId) || 0;
-            if (tipoId > 0) {
-              this.secretariaTiposPropiosIds.add(tipoId);
-            }
-            this.secretariaKeysPropios.add(option.key);
-          });
-        }
+        const opcionesPropias =
+          rol === 'SECRETARIA_GENERAL' ? opcionesSg
+          : rol === 'SECRETARIA_ACADEMICA' ? opcionesSa
+          : [];
+
+        opcionesPropias.forEach((option) => {
+          const tipoId = Number(option.tipoDocumentoId) || 0;
+          if (tipoId > 0) {
+            this.secretariaTiposPropiosIds.add(tipoId);
+          }
+          this.secretariaKeysPropios.add(option.key);
+        });
 
         const fusionadas = [...opcionesSg, ...opcionesSa];
         const vistosTipoId = new Set<number>();
