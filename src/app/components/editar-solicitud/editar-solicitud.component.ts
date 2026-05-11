@@ -196,7 +196,6 @@ export class EditarSolicitudComponent implements OnDestroy {
         console.error('Error al llamar al servicio:', error);
         this.cargandoDocumentos = false;
         this.cargandoDocumentosSecretaria = false;
-        this.initializeFromMockDetalle();
       }
     });
   }
@@ -484,7 +483,7 @@ export class EditarSolicitudComponent implements OnDestroy {
       return false;
     }
 
-    if (this.rol === 'SECRETARIA_GENERAL') {
+    if (this.rol === 'SECRETARIA_GENERAL' || this.rol === 'SECRETARIA_ACADEMICA') {
       return this.esDocumentoSecretariaPropio(key, baseKey);
     }
 
@@ -495,11 +494,8 @@ export class EditarSolicitudComponent implements OnDestroy {
     const soporte = this.secretariaSoporteBackendByKey[key];
     if (soporte) {
       const rolUsuario = soporte?.RolUsuario;
-      if (rolUsuario === 'SECRETARIA_GENERAL') {
-        return true;
-      }
-      if (rolUsuario === 'SECRETARIA_ACADEMICA') {
-        return false;
+      if (rolUsuario === 'SECRETARIA_GENERAL' || rolUsuario === 'SECRETARIA_ACADEMICA') {
+        return rolUsuario === this.rol;
       }
       const tipoId = Number(soporte?.TipoDocumentoId) || 0;
       if (tipoId > 0) {
@@ -2094,11 +2090,16 @@ private subirDocumentosDocenteNuevos(
 
   private hasDocumentosSecretariaObligatorios(): boolean {
     const requiredKeys = this.secretariaDocumentoOptions
-      .map((option) => option.key)
-      .filter((key) => !this.isDocumentoSecretariaOpcional(key));
+      .filter((option) => {
+        const tipoId = Number(option.tipoDocumentoId) || 0;
+        const esPropio = (tipoId > 0 && this.secretariaTiposPropiosIds.has(tipoId))
+          || this.secretariaKeysPropios.has(option.key);
+        return esPropio && !this.isDocumentoSecretariaOpcional(option.key);
+      })
+      .map((option) => option.key);
 
     if (!requiredKeys.length) {
-      return false;
+      return true;
     }
 
     return requiredKeys.every((key) => {
@@ -2156,64 +2157,4 @@ private subirDocumentosDocenteNuevos(
     return isPdfByExtension || isPdfByMime;
   }
 
-  private initializeFromMockDetalle(): void {
-    const navigationState = this.router.currentNavigation()?.extras?.state ?? history.state;
-    const stateSolicitud = navigationState?.['solicitud'];
-    const mockDetalle = stateSolicitud?.mockDetalle;
-
-    if (!mockDetalle) {
-      return;
-    }
-
-    const formatDate = (d: Date | null): string =>
-      d instanceof Date && !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : '';
-
-    this.formulario = {
-      docente: {
-        nombre: mockDetalle.docenteNombre ?? '',
-        identificacion: mockDetalle.docenteIdentificacion ?? '',
-        facultad: mockDetalle.docenteFacultad ?? '',
-        proyecto_curricular: mockDetalle.docenteProyecto ?? ''
-      },
-      detalle_solicitud: {
-        modalidad: mockDetalle.modalidad ?? '',
-        modalidadId: 0,
-        periodo_ejecucion: mockDetalle.periodoEjecucion ?? '',
-        producto_ultimo_sabatico: mockDetalle.productoUltimo ?? '',
-        ultimo_sabatico: {
-          fecha_inicio: formatDate(mockDetalle.ultimoSabatico?.start),
-          fecha_fin: formatDate(mockDetalle.ultimoSabatico?.end),
-          producto_ultimo_sabatico: mockDetalle.productoUltimo ?? ''
-        }
-      },
-      objetivos: {
-        objetivo_general: mockDetalle.objetivoGeneral ?? '',
-        objetivos_especificos: mockDetalle.objetivosEspecificos ?? ''
-      },
-      articulacion: {
-        plan_desarrollo_institucional: mockDetalle.planDesarrolloInstitucional ?? '',
-        proyecto_educativo_facultad: mockDetalle.proyectoEducativoFacultad ?? '',
-        proyecto_educativo_programas: mockDetalle.proyectoEducativoProgramas ?? ''
-      },
-      cronograma: mockDetalle.cronograma ?? {
-        mes1: '', mes2: '', mes3: '', mes4: '', mes5: '', mes6: '',
-        mes7: '', mes8: '', mes9: '', mes10: '', mes11: '', mes12: ''
-      },
-      justificacion: mockDetalle.justificacion ?? '',
-      producto_entregable: mockDetalle.productoEntregable ?? '',
-      impacto_alcance: mockDetalle.impactoAlcance ?? '',
-      metodologia: mockDetalle.metodologia ?? '',
-      presupuesto: mockDetalle.presupuesto ?? '',
-      observaciones: mockDetalle.observaciones ?? ''
-    };
-
-    this.initializeSolicitudFromNavigation();
-
-    const documentos: Record<string, string | null> = mockDetalle.documentos ?? {};
-    const selectedKeys = Object.keys(documentos).filter((k) => Boolean(documentos[k]));
-    this.documentosSeleccionados = selectedKeys;
-    this.documentoArchivos = { ...documentos };
-
-    this.applyFormPermissions();
-  }
 }
