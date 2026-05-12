@@ -17,16 +17,9 @@
     <mat-form-field appearance="outline" class="iniciar-sabatico-modal__field">
       <mat-label>{{ 'HISTORIAL_SOLICITUDES.iniciarSabatico.fechaFin' | translate }}</mat-label>
       <input matInput
-             [matDatepicker]="pickerFin"
-             formControlName="fechaFin"
-             (focus)="pickerFin.open()" />
-      <mat-datepicker-toggle matIconSuffix [for]="pickerFin"></mat-datepicker-toggle>
-      <mat-datepicker #pickerFin panelClass="sga-sabaticos-datepicker"></mat-datepicker>
+             [value]="fechaFinFormateada"
+             readonly />
     </mat-form-field>
-
-    <p *ngIf="form.hasError('rangoInvalido')" class="iniciar-sabatico-modal__error">
-      {{ 'HISTORIAL_SOLICITUDES.iniciarSabatico.rangoInvalido' | translate }}
-    </p>
   </form>
 </mat-dialog-content>
 
