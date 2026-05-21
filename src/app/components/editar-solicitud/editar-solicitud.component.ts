@@ -388,6 +388,20 @@ export class EditarSolicitudComponent implements OnDestroy {
     return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Rechazar_Solicitud_Sabatico');
   }
 
+  isDocumentoBloqueado(key: string): boolean {
+    return this.documentoAprobaciones[key] === 'aprobado';
+  }
+
+  get canDocenteEditarDocumento(): boolean {
+    return !this.isReadOnly && this.rol === 'DOCENTE';
+  }
+
+  private docenteTieneDocumentosBloqueados(): boolean {
+    return this.documentosSeleccionados.some(
+      (key) => this.isDocumentoBloqueado(key)
+    );
+  }
+
   get canAprobarDocumentos(): boolean {
     return !this.isReadOnly
       && (this.rol === 'SECRETARIA_ACADEMICA' || this.rol === 'SECRETARIA_GENERAL')
@@ -526,6 +540,10 @@ export class EditarSolicitudComponent implements OnDestroy {
       return false;
     }
 
+    if (this.docenteTieneDocumentosBloqueados()) {
+      return false;
+    }
+
     return this.form.valid
       && this.hasDocumentosDocenteObligatorios()
       && this.permisoEnviarRevision;
@@ -604,7 +622,7 @@ export class EditarSolicitudComponent implements OnDestroy {
     return obs.length > 0;
   }
   async onEliminarDocumento(key: string): Promise<void> {
-    if (!this.canEditarFormularioPrincipal) {
+    if (!this.canGestionarDocumentoDocente(key)) {
       return;
     }
 
@@ -638,6 +656,10 @@ export class EditarSolicitudComponent implements OnDestroy {
   }
 
   onDocumentoChange(key: string, event: Event): void {
+    if (!this.canGestionarDocumentoDocente(key)) {
+      return;
+    }
+
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     
@@ -675,6 +697,10 @@ export class EditarSolicitudComponent implements OnDestroy {
 
   canPrevisualizarDocumento(key: string): boolean {
     return Boolean(this.documentoObjectUrls[key]) || Boolean(this.documentoArchivos[key]);
+  }
+
+  canGestionarDocumentoDocente(key: string): boolean {
+    return this.canDocenteEditarDocumento && !this.isDocumentoBloqueado(key);
   }
 
   onPrevisualizarDocumento(key: string): void {
