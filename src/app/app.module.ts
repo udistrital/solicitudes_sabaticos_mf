@@ -11,7 +11,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { environment } from '../environments/environment';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -35,6 +35,7 @@ import { CrearSolicitudModalComponent } from './components/crear-solicitud-modal
 import { EditarSolicitudComponent } from './components/editar-solicitud/editar-solicitud.component';
 import { HistorialSolicitudesComponent } from './components/historial-solicitudes/historial-solicitudes.component';
 import { IniciarSabaticoModalComponent } from './components/iniciar-sabatico-modal/iniciar-sabatico-modal.component';
+import { SolicitudSabaticoComponent } from './components/solicitud-sabatico/solicitud-sabatico.component';
 import { AppLoaderComponent } from './components/app-loader/app-loader.component';
 import { loaderInterceptor } from './interceptors/loader.interceptor';
 
@@ -90,12 +91,14 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
         EditarSolicitudComponent,
         HistorialSolicitudesComponent,
         IniciarSabaticoModalComponent,
+        SolicitudSabaticoComponent,
         AppLoaderComponent
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         BrowserAnimationsModule,
         RouterModule,
         AppRoutingModule,
+        FormsModule,
         ReactiveFormsModule,
         MatButtonModule,
         MatDatepickerModule,

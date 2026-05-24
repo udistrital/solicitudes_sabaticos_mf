@@ -1,16 +1,9 @@
 export type EstadoSolicitud =
   | 'Borrador'
   | 'Radicada / Enviada a SA'
-  | 'Recepcionada a SA'
-  | 'En verificación de SA'
   | 'Subsanación solicitada SA'
   | 'Subsanación solicitada SG'
-  | 'Trámite externo CF'
-  | 'Respuesta CF registrada'
   | 'Enviada a SG'
-  | 'Recepcionada a SG'
-  | 'Trámite externo CA'
-  | 'Decisión CA registrada'
   | 'Finalizada No aprobada'
   | 'Aprobada pendiente Resolución'
   | 'Finalizada Aprobada con Resolución';
