@@ -5,6 +5,7 @@ import { getSingleSpaExtraProviders } from 'single-spa-angular';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { EditarSolicitudComponent } from './components/editar-solicitud/editar-solicitud.component';
 import { HistorialSolicitudesComponent } from './components/historial-solicitudes/historial-solicitudes.component';
+import { SolicitudSabaticoComponent } from './components/solicitud-sabatico/solicitud-sabatico.component';
 import { AuthGuard } from '../_guards/auth.guard';
 
 
@@ -39,6 +40,11 @@ const routes: Routes = [
     path: 'solicitudes/editar',
     canActivate: [AuthGuard],
     component: EditarSolicitudComponent
+  },
+  {
+    path: 'solicitudes/suspension-modificacion',
+    canActivate: [AuthGuard],
+    component: SolicitudSabaticoComponent
   },
   {
     path: '**',

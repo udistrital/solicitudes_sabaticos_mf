@@ -22,24 +22,19 @@ import { finalize } from 'rxjs/operators';
 type EstadoSolicitud =
   | 'Borrador'
   | 'Radicada / Enviada a SA'
-  | 'Recepcionada a SA'
-  | 'En verificación de SA'
   | 'Subsanación solicitada SA'
   | 'Subsanación solicitada SG'
-  | 'Trámite externo CF'
-  | 'Respuesta CF registrada'
   | 'Enviada a SG'
-  | 'Recepcionada a SG'
-  | 'Trámite externo CA'
-  | 'Decisión CA registrada'
   | 'Finalizada No aprobada'
   | 'Aprobada pendiente Resolución'
   | 'Finalizada Aprobada con Resolución';
+type TipoSolicitud = 'Nueva' | 'Suspensión' | 'Modificación';
 type FilterColumn = 'id' | 'docenteIdentificacion' | 'docenteNombre';
 
 interface HistorialSolicitud {
   id: string;
   fechaRadicado: string;
+  tipoSolicitud: string;
   estado: EstadoSolicitud;
   terceroIdDocente?: number;
   docenteIdentificacion?: string;
@@ -50,6 +45,7 @@ interface ColumnFilters {
   id: string;
   docenteIdentificacion: string;
   docenteNombre: string;
+  tipoSolicitud: TipoSolicitud[];
   estado: EstadoSolicitud[];
 }
 
@@ -82,8 +78,8 @@ interface DocenteInfo {
     standalone: false
 })
 export class HistorialSolicitudesComponent {
-  readonly displayedColumnsDocente = ['id', 'fechaRadicado', 'estado', 'gestion'];
-  readonly displayedColumnsSecretariaAcademica = ['id', 'fechaRadicado', 'docenteIdentificacion', 'docenteNombre', 'estado', 'gestion'];
+  readonly displayedColumnsDocente = ['id', 'fechaRadicado', 'tipoSolicitud', 'estado', 'gestion'];
+  readonly displayedColumnsSecretariaAcademica = ['id', 'fechaRadicado', 'tipoSolicitud', 'docenteIdentificacion', 'docenteNombre', 'estado', 'gestion'];
   currentLang = 'es';
   perfil: string = '';
   permisos: any[] = [];
@@ -91,16 +87,9 @@ export class HistorialSolicitudesComponent {
   readonly estadoTraducciones: Record<EstadoSolicitud, string> = {
     Borrador: 'HISTORIAL_SOLICITUDES.status.draft',
     'Radicada / Enviada a SA': 'HISTORIAL_SOLICITUDES.status.filedSentSa',
-    'Recepcionada a SA': 'HISTORIAL_SOLICITUDES.status.receivedSa',
-    'En verificación de SA': 'HISTORIAL_SOLICITUDES.status.verificationSa',
     'Subsanación solicitada SA': 'HISTORIAL_SOLICITUDES.status.correctionRequestedSa',
     'Subsanación solicitada SG': 'HISTORIAL_SOLICITUDES.status.correctionRequestedSg',
-    'Trámite externo CF': 'HISTORIAL_SOLICITUDES.status.externalProcessCf',
-    'Respuesta CF registrada': 'HISTORIAL_SOLICITUDES.status.responseCfRecorded',
     'Enviada a SG': 'HISTORIAL_SOLICITUDES.status.sentSg',
-    'Recepcionada a SG': 'HISTORIAL_SOLICITUDES.status.receivedSg',
-    'Trámite externo CA': 'HISTORIAL_SOLICITUDES.status.externalProcessCa',
-    'Decisión CA registrada': 'HISTORIAL_SOLICITUDES.status.decisionCaRecorded',
     'Finalizada No aprobada': 'HISTORIAL_SOLICITUDES.status.finishedNotApproved',
     'Aprobada pendiente Resolución': 'HISTORIAL_SOLICITUDES.status.approvedPendingResolution',
     'Finalizada Aprobada con Resolución': 'HISTORIAL_SOLICITUDES.status.finishedApprovedResolution'
@@ -109,20 +98,21 @@ export class HistorialSolicitudesComponent {
   readonly estadoOptions: EstadoSolicitud[] = [
     'Borrador',
     'Radicada / Enviada a SA',
-    'Recepcionada a SA',
-    'En verificación de SA',
     'Subsanación solicitada SA',
     'Subsanación solicitada SG',
-    'Trámite externo CF',
-    'Respuesta CF registrada',
     'Enviada a SG',
-    'Recepcionada a SG',
-    'Trámite externo CA',
-    'Decisión CA registrada',
     'Finalizada No aprobada',
     'Aprobada pendiente Resolución',
     'Finalizada Aprobada con Resolución'
   ];
+
+  readonly tipoSolicitudTraducciones: Record<TipoSolicitud, string> = {
+    Nueva: 'HISTORIAL_SOLICITUDES.tipoSolicitud.nueva',
+    'Suspensión': 'HISTORIAL_SOLICITUDES.tipoSolicitud.suspension',
+    'Modificación': 'HISTORIAL_SOLICITUDES.tipoSolicitud.modificacion'
+  };
+
+  readonly tipoSolicitudOptions: TipoSolicitud[] = ['Nueva', 'Suspensión', 'Modificación'];
 
   docenteInfo: DocenteInfo = {
     nombre: '',
@@ -164,6 +154,7 @@ export class HistorialSolicitudesComponent {
     id: '',
     docenteIdentificacion: '',
     docenteNombre: '',
+    tipoSolicitud: [],
     estado: []
   };
 
@@ -266,26 +257,53 @@ export class HistorialSolicitudesComponent {
     return this.estadoTraducciones[estado];
   }
 
+  getTipoSolicitudTranslation(tipo: string): string {
+    return this.isTipoSolicitudConocido(tipo)
+      ? this.tipoSolicitudTraducciones[tipo]
+      : tipo;
+  }
+
+  getTipoSolicitudClass(tipo: string): string {
+    switch (tipo) {
+      case 'Nueva':
+        return 'tipo--nueva';
+      case 'Suspensión':
+        return 'tipo--suspension';
+      case 'Modificación':
+        return 'tipo--modificacion';
+      default:
+        return 'tipo--desconocido';
+    }
+  }
+
+  getTipoSolicitudIcon(tipo: string): string {
+    switch (tipo) {
+      case 'Nueva':
+        return 'note_add';
+      case 'Suspensión':
+        return 'pause_circle';
+      case 'Modificación':
+        return 'edit';
+      default:
+        return 'help_outline';
+    }
+  }
+
+  private isTipoSolicitudConocido(tipo: string): tipo is TipoSolicitud {
+    return (this.tipoSolicitudOptions as readonly string[]).includes(tipo);
+  }
+
   getEstadoClass(estado: EstadoSolicitud): string {
     switch (estado) {
       case 'Borrador':
         return 'estado--borrador';
       case 'Radicada / Enviada a SA':
-      case 'Recepcionada a SA':
-      case 'En verificación de SA':
         return 'estado--sa';
       case 'Subsanación solicitada SA':
       case 'Subsanación solicitada SG':
         return 'estado--subsanacion';
-      case 'Trámite externo CF':
-      case 'Respuesta CF registrada':
-        return 'estado--cf';
       case 'Enviada a SG':
-      case 'Recepcionada a SG':
         return 'estado--sg';
-      case 'Trámite externo CA':
-      case 'Decisión CA registrada':
-        return 'estado--ca';
       case 'Aprobada pendiente Resolución':
         return 'estado--pendiente-resolucion';
       case 'Finalizada Aprobada con Resolución':
@@ -363,12 +381,8 @@ export class HistorialSolicitudesComponent {
     const viewOnlyStates: EstadoSolicitud[] = [
       'Borrador',
       'Radicada / Enviada a SA',
-      'Recepcionada a SA',
-      'En verificación de SA',
       'Subsanación solicitada SA',
       'Subsanación solicitada SG',
-      'Trámite externo CF',
-      'Respuesta CF registrada',
       'Finalizada Aprobada con Resolución',
     ];
     return viewOnlyStates.includes(solicitud.estado);
@@ -379,9 +393,6 @@ export class HistorialSolicitudesComponent {
       || solicitud.estado === 'Subsanación solicitada SA'
       || solicitud.estado === 'Subsanación solicitada SG'
       || solicitud.estado === 'Enviada a SG'
-      || solicitud.estado === 'Recepcionada a SG'
-      || solicitud.estado === 'Trámite externo CA'
-      || solicitud.estado === 'Decisión CA registrada'
       || solicitud.estado === 'Finalizada No aprobada'
       || solicitud.estado === 'Aprobada pendiente Resolución'
       || solicitud.estado === 'Finalizada Aprobada con Resolución';
@@ -509,10 +520,12 @@ export class HistorialSolicitudesComponent {
       const estadoNombre = item.EstadoSolicitudId?.Nombre ?? 'Borrador';
       const fechaFormateada = this.formatApiDate(item.FechaCreacion ?? '');
       const terceroId = Number(item.SolicitudId?.TerceroId ?? item.TerceroId) || 0;
+      const tipoSolicitud = item.SolicitudId?.TipoSolicitudId?.Nombre ?? '';
 
       return {
         id: String(item.SolicitudId?.Id ?? ''),
         fechaRadicado: fechaFormateada,
+        tipoSolicitud,
         estado: estadoNombre as EstadoSolicitud,
         ...(terceroId > 0 ? { terceroIdDocente: terceroId } : {})
       };
@@ -525,10 +538,12 @@ export class HistorialSolicitudesComponent {
       const fechaRaw = item.FechaCreacion ?? '';
       const fechaFormateada = this.formatApiDate(fechaRaw);
       const terceroId = Number(item.SolicitudId?.TerceroId) || 0;
+      const tipoSolicitud = item.SolicitudId?.TipoSolicitudId?.Nombre ?? '';
 
       return {
         id: String(item.SolicitudId?.Id ?? item.Id ?? ''),
         fechaRadicado: fechaFormateada,
+        tipoSolicitud,
         estado: estadoNombre as EstadoSolicitud,
         ...(terceroId > 0 ? { terceroIdDocente: terceroId } : {})
       };
@@ -610,6 +625,26 @@ export class HistorialSolicitudesComponent {
     solicitud: HistorialSolicitud,
     readOnly: boolean
   ): void {
+    // Las solicitudes de Suspensión o Modificación usan un componente dedicado
+    // para los tres roles (DOCENTE, SECRETARIA_ACADEMICA, SECRETARIA_GENERAL),
+    // independientemente del rol que esté gestionando la solicitud.
+    if (this.esSuspensionOModificacion(solicitud.tipoSolicitud)) {
+      this.router.navigate(['solicitudes/suspension-modificacion'], {
+        state: {
+          rol: this.rol,
+          readOnly,
+          tipoSolicitud: solicitud.tipoSolicitud,
+          solicitud: {
+            id: solicitud.id,
+            fechaRadicado: solicitud.fechaRadicado,
+            estado: solicitud.estado,
+            tipoSolicitud: solicitud.tipoSolicitud,
+          }
+        }
+      });
+      return;
+    }
+
     this.router.navigate(['solicitudes/editar'], {
       state: {
         rol: this.rol,
@@ -621,6 +656,17 @@ export class HistorialSolicitudesComponent {
         }
       }
     });
+  }
+
+  private esSuspensionOModificacion(tipo: string | undefined | null): boolean {
+    if (!tipo) {
+      return false;
+    }
+    const normalizado = tipo.trim().toLowerCase();
+    return normalizado === 'suspensión'
+      || normalizado === 'suspension'
+      || normalizado === 'modificación'
+      || normalizado === 'modificacion';
   }
 
   onIniciarSabatico(solicitud: HistorialSolicitud): void {
@@ -764,6 +810,11 @@ export class HistorialSolicitudesComponent {
     this.applyFilters();
   }
 
+  onTipoSolicitudFilterChange(tipos: TipoSolicitud[]): void {
+    this.columnFilters.tipoSolicitud = tipos ?? [];
+    this.applyFilters();
+  }
+
   onFechaRangeChange(rangeInput: MatDateRangeInput<Date>): void {
     const range = rangeInput.value;
     this.fechaFiltro = {
@@ -787,10 +838,11 @@ export class HistorialSolicitudesComponent {
       const matchesDocenteNombre = this.canViewDocenteColumns
         ? this.matchesFilter(this.getDocenteNombre(solicitud), this.columnFilters.docenteNombre)
         : true;
+      const matchesTipoSolicitud = this.matchesTipoSolicitudFilter(solicitud.tipoSolicitud);
       const matchesEstado = this.matchesEstadoFilter(solicitud.estado);
       const matchesFecha = this.matchesFechaRange(solicitud.fechaRadicado);
 
-      return matchesId && matchesDocenteIdentificacion && matchesDocenteNombre && matchesEstado && matchesFecha;
+      return matchesId && matchesDocenteIdentificacion && matchesDocenteNombre && matchesTipoSolicitud && matchesEstado && matchesFecha;
     });
     this.pageIndex = 0;
   }
@@ -807,6 +859,13 @@ export class HistorialSolicitudesComponent {
       return true;
     }
     return this.columnFilters.estado.includes(estado);
+  }
+
+  private matchesTipoSolicitudFilter(tipo: string): boolean {
+    if (!this.columnFilters.tipoSolicitud.length) {
+      return true;
+    }
+    return this.columnFilters.tipoSolicitud.some((seleccionado) => seleccionado === tipo);
   }
 
   private matchesFechaRange(fechaRadicado: string): boolean {

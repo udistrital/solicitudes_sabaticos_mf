@@ -1,0 +1,294 @@
+<mat-card class="solicitud-sabatico">
+
+  <mat-card-header class="solicitud-sabatico__header">
+    <div class="solicitud-sabatico__header-content">
+
+      <div class="solicitud-sabatico__titles">
+        <mat-card-title>
+          {{ 'CREAR_SOLICITUD.title' | translate }}
+        </mat-card-title>
+
+        <mat-card-subtitle>
+          {{ 'CREAR_SOLICITUD.subtitle' | translate }}
+        </mat-card-subtitle>
+      </div>
+
+      <button
+        mat-raised-button
+        color="primary"
+        class="solicitud-sabatico__back"
+        [routerLink]="['/solicitudes']">
+
+        <mat-icon>arrow_back</mat-icon>
+
+        {{ 'GLOBAL.regresar' | translate }}
+      </button>
+
+    </div>
+  </mat-card-header>
+
+  <blockquote class="solicitud-sabatico__role-info">
+    <p class="solicitud-sabatico__role-info-text">
+      {{ 'CREAR_SOLICITUD.procesoInfo' | translate }}
+    </p>
+  </blockquote>
+
+  <mat-card-content>
+
+    <div *ngIf="cargando" class="solicitud-sabatico__loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>{{ 'CREAR_SOLICITUD.cargando' | translate }}</span>
+    </div>
+
+    <section class="solicitud-sabatico__summary" *ngIf="sabaticoSeleccionado; else sinSabatico">
+
+      <div class="solicitud-sabatico__summary-grid">
+
+        <div class="solicitud-sabatico__summary-item">
+          <span class="solicitud-sabatico__summary-label">
+            {{ 'CREAR_SOLICITUD.summary.idSolicitud' | translate }}
+          </span>
+          <span class="solicitud-sabatico__summary-value">
+            {{ solicitudIdActual || '—' }}
+          </span>
+        </div>
+
+        <div class="solicitud-sabatico__summary-item">
+          <span class="solicitud-sabatico__summary-label">
+            {{ 'CREAR_SOLICITUD.summary.idSabatico' | translate }}
+          </span>
+          <span class="solicitud-sabatico__summary-value">
+            {{ sabaticoSeleccionado.id || '—' }}
+          </span>
+        </div>
+
+        <div class="solicitud-sabatico__summary-item">
+          <span class="solicitud-sabatico__summary-label">
+            {{ 'CREAR_SOLICITUD.summary.fechaInicio' | translate }}
+          </span>
+          <span class="solicitud-sabatico__summary-value">
+            {{ sabaticoSeleccionado.fechaInicio || '—' }}
+          </span>
+        </div>
+
+        <div class="solicitud-sabatico__summary-item">
+          <span class="solicitud-sabatico__summary-label">
+            {{ 'CREAR_SOLICITUD.summary.fechaFinal' | translate }}
+          </span>
+          <span class="solicitud-sabatico__summary-value">
+            {{ sabaticoSeleccionado.fechaFinal || '—' }}
+          </span>
+        </div>
+
+        <div class="solicitud-sabatico__summary-item">
+          <span class="solicitud-sabatico__summary-label">
+            {{ 'CREAR_SOLICITUD.summary.estadoSabatico' | translate }}
+          </span>
+          <span class="solicitud-sabatico__summary-value">
+            {{ sabaticoSeleccionado.estadoSabatico || '—' }}
+          </span>
+        </div>
+
+      </div>
+
+    </section>
+
+    <ng-template #sinSabatico>
+      <div class="solicitud-sabatico__summary solicitud-sabatico__summary--empty">
+        <mat-icon>info</mat-icon>
+        <span>{{ 'CREAR_SOLICITUD.summary.empty' | translate }}</span>
+      </div>
+    </ng-template>
+
+    <form
+      class="solicitud-sabatico__form"
+      [formGroup]="form"
+      (ngSubmit)="onEnviarRevision()">
+
+      <div class="solicitud-sabatico__grid">
+
+        <mat-form-field appearance="outline" class="solicitud-sabatico__field">
+          <mat-label>{{ 'CREAR_SOLICITUD.fields.tipoSolicitud' | translate }}</mat-label>
+          <mat-select formControlName="tipoSolicitud">
+            <mat-option value="SUSPENSION">{{ 'CREAR_SOLICITUD.tiposSolicitud.suspension' | translate }}</mat-option>
+            <mat-option value="MODIFICACION">{{ 'CREAR_SOLICITUD.tiposSolicitud.modificacion' | translate }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+      </div>
+
+      <mat-form-field appearance="outline" class="solicitud-sabatico__field-full">
+        <mat-label>{{ 'CREAR_SOLICITUD.fields.justificacion' | translate }}</mat-label>
+        <textarea
+          matInput
+          rows="5"
+          class="solicitud-sabatico__textarea"
+          formControlName="justificacion"></textarea>
+      </mat-form-field>
+
+      <section class="solicitud-sabatico__section">
+
+        <h3 class="solicitud-sabatico__section-title">
+          {{ 'CREAR_SOLICITUD.documentos.title' | translate }}
+        </h3>
+
+        <p class="solicitud-sabatico__documento-help">
+          {{ 'CREAR_SOLICITUD.documentos.ayudaPdf' | translate }}
+        </p>
+
+        <div class="solicitud-sabatico__documento-selector">
+
+          <mat-form-field
+            appearance="outline"
+            class="solicitud-sabatico__field">
+
+            <mat-label>
+              {{ 'CREAR_SOLICITUD.documentos.nombreDocumento' | translate }}
+            </mat-label>
+
+            <input
+              matInput
+              [(ngModel)]="nombreDocumento"
+              [ngModelOptions]="{ standalone: true }"
+              [disabled]="!puedeSolicitar"
+              [placeholder]="'CREAR_SOLICITUD.documentos.nombreDocumento' | translate" />
+
+          </mat-form-field>
+
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            class="solicitud-sabatico__documento-add"
+            [disabled]="!puedeSolicitar || !nombreDocumento.trim()"
+            (click)="onAgregarDocumento()">
+            {{ 'GLOBAL.agregar' | translate }}
+          </button>
+
+        </div>
+
+        <div class="solicitud-sabatico__documentos">
+
+          <p
+            class="solicitud-sabatico__documento-empty"
+            *ngIf="documentosSeleccionadosDetalle.length === 0">
+            {{ 'CREAR_SOLICITUD.documentos.sinDocumentos' | translate }}
+          </p>
+
+          <div
+            class="solicitud-sabatico__documento"
+            *ngFor="let documento of documentosSeleccionadosDetalle; trackBy: trackDocumento">
+
+            <div class="solicitud-sabatico__documento-info">
+              <span class="solicitud-sabatico__documento-title">
+                {{ documento.label || ('CREAR_SOLICITUD.documentos.sinNombre' | translate) }}
+              </span>
+              <span class="solicitud-sabatico__documento-file">
+                <mat-icon
+                  *ngIf="documento.archivoBackend"
+                  class="solicitud-sabatico__documento-file-icon"
+                  [attr.title]="'CREAR_SOLICITUD.documentos.archivoBackendTooltip' | translate">
+                  cloud_done
+                </mat-icon>
+                {{ nombreArchivoDocumento(documento) }}
+              </span>
+            </div>
+
+            <div class="solicitud-sabatico__documento-actions">
+
+              <ng-container *ngIf="!documentoTieneArchivo(documento); else accionesArchivo">
+
+                <label
+                  class="solicitud-sabatico__documento-action"
+                  [class.solicitud-sabatico__documento-action--disabled]="!puedeSolicitar">
+                  {{ 'CREAR_SOLICITUD.documentos.cargar' | translate }}
+                  <input
+                    type="file"
+                    accept=".pdf,application/pdf"
+                    [disabled]="!puedeSolicitar"
+                    (change)="onDocumentoChange(documento.key, $event)" />
+                </label>
+
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="solicitud-sabatico__documento-remove"
+                  *ngIf="!isReadOnly"
+                  [attr.aria-label]="'CREAR_SOLICITUD.documentos.eliminarAria' | translate"
+                  (click)="onEliminarDocumento(documento.key)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+
+              </ng-container>
+
+              <ng-template #accionesArchivo>
+
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="solicitud-sabatico__documento-preview"
+                  *ngIf="canPrevisualizarDocumento(documento)"
+                  [disabled]="documentosCargando[documento.key]"
+                  [attr.aria-label]="'CREAR_SOLICITUD.documentos.previsualizarAria' | translate"
+                  (click)="onPrevisualizarDocumento(documento.key)">
+                  <mat-spinner *ngIf="documentosCargando[documento.key]" diameter="18"></mat-spinner>
+                  <mat-icon *ngIf="!documentosCargando[documento.key]">visibility</mat-icon>
+                </button>
+
+                <button
+                  mat-icon-button
+                  type="button"
+                  class="solicitud-sabatico__documento-remove"
+                  *ngIf="!isReadOnly"
+                  [attr.aria-label]="'CREAR_SOLICITUD.documentos.eliminarAria' | translate"
+                  (click)="onEliminarDocumento(documento.key)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+
+              </ng-template>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <section class="solicitud-sabatico__summary solicitud-sabatico__summary--respuesta">
+
+        <h3 class="solicitud-sabatico__section-title">
+          {{ 'CREAR_SOLICITUD.respuesta.title' | translate }}
+        </h3>
+
+        <mat-form-field appearance="outline" class="solicitud-sabatico__field-full">
+          <mat-label>
+            {{ 'CREAR_SOLICITUD.respuesta.observaciones' | translate }}
+          </mat-label>
+          <textarea
+            matInput
+            rows="5"
+            class="solicitud-sabatico__textarea"
+            formControlName="respuestaSolicitud"></textarea>
+        </mat-form-field>
+
+      </section>
+
+      <div class="solicitud-sabatico__actions" *ngIf="!isReadOnly">
+
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          [disabled]="enviando || !canEnviarRevision"
+          (click)="onEnviarRevision()">
+          {{ 'CREAR_SOLICITUD.actions.enviarRevision' | translate }}
+        </button>
+
+      </div>
+
+    </form>
+
+  </mat-card-content>
+
+</mat-card>
