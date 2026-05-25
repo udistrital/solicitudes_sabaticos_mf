@@ -262,10 +262,9 @@
   }
 
   &__acciones {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    justify-content: center;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
   }
 
   &__accion {
@@ -275,6 +274,7 @@
     width: 40px;
     height: 40px;
     padding: 0;
+    margin: 0.15rem 0.25rem;
     line-height: 1;
     border-radius: 999px;
     transition: background-color 0.2s ease, color 0.2s ease;
@@ -350,19 +350,9 @@
     color: #b25800;
   }
 
-  &--cf {
-    background-color: #ece8ff;
-    color: #4b2fa6;
-  }
-
   &--sg {
     background-color: #f5efe6;
     color: #5a4632;
-  }
-
-  &--ca {
-    background-color: #fff4d6;
-    color: #7a4f01;
   }
 
   &--pendiente-resolucion {
@@ -378,6 +368,60 @@
   &--rechazada {
     background-color: #fde8e8;
     color: #9f1d1d;
+  }
+}
+
+.tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1;
+  background-color: #f3f4f6;
+  color: #1f2933;
+  border: 1px solid transparent;
+  white-space: nowrap;
+
+  &__icono {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+    line-height: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__texto {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  &--nueva {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+    border-color: #c8e6c9;
+  }
+
+  &--suspension {
+    background-color: #fff3e0;
+    color: #b25800;
+    border-color: #ffe0b2;
+  }
+
+  &--modificacion {
+    background-color: #e3f2fd;
+    color: #0d47a1;
+    border-color: #bbdefb;
+  }
+
+  &--desconocido {
+    background-color: #eef2f6;
+    color: #52606d;
+    border-color: #d8dee6;
   }
 }
 

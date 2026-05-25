@@ -1,3 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
 @use 'src/assets/styles/sga-theme-angular-material';
-@import 'src/assets/styles/sga-sweetalert2/sga-sweetalert2.scss';
+@use 'src/assets/styles/sga-sweetalert2/sga-sweetalert2';
+
+.sga-sabaticos-blurred-backdrop {
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+}

@@ -3,9 +3,11 @@ import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/fo
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatStepper } from '@angular/material/stepper';
 import { concatMap, from, of, timer, toArray } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { finalize, map, switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
+import Swal from 'sweetalert2';
 import { PopUpManager } from '../../../managers/popUpManager';
+import { LoaderService } from '../../services/loader.service';
 import { ParametrosService } from '../../services/parametros.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
 import { TercerosService } from '../../services/terceros.service';
@@ -121,6 +123,7 @@ export class CrearSolicitudModalComponent implements OnInit {
     private readonly parametrosService: ParametrosService,
     private readonly popUpManager: PopUpManager,
     private readonly translate: TranslateService,
+    private readonly loaderService: LoaderService,
   ) {
     this.form = this.formBuilder.group({
       docenteNombre: [{ value: data.docente.nombre, disabled: true }],
@@ -234,6 +237,8 @@ export class CrearSolicitudModalComponent implements OnInit {
           return of(solicitudResponse);
         }
 
+        this.loaderService.show();
+
         const cargasPorArchivo = archivos.map(([key, file]) => {
           const tipoDocumentoId = this.documentoOptions.find((option) => option.key === key)?.tipoDocumentoId ?? 1;
           const formData = new FormData();
@@ -253,7 +258,8 @@ export class CrearSolicitudModalComponent implements OnInit {
               : timer(2000).pipe(concatMap(() => carga$))
           )),
           toArray(),
-          map((soportesRes: any[]) => ({ ...solicitudResponse, soporte: soportesRes }))
+          map((soportesRes: any[]) => ({ ...solicitudResponse, soporte: soportesRes })),
+          finalize(() => this.loaderService.hide())
         );
       })
     ).subscribe({
@@ -268,9 +274,23 @@ export class CrearSolicitudModalComponent implements OnInit {
       },
       error: (error) => {
         this.guardando = false;
-        console.error('Error al crear solicitud:', error);
-        this.popUpManager.showErrorToast('HISTORIAL_SOLICITUDES.modal.guardarError');
+        this.showErrorAndReload('HISTORIAL_SOLICITUDES.modal.guardarError', error);
       }
+    });
+  }
+
+  private showErrorAndReload(messageKey: string, error?: unknown): void {
+    if (error !== undefined) {
+      console.error('Error al crear solicitud, se recargará la página:', error);
+    }
+
+    Swal.fire({
+      icon: 'error',
+      title: this.translate.instant('GLOBAL.error'),
+      text: this.translate.instant(messageKey),
+      confirmButtonText: this.translate.instant('GLOBAL.aceptar'),
+    }).then(() => {
+      window.location.reload();
     });
   }
 

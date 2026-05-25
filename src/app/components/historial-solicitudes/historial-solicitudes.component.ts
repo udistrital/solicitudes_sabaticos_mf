@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { CrearSolicitudModalComponent } from '../crear-solicitud-modal/crear-solicitud-modal.component';
+import { IniciarSabaticoModalComponent } from '../iniciar-sabatico-modal/iniciar-sabatico-modal.component';
 import { ImplicitAutenticationService } from '../../services/implicit_authentication.service';
 import { SabaticosCrudService } from '../../services/sabaticos-crud.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
@@ -15,80 +16,36 @@ import { TercerosService } from '../../services/terceros.service';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { RequestManager } from '../../../managers/requestManager';
 import { ConfiguracionService } from '../../services/configuracion.service';
+import { LoaderService } from '../../services/loader.service';
+import { finalize } from 'rxjs/operators';
 
 type EstadoSolicitud =
   | 'Borrador'
   | 'Radicada / Enviada a SA'
-  | 'Recepcionada a SA'
-  | 'En verificación de SA'
-  | 'Subsanación solicitada'
-  | 'Trámite externo CF'
-  | 'Respuesta CF registrada'
+  | 'Subsanación solicitada SA'
+  | 'Subsanación solicitada SG'
   | 'Enviada a SG'
-  | 'Recepcionada a SG'
-  | 'Trámite externo CA'
-  | 'Decisión CA registrada'
   | 'Finalizada No aprobada'
   | 'Aprobada pendiente Resolución'
   | 'Finalizada Aprobada con Resolución';
+type TipoSolicitud = 'Nueva' | 'Suspensión' | 'Modificación';
 type FilterColumn = 'id' | 'docenteIdentificacion' | 'docenteNombre';
-
-interface CronogramaActividad {
-  mes1: string;
-  mes2: string;
-  mes3: string;
-  mes4: string;
-  mes5: string;
-  mes6: string;
-  mes7: string;
-  mes8: string;
-  mes9: string;
-  mes10: string;
-  mes11: string;
-  mes12: string;
-}
-
-interface SolicitudDetalle {
-  docenteNombre: string;
-  docenteIdentificacion: string;
-  docenteFacultad: string;
-  docenteProyecto: string;
-  periodoEjecucion: string;
-  ultimoSabatico: {
-    start: Date | null;
-    end: Date | null;
-  };
-  productoUltimo: string;
-  modalidad: string;
-  objetivoGeneral: string;
-  objetivosEspecificos: string;
-  justificacion: string;
-  planDesarrolloInstitucional: string;
-  proyectoEducativoFacultad: string;
-  proyectoEducativoProgramas: string;
-  productoEntregable: string;
-  impactoAlcance: string;
-  metodologia: string;
-  cronograma: CronogramaActividad;
-  presupuesto: string;
-  observaciones: string;
-  documentos: Record<string, string | null>;
-}
 
 interface HistorialSolicitud {
   id: string;
   fechaRadicado: string;
+  tipoSolicitud: string;
   estado: EstadoSolicitud;
   terceroIdDocente?: number;
   docenteIdentificacion?: string;
   docenteNombre?: string;
-  detalle?: SolicitudDetalle;
 }
 
 interface ColumnFilters {
   id: string;
   docenteIdentificacion: string;
   docenteNombre: string;
+  tipoSolicitud: TipoSolicitud[];
   estado: EstadoSolicitud[];
 }
 
@@ -121,41 +78,18 @@ interface DocenteInfo {
     standalone: false
 })
 export class HistorialSolicitudesComponent {
-  readonly displayedColumnsDocente = ['id', 'fechaRadicado', 'estado', 'gestion'];
-  readonly displayedColumnsSecretariaAcademica = ['id', 'fechaRadicado', 'docenteIdentificacion', 'docenteNombre', 'estado', 'gestion'];
+  readonly displayedColumnsDocente = ['id', 'fechaRadicado', 'tipoSolicitud', 'estado', 'gestion'];
+  readonly displayedColumnsSecretariaAcademica = ['id', 'fechaRadicado', 'tipoSolicitud', 'docenteIdentificacion', 'docenteNombre', 'estado', 'gestion'];
   currentLang = 'es';
   perfil: string = '';
   permisos: any[] = [];
 
-  private readonly mockSolicitudes: HistorialSolicitud[] = [
-    { id: 'SOL-001', fechaRadicado: '2026-01-15', estado: 'Borrador', detalle: this.buildMockDetalle('SOL-001') },
-    { id: 'SOL-002', fechaRadicado: '2026-01-20', estado: 'Radicada / Enviada a SA', detalle: this.buildMockDetalle('SOL-002') },
-    { id: 'SOL-003', fechaRadicado: '2026-01-25', estado: 'Recepcionada a SA', detalle: this.buildMockDetalle('SOL-003') },
-    { id: 'SOL-004', fechaRadicado: '2026-02-25', estado: 'En verificación de SA', detalle: this.buildMockDetalle('SOL-004') },
-    { id: 'SOL-005', fechaRadicado: '2026-03-02', estado: 'Subsanación solicitada', detalle: this.buildMockDetalle('SOL-005') },
-    { id: 'SOL-006', fechaRadicado: '2026-05-14', estado: 'Trámite externo CF', detalle: this.buildMockDetalle('SOL-006') },
-    { id: 'SOL-007', fechaRadicado: '2026-06-10', estado: 'Respuesta CF registrada', detalle: this.buildMockDetalle('SOL-007') },
-    { id: 'SOL-008', fechaRadicado: '2026-11-25', estado: 'Enviada a SG', detalle: this.buildMockDetalle('SOL-008') },
-    { id: 'SOL-009', fechaRadicado: '2026-07-07', estado: 'Recepcionada a SG', detalle: this.buildMockDetalle('SOL-009') },
-    { id: 'SOL-010', fechaRadicado: '2026-08-06', estado: 'Trámite externo CA', detalle: this.buildMockDetalle('SOL-010') },
-    { id: 'SOL-011', fechaRadicado: '2026-09-12', estado: 'Decisión CA registrada', detalle: this.buildMockDetalle('SOL-011') },
-    { id: 'SOL-012', fechaRadicado: '2026-10-01', estado: 'Finalizada No aprobada', detalle: this.buildMockDetalle('SOL-012') },
-    { id: 'SOL-013', fechaRadicado: '2026-11-18', estado: 'Aprobada pendiente Resolución', detalle: this.buildMockDetalle('SOL-013') },
-    { id: 'SOL-014', fechaRadicado: '2026-12-05', estado: 'Finalizada Aprobada con Resolución', detalle: this.buildMockDetalle('SOL-014') },
-  ];
-
   readonly estadoTraducciones: Record<EstadoSolicitud, string> = {
     Borrador: 'HISTORIAL_SOLICITUDES.status.draft',
     'Radicada / Enviada a SA': 'HISTORIAL_SOLICITUDES.status.filedSentSa',
-    'Recepcionada a SA': 'HISTORIAL_SOLICITUDES.status.receivedSa',
-    'En verificación de SA': 'HISTORIAL_SOLICITUDES.status.verificationSa',
-    'Subsanación solicitada': 'HISTORIAL_SOLICITUDES.status.correctionRequested',
-    'Trámite externo CF': 'HISTORIAL_SOLICITUDES.status.externalProcessCf',
-    'Respuesta CF registrada': 'HISTORIAL_SOLICITUDES.status.responseCfRecorded',
+    'Subsanación solicitada SA': 'HISTORIAL_SOLICITUDES.status.correctionRequestedSa',
+    'Subsanación solicitada SG': 'HISTORIAL_SOLICITUDES.status.correctionRequestedSg',
     'Enviada a SG': 'HISTORIAL_SOLICITUDES.status.sentSg',
-    'Recepcionada a SG': 'HISTORIAL_SOLICITUDES.status.receivedSg',
-    'Trámite externo CA': 'HISTORIAL_SOLICITUDES.status.externalProcessCa',
-    'Decisión CA registrada': 'HISTORIAL_SOLICITUDES.status.decisionCaRecorded',
     'Finalizada No aprobada': 'HISTORIAL_SOLICITUDES.status.finishedNotApproved',
     'Aprobada pendiente Resolución': 'HISTORIAL_SOLICITUDES.status.approvedPendingResolution',
     'Finalizada Aprobada con Resolución': 'HISTORIAL_SOLICITUDES.status.finishedApprovedResolution'
@@ -164,19 +98,21 @@ export class HistorialSolicitudesComponent {
   readonly estadoOptions: EstadoSolicitud[] = [
     'Borrador',
     'Radicada / Enviada a SA',
-    'Recepcionada a SA',
-    'En verificación de SA',
-    'Subsanación solicitada',
-    'Trámite externo CF',
-    'Respuesta CF registrada',
+    'Subsanación solicitada SA',
+    'Subsanación solicitada SG',
     'Enviada a SG',
-    'Recepcionada a SG',
-    'Trámite externo CA',
-    'Decisión CA registrada',
     'Finalizada No aprobada',
     'Aprobada pendiente Resolución',
     'Finalizada Aprobada con Resolución'
   ];
+
+  readonly tipoSolicitudTraducciones: Record<TipoSolicitud, string> = {
+    Nueva: 'HISTORIAL_SOLICITUDES.tipoSolicitud.nueva',
+    'Suspensión': 'HISTORIAL_SOLICITUDES.tipoSolicitud.suspension',
+    'Modificación': 'HISTORIAL_SOLICITUDES.tipoSolicitud.modificacion'
+  };
+
+  readonly tipoSolicitudOptions: TipoSolicitud[] = ['Nueva', 'Suspensión', 'Modificación'];
 
   docenteInfo: DocenteInfo = {
     nombre: '',
@@ -218,6 +154,7 @@ export class HistorialSolicitudesComponent {
     id: '',
     docenteIdentificacion: '',
     docenteNombre: '',
+    tipoSolicitud: [],
     estado: []
   };
 
@@ -248,17 +185,17 @@ export class HistorialSolicitudesComponent {
     return this.rol === 'SECRETARIA_ACADEMICA';
   }
 
-  get isCoordinador(): boolean {
-    return this.rol === 'COORDINADOR';
+  get isSecretariaGeneral(): boolean {
+    return this.rol === 'SECRETARIA_GENERAL';
   }
 
   get canViewDocenteColumns(): boolean {
-    return this.isSecretariaAcademica || this.isCoordinador;
+    return this.isSecretariaAcademica || this.isSecretariaGeneral;
   }
 
   get roleInfoMessageKey(): string {
-    if (this.isCoordinador) {
-      return 'HISTORIAL_SOLICITUDES.roleInfo.coordinador';
+    if (this.isSecretariaGeneral) {
+      return 'HISTORIAL_SOLICITUDES.roleInfo.secretariaGeneral';
     }
     if (this.isSecretariaAcademica) {
       return 'HISTORIAL_SOLICITUDES.roleInfo.secretariaAcademica';
@@ -278,7 +215,8 @@ export class HistorialSolicitudesComponent {
     private readonly tercerosService: TercerosService,
     private readonly sabaticosCrudService: SabaticosCrudService,
     private readonly configuracionService: ConfiguracionService,
-    private readonly sabaticosMidService: SabaticosMidService
+    private readonly sabaticosMidService: SabaticosMidService,
+    private readonly loaderService: LoaderService
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
     this.dateAdapter.setLocale(this.currentLang);
@@ -293,7 +231,7 @@ export class HistorialSolicitudesComponent {
 
     let roles: any = this.autenticationService.getRole();
 
-    this.rol= roles.__zone_symbol__value.find((x: string) => ['ADMINISTRADOR', 'DOCENTE', 'COORDINADOR'].includes(x));
+    this.rol= roles.__zone_symbol__value.find((x: string) => ['SECRETARIA_ACADEMICA', 'DOCENTE', 'SECRETARIA_GENERAL'].includes(x));
 
     this.configuracionService.get("perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:" + this.rol)
     .subscribe((response: any) => {
@@ -301,18 +239,14 @@ export class HistorialSolicitudesComponent {
       this.perfil = response[0]?.Perfil?.Nombre ?? '';
     });
 
-    if (this.rol == 'ADMINISTRADOR'){
-      this.rol = 'SECRETARIA_ACADEMICA'
-    }
-
     this.autenticationService.getDocument().then((documento: any) => {
       this.documento = String(documento ?? '');
       this.loadDocenteInfo(this.documento);
 
       if (this.isSecretariaAcademica) {
         this.loadSolicitudesSecretariaAcademica();
-      } else if (this.isCoordinador) {
-        this.loadSolicitudesCoordinador();
+      } else if (this.isSecretariaGeneral) {
+        this.loadSolicitudesSecretariaGeneral();
       } else {
         this.loadTerceroIdAndSolicitudes(this.documento);
       }
@@ -323,25 +257,53 @@ export class HistorialSolicitudesComponent {
     return this.estadoTraducciones[estado];
   }
 
+  getTipoSolicitudTranslation(tipo: string): string {
+    return this.isTipoSolicitudConocido(tipo)
+      ? this.tipoSolicitudTraducciones[tipo]
+      : tipo;
+  }
+
+  getTipoSolicitudClass(tipo: string): string {
+    switch (tipo) {
+      case 'Nueva':
+        return 'tipo--nueva';
+      case 'Suspensión':
+        return 'tipo--suspension';
+      case 'Modificación':
+        return 'tipo--modificacion';
+      default:
+        return 'tipo--desconocido';
+    }
+  }
+
+  getTipoSolicitudIcon(tipo: string): string {
+    switch (tipo) {
+      case 'Nueva':
+        return 'note_add';
+      case 'Suspensión':
+        return 'pause_circle';
+      case 'Modificación':
+        return 'edit';
+      default:
+        return 'help_outline';
+    }
+  }
+
+  private isTipoSolicitudConocido(tipo: string): tipo is TipoSolicitud {
+    return (this.tipoSolicitudOptions as readonly string[]).includes(tipo);
+  }
+
   getEstadoClass(estado: EstadoSolicitud): string {
     switch (estado) {
       case 'Borrador':
         return 'estado--borrador';
       case 'Radicada / Enviada a SA':
-      case 'Recepcionada a SA':
-      case 'En verificación de SA':
         return 'estado--sa';
-      case 'Subsanación solicitada':
+      case 'Subsanación solicitada SA':
+      case 'Subsanación solicitada SG':
         return 'estado--subsanacion';
-      case 'Trámite externo CF':
-      case 'Respuesta CF registrada':
-        return 'estado--cf';
       case 'Enviada a SG':
-      case 'Recepcionada a SG':
         return 'estado--sg';
-      case 'Trámite externo CA':
-      case 'Decisión CA registrada':
-        return 'estado--ca';
       case 'Aprobada pendiente Resolución':
         return 'estado--pendiente-resolucion';
       case 'Finalizada Aprobada con Resolución':
@@ -359,13 +321,11 @@ export class HistorialSolicitudesComponent {
 
   getDocenteIdentificacion(solicitud: HistorialSolicitud): string {
     return solicitud.docenteIdentificacion
-      || solicitud.detalle?.docenteIdentificacion
       || this.docenteInfo.documentoIdentificacion;
   }
 
   getDocenteNombre(solicitud: HistorialSolicitud): string {
     return solicitud.docenteNombre
-      || solicitud.detalle?.docenteNombre
       || this.docenteInfo.nombre;
   }
 
@@ -385,8 +345,8 @@ export class HistorialSolicitudesComponent {
       if (this.isSecretariaAcademica) {
         return this.isSecretariaAcademicaViewOnly(solicitud);
       }
-      if (this.isCoordinador) {
-        return this.isCoordinadorViewOnly(solicitud);
+      if (this.isSecretariaGeneral) {
+        return this.isSecretariaGeneralViewOnly(solicitud);
       }
     }
     return false;
@@ -401,11 +361,11 @@ export class HistorialSolicitudesComponent {
   }
 
   getEditIcon(): string {
-    return (this.isSecretariaAcademica || this.isCoordinador) ? 'library_add_check' : 'edit';
+    return (this.isSecretariaAcademica || this.isSecretariaGeneral) ? 'library_add_check' : 'edit';
   }
 
   getEditAriaKey(): string {
-    return (this.isSecretariaAcademica || this.isCoordinador)
+    return (this.isSecretariaAcademica || this.isSecretariaGeneral)
       ? 'HISTORIAL_SOLICITUDES.actions.reviewAria'
       : 'HISTORIAL_SOLICITUDES.actions.editAria';
   }
@@ -413,18 +373,16 @@ export class HistorialSolicitudesComponent {
   private isDocenteEditable(solicitud: HistorialSolicitud): boolean {
     return solicitud.estado === 'Borrador'
       || solicitud.estado === 'Radicada / Enviada a SA'
-      || solicitud.estado === 'Subsanación solicitada';
+      || solicitud.estado === 'Subsanación solicitada SA'
+      || solicitud.estado === 'Subsanación solicitada SG';
   }
 
-  private isCoordinadorViewOnly(solicitud: HistorialSolicitud): boolean {
+  private isSecretariaGeneralViewOnly(solicitud: HistorialSolicitud): boolean {
     const viewOnlyStates: EstadoSolicitud[] = [
       'Borrador',
       'Radicada / Enviada a SA',
-      'Recepcionada a SA',
-      'En verificación de SA',
-      'Subsanación solicitada',
-      'Trámite externo CF',
-      'Respuesta CF registrada',
+      'Subsanación solicitada SA',
+      'Subsanación solicitada SG',
       'Finalizada Aprobada con Resolución',
     ];
     return viewOnlyStates.includes(solicitud.estado);
@@ -432,11 +390,9 @@ export class HistorialSolicitudesComponent {
 
   private isSecretariaAcademicaViewOnly(solicitud: HistorialSolicitud): boolean {
     return solicitud.estado === 'Borrador'
-      || solicitud.estado === 'Subsanación solicitada'
+      || solicitud.estado === 'Subsanación solicitada SA'
+      || solicitud.estado === 'Subsanación solicitada SG'
       || solicitud.estado === 'Enviada a SG'
-      || solicitud.estado === 'Recepcionada a SG'
-      || solicitud.estado === 'Trámite externo CA'
-      || solicitud.estado === 'Decisión CA registrada'
       || solicitud.estado === 'Finalizada No aprobada'
       || solicitud.estado === 'Aprobada pendiente Resolución'
       || solicitud.estado === 'Finalizada Aprobada con Resolución';
@@ -457,18 +413,8 @@ export class HistorialSolicitudesComponent {
       });
   }
 
-  private readonly estadosVisiblesCoordinador: EstadoSolicitud[] = [
-    'Enviada a SG',
-    'Recepcionada a SG',
-    'Trámite externo CA',
-    'Decisión CA registrada',
-    'Finalizada No aprobada',
-    'Aprobada pendiente Resolución',
-    'Finalizada Aprobada con Resolución',
-  ];
-
   private isEstadoVisibleCoordinador(estado: EstadoSolicitud): boolean {
-    return this.estadosVisiblesCoordinador.includes(estado);
+    return estado === 'Enviada a SG';
   }
 
   private loadTerceroIdAndSolicitudes(documento: string): void {
@@ -491,20 +437,20 @@ export class HistorialSolicitudesComponent {
       next: (response: any) => {
         const data = response?.Data ?? response ?? [];
         const apiSolicitudes = this.mapHistorialResponse(Array.isArray(data) ? data : []);
-        this.solicitudes = [...apiSolicitudes, ...this.mockSolicitudes];
+        this.solicitudes = apiSolicitudes;
         this.applyFilters();
         this.cargandoSolicitudes = false;
       },
       error: (error) => {
         console.error('Error al cargar solicitudes:', error);
-        this.solicitudes = [...this.mockSolicitudes];
+        this.solicitudes = [];
         this.applyFilters();
         this.cargandoSolicitudes = false;
       }
     });
   }
 
-  private loadSolicitudesCoordinador(): void {
+  private loadSolicitudesSecretariaGeneral(): void {
     this.cargandoSolicitudes = true;
     const endpoint = 'historial_solicitud?query=Activo:True&limit=-1';
 
@@ -515,14 +461,14 @@ export class HistorialSolicitudesComponent {
           const data = response?.Data ?? response ?? [];
           const apiSolicitudes = this.mapHistorialResponse(Array.isArray(data) ? data : [])
             .filter((s) => this.isEstadoVisibleCoordinador(s.estado));
-          this.solicitudes = [...apiSolicitudes, ...this.mockSolicitudes];
+          this.solicitudes = apiSolicitudes;
           this.applyFilters();
           this.cargandoSolicitudes = false;
           this.fetchDocenteInfoForSolicitudes(apiSolicitudes);
         },
         error: (error) => {
           console.error('Error al cargar solicitudes del coordinador:', error);
-          this.solicitudes = [...this.mockSolicitudes];
+          this.solicitudes = [];
           this.applyFilters();
           this.cargandoSolicitudes = false;
         }
@@ -531,7 +477,7 @@ export class HistorialSolicitudesComponent {
 
   private loadSolicitudesSecretariaAcademica(): void {
     this.cargandoSolicitudes = true;
-    const estados = ['S1', 'S2', 'S3', 'S5', 'S6', 'S12'];
+    const estados = ['S1', 'S11B'];
     const queryParams = estados.map((s) => `estadoSolicitud=${s}`).join('&');
     const endpoint = `solicitud/formularios/${this.documento}?${queryParams}`;
 
@@ -541,14 +487,14 @@ export class HistorialSolicitudesComponent {
         next: (response: any) => {
           const data = response?.Data ?? [];
           const apiSolicitudes = this.mapSecretariaAcademicaSolicitudes(Array.isArray(data) ? data : []);
-          this.solicitudes = [...apiSolicitudes, ...this.mockSolicitudes];
+          this.solicitudes = apiSolicitudes;
           this.applyFilters();
           this.cargandoSolicitudes = false;
           this.fetchDocenteInfoForSolicitudes(apiSolicitudes);
         },
         error: (error) => {
           console.error('Error al cargar solicitudes de secretaría académica:', error);
-          this.solicitudes = [...this.mockSolicitudes];
+          this.solicitudes = [];
           this.applyFilters();
           this.cargandoSolicitudes = false;
         }
@@ -574,10 +520,12 @@ export class HistorialSolicitudesComponent {
       const estadoNombre = item.EstadoSolicitudId?.Nombre ?? 'Borrador';
       const fechaFormateada = this.formatApiDate(item.FechaCreacion ?? '');
       const terceroId = Number(item.SolicitudId?.TerceroId ?? item.TerceroId) || 0;
+      const tipoSolicitud = item.SolicitudId?.TipoSolicitudId?.Nombre ?? '';
 
       return {
         id: String(item.SolicitudId?.Id ?? ''),
         fechaRadicado: fechaFormateada,
+        tipoSolicitud,
         estado: estadoNombre as EstadoSolicitud,
         ...(terceroId > 0 ? { terceroIdDocente: terceroId } : {})
       };
@@ -590,10 +538,12 @@ export class HistorialSolicitudesComponent {
       const fechaRaw = item.FechaCreacion ?? '';
       const fechaFormateada = this.formatApiDate(fechaRaw);
       const terceroId = Number(item.SolicitudId?.TerceroId) || 0;
+      const tipoSolicitud = item.SolicitudId?.TipoSolicitudId?.Nombre ?? '';
 
       return {
         id: String(item.SolicitudId?.Id ?? item.Id ?? ''),
         fechaRadicado: fechaFormateada,
+        tipoSolicitud,
         estado: estadoNombre as EstadoSolicitud,
         ...(terceroId > 0 ? { terceroIdDocente: terceroId } : {})
       };
@@ -675,6 +625,26 @@ export class HistorialSolicitudesComponent {
     solicitud: HistorialSolicitud,
     readOnly: boolean
   ): void {
+    // Las solicitudes de Suspensión o Modificación usan un componente dedicado
+    // para los tres roles (DOCENTE, SECRETARIA_ACADEMICA, SECRETARIA_GENERAL),
+    // independientemente del rol que esté gestionando la solicitud.
+    if (this.esSuspensionOModificacion(solicitud.tipoSolicitud)) {
+      this.router.navigate(['solicitudes/suspension-modificacion'], {
+        state: {
+          rol: this.rol,
+          readOnly,
+          tipoSolicitud: solicitud.tipoSolicitud,
+          solicitud: {
+            id: solicitud.id,
+            fechaRadicado: solicitud.fechaRadicado,
+            estado: solicitud.estado,
+            tipoSolicitud: solicitud.tipoSolicitud,
+          }
+        }
+      });
+      return;
+    }
+
     this.router.navigate(['solicitudes/editar'], {
       state: {
         rol: this.rol,
@@ -683,19 +653,87 @@ export class HistorialSolicitudesComponent {
           id: solicitud.id,
           fechaRadicado: solicitud.fechaRadicado,
           estado: solicitud.estado,
-          ...(solicitud.detalle ? { mockDetalle: solicitud.detalle } : {})
         }
       }
     });
   }
 
-  onIniciarSabatico(id: string): void {
-    console.log(`Iniciar sabático para solicitud ${id}`);
+  private esSuspensionOModificacion(tipo: string | undefined | null): boolean {
+    if (!tipo) {
+      return false;
+    }
+    const normalizado = tipo.trim().toLowerCase();
+    return normalizado === 'suspensión'
+      || normalizado === 'suspension'
+      || normalizado === 'modificación'
+      || normalizado === 'modificacion';
+  }
+
+  onIniciarSabatico(solicitud: HistorialSolicitud): void {
+    const dialogRef = this.dialog.open(IniciarSabaticoModalComponent, {
+      width: '420px',
+      maxWidth: '90vw',
+      disableClose: true,
+      autoFocus: false,
+      backdropClass: 'sga-sabaticos-blurred-backdrop',
+      data: { solicitudId: solicitud.id }
+    });
+
+    dialogRef.afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (!result) {
+          return;
+        }
+        this.crearSabatico(solicitud, result.fechaInicio, result.fechaFin);
+      });
+  }
+
+  private crearSabatico(solicitud: HistorialSolicitud, fechaInicio: Date, fechaFin: Date): void {
+    const solicitudIdNumerico = Number(String(solicitud.id).replace(/[^\d]/g, ''));
+    const terceroId = solicitud.terceroIdDocente ?? this.terceroId ?? 0;
+
+    const payload = {
+      solicitud_id: solicitudIdNumerico,
+      tercero_id: terceroId,
+      observaciones: 'Creación de año sabático',
+      fecha_inicio: this.formatDate(fechaInicio),
+      fecha_fin: this.formatDate(fechaFin)
+    };
+
+    this.loaderService.show();
+    this.sabaticosMidService.post('sabatico', payload)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loaderService.hide())
+      )
+      .subscribe({
+        next: () => {
+          this.popUpManager.showToast('HISTORIAL_SOLICITUDES.iniciarSabatico.exito');
+          this.recargarSolicitudes();
+        },
+        error: (error) => {
+          console.error('Error al iniciar sabático:', error);
+          this.popUpManager.showErrorAlert(
+            this.translate.instant('HISTORIAL_SOLICITUDES.iniciarSabatico.errorEnviar')
+          );
+        }
+      });
+  }
+
+  private formatDate(date: Date | null): string {
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+      return '';
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   shouldShowIniciarSabatico(solicitud: HistorialSolicitud): boolean {
     if (this.canCrearSabatico) {
-    return this.isSecretariaAcademica && solicitud.estado === 'Finalizada Aprobada con Resolución';
+    return this.isSecretariaAcademica && solicitud.estado === 'Aprobada pendiente Resolución';
     }
 
     return false;
@@ -736,8 +774,8 @@ export class HistorialSolicitudesComponent {
       return;
     }
 
-    if (this.isCoordinador) {
-      this.loadSolicitudesCoordinador();
+    if (this.isSecretariaGeneral) {
+      this.loadSolicitudesSecretariaGeneral();
       return;
     }
 
@@ -751,7 +789,7 @@ export class HistorialSolicitudesComponent {
         next: (response: any) => {
           const data = response?.Data ?? response ?? [];
           const apiSolicitudes = this.mapHistorialResponse(Array.isArray(data) ? data : []);
-          this.solicitudes = [...apiSolicitudes, ...this.mockSolicitudes];
+          this.solicitudes = apiSolicitudes;
           this.applyFilters();
           this.cargandoSolicitudes = false;
         },
@@ -769,6 +807,11 @@ export class HistorialSolicitudesComponent {
 
   onEstadoFilterChange(estados: EstadoSolicitud[]): void {
     this.columnFilters.estado = estados ?? [];
+    this.applyFilters();
+  }
+
+  onTipoSolicitudFilterChange(tipos: TipoSolicitud[]): void {
+    this.columnFilters.tipoSolicitud = tipos ?? [];
     this.applyFilters();
   }
 
@@ -795,10 +838,11 @@ export class HistorialSolicitudesComponent {
       const matchesDocenteNombre = this.canViewDocenteColumns
         ? this.matchesFilter(this.getDocenteNombre(solicitud), this.columnFilters.docenteNombre)
         : true;
+      const matchesTipoSolicitud = this.matchesTipoSolicitudFilter(solicitud.tipoSolicitud);
       const matchesEstado = this.matchesEstadoFilter(solicitud.estado);
       const matchesFecha = this.matchesFechaRange(solicitud.fechaRadicado);
 
-      return matchesId && matchesDocenteIdentificacion && matchesDocenteNombre && matchesEstado && matchesFecha;
+      return matchesId && matchesDocenteIdentificacion && matchesDocenteNombre && matchesTipoSolicitud && matchesEstado && matchesFecha;
     });
     this.pageIndex = 0;
   }
@@ -815,6 +859,13 @@ export class HistorialSolicitudesComponent {
       return true;
     }
     return this.columnFilters.estado.includes(estado);
+  }
+
+  private matchesTipoSolicitudFilter(tipo: string): boolean {
+    if (!this.columnFilters.tipoSolicitud.length) {
+      return true;
+    }
+    return this.columnFilters.tipoSolicitud.some((seleccionado) => seleccionado === tipo);
   }
 
   private matchesFechaRange(fechaRadicado: string): boolean {
@@ -875,54 +926,5 @@ export class HistorialSolicitudesComponent {
 
   private stripTime(date: Date): number {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-  }
-
-  private buildMockDetalle(id: string): SolicitudDetalle {
-    return {
-      docenteNombre: 'Carlos Andrés Pérez Gómez',
-      docenteIdentificacion: '1023456789',
-      docenteFacultad: 'Facultad de Ingeniería',
-      docenteProyecto: 'Ingeniería de Sistemas',
-      periodoEjecucion: '2026-I',
-      ultimoSabatico: { start: new Date(2019, 0, 15), end: new Date(2019, 11, 15) },
-      productoUltimo: 'Libro publicado: Fundamentos de IA aplicada',
-      modalidad: 'Investigación',
-      objetivoGeneral: `Desarrollar un framework de análisis predictivo para datos académicos (${id}).`,
-      objetivosEspecificos: 'Diseñar la arquitectura del framework.\nImplementar módulos de procesamiento.\nValidar con datos reales.',
-      justificacion: 'La universidad requiere herramientas que permitan anticipar tendencias académicas y optimizar la toma de decisiones.',
-      planDesarrolloInstitucional: 'Alineado con el eje estratégico de innovación tecnológica del PDI 2024-2028.',
-      proyectoEducativoFacultad: 'Contribuye al fortalecimiento de la línea de investigación en ciencia de datos.',
-      proyectoEducativoProgramas: 'Aporta al componente investigativo del programa de Ingeniería de Sistemas.',
-      productoEntregable: 'Framework funcional con documentación técnica y artículo sometido a revista indexada.',
-      impactoAlcance: 'Beneficio directo para la comunidad académica de la universidad y potencial transferencia a otras IES.',
-      metodologia: 'Metodología mixta: revisión sistemática de literatura, desarrollo ágil (Scrum) y validación empírica.',
-      cronograma: {
-        mes1: 'Revisión de literatura',
-        mes2: 'Diseño de arquitectura',
-        mes3: 'Desarrollo módulo de ingesta',
-        mes4: 'Desarrollo módulo de procesamiento',
-        mes5: 'Desarrollo módulo de análisis',
-        mes6: 'Integración de módulos',
-        mes7: 'Pruebas unitarias e integración',
-        mes8: 'Validación con datos reales',
-        mes9: 'Ajustes y optimización',
-        mes10: 'Documentación técnica',
-        mes11: 'Redacción de artículo científico',
-        mes12: 'Entrega final y socialización'
-      },
-      presupuesto: 'Recursos computacionales: $5.000.000 COP\nMaterial bibliográfico: $2.000.000 COP\nViáticos: $3.000.000 COP',
-      observaciones: '',
-      documentos: {
-        avalConsejo: `Aval_Consejo_${id}.pdf`,
-        cronogramaMensual: `Cronograma_Mensual_${id}.pdf`,
-        presupuestoProyectado: `Presupuesto_${id}.pdf`,
-        certificacionLaboral: `Certificacion_Laboral_${id}.pdf`,
-        pazSalvoAcademico: `Paz_Salvo_Academico_${id}.pdf`,
-        pazSalvoInvestigaciones: `Paz_Salvo_Investigaciones_${id}.pdf`,
-        pazSalvoExtension: `Paz_Salvo_Extension_${id}.pdf`,
-        pazSalvoAlmacen: `Paz_Salvo_Almacen_${id}.pdf`,
-        pazSalvoFinanciero: `Paz_Salvo_Financiero_${id}.pdf`,
-      }
-    };
   }
 }

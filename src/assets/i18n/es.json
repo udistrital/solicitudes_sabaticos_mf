@@ -618,6 +618,7 @@
     "columns": {
       "id": "ID",
       "fechaRadicado": "Fecha radicado",
+      "tipoSolicitud": "Tipo",
       "docenteIdentificacion": "Identificación docente",
       "docenteNombre": "Nombre docente",
       "estado": "Estado solicitud",
@@ -627,23 +628,23 @@
       "id": "Filtrar por ID",
       "fechaRadicadoDesde": "Fecha desde",
       "fechaRadicadoHasta": "Fecha hasta",
+      "tipoSolicitud": "Filtrar por tipo",
       "docenteIdentificacion": "Filtrar por identificación",
       "docenteNombre": "Filtrar por nombre",
       "estado": "Filtrar por estado",
       "gestion": "Filtrar por gestión"
     },
+    "tipoSolicitud": {
+      "nueva": "Nueva",
+      "suspension": "Suspensión",
+      "modificacion": "Modificación"
+    },
     "status": {
       "draft": "Borrador",
       "filedSentSa": "Radicada / Enviada a SA",
-      "receivedSa": "Recepcionada a SA",
-      "verificationSa": "En verificación de SA",
-      "correctionRequested": "Subsanación solicitada",
-      "externalProcessCf": "Trámite externo CF",
-      "responseCfRecorded": "Respuesta CF registrada",
+      "correctionRequestedSa": "Subsanación solicitada por SA",
+      "correctionRequestedSg": "Subsanación solicitada por SG",
       "sentSg": "Enviada a SG",
-      "receivedSg": "Recepcionada a SG",
-      "externalProcessCa": "Trámite externo CA",
-      "decisionCaRecorded": "Decisión CA registrada",
       "finishedNotApproved": "Finalizada No aprobada",
       "approvedPendingResolution": "Aprobada pendiente Resolución",
       "finishedApprovedResolution": "Finalizada Aprobada con Resolución"
@@ -671,7 +672,7 @@
       "subtitle": "Sección para visualizar las solicitudes en curso"
     },
     "roleInfo": {
-      "coordinador": "Desde esta sección podrá consultar el historial de solicitudes tramitadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar el expediente consolidado, registrar la decisión del Consejo Académico y adjuntar la resolución o los documentos que soportan la respuesta.",
+      "secretariaGeneral": "Desde esta sección podrá consultar el historial de solicitudes tramitadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar el expediente consolidado, registrar la decisión del Consejo Académico y adjuntar la resolución o los documentos que soportan la respuesta.",
       "secretariaAcademica": "Desde esta sección podrá consultar las solicitudes radicadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar su estado documental, registrar la respuesta del Consejo de Facultad y gestionar devoluciones o subsanaciones cuando corresponda.",
       "docente": "Le damos la bienvenida al módulo de solicitudes de Año Sabático, aquí usted podrá registrar y consultar sus solicitudes (GD-PR-020 del SIGUD), y dar continuidad al proceso cuando lo requiera."
     },
@@ -688,7 +689,8 @@
       "save": "Guardar cambios",
       "sendReview": "Enviar a revisión",
       "sendReviewSecretariaGeneral": "Enviar a revisión",
-      "subsanacion": "Subsanación",
+      "subsanacion": "Subsanar",
+      "rechazarSolicitud": "Rechazar solicitud",
       "saveSecretariaSuccess": "Cambios guardados exitosamente",
       "saveSecretariaError": "Error al guardar los cambios",
       "sendSecretariaSuccess": "Solicitud enviada exitosamente",
@@ -834,8 +836,20 @@
       "confirmSendGeneral": "¿Está seguro/a de que desea enviar la solicitud a la siguiente fase de revisión/aprobación?",
       "confirmSubsanacionTitle": "Confirmar subsanación",
       "confirmSubsanacion": "¿Está seguro/a de que desea devolver esta solicitud para subsanación?",
+      "confirmRechazarSolicitudTitle": "Confirmar rechazo de solicitud",
+      "confirmRechazarSolicitud": "¿Está seguro/a de que desea rechazar esta solicitud? Esta acción la dejará como No aprobada.",
       "confirmDeleteDocTitle": "Confirmar eliminación",
       "confirmDeleteDoc": "¿Está seguro/a de que desea eliminar este documento?"
+    },
+    "iniciarSabatico": {
+      "title": "Formalizar Sabático",
+      "fechaInicio": "Fecha de inicio",
+      "fechaFin": "Fecha de finalización",
+      "cancelar": "Cancelar",
+      "confirmar": "Iniciar Sabático",
+      "rangoInvalido": "La fecha de inicio no puede ser posterior a la fecha de finalización.",
+      "exito": "El año sabático se ha iniciado correctamente.",
+      "errorEnviar": "Ocurrió un error al iniciar el año sabático. Intente nuevamente."
     }
   },
   "gestion_horarios": {
@@ -1213,5 +1227,61 @@
     "no_docente_encontrado": "No se encontró ningún docente con el documento proporcionado",
     "no_vinculacion_docente": "No se encontraron vinculaciones para el docente proporcionado",
     "descripcion_asignar_docente": "Por favor, ingrese el documento en el campo correspondiente y presione Enter para completar los campos restantes."
+  },
+  "CREAR_SOLICITUD": {
+    "title": "Crear solicitud de sabático",
+    "subtitle": "Diligencia los datos para registrar una nueva solicitud de sabático",
+    "procesoInfo": "En este apartado podrá hacer seguimiento a todo el proceso y consultar el estado actual de su solicitud de sabático, junto con los soportes y la información asociada al registro.",
+    "cargando": "Cargando datos de la solicitud...",
+    "summary": {
+      "idSolicitud": "ID solicitud",
+      "idSabatico": "ID sabático",
+      "fechaInicio": "Fecha de inicio",
+      "fechaFinal": "Fecha final",
+      "estadoSabatico": "Estado sabático",
+      "empty": "No se recibió información del sabático seleccionado. Vuelve al historial y selecciona un sabático para continuar."
+    },
+    "fields": {
+      "tipoSolicitud": "Tipo de solicitud",
+      "justificacion": "Justificación"
+    },
+    "tiposSolicitud": {
+      "suspension": "Suspensión",
+      "modificacion": "Modificación"
+    },
+    "documentos": {
+      "title": "Documentos de soporte",
+      "ayudaPdf": "Solo se permiten archivos en formato PDF.",
+      "nombreDocumento": "Ingresa el nombre del documento",
+      "cargar": "Cargar",
+      "sinArchivo": "Sin archivo cargado",
+      "sinNombre": "Documento sin nombre",
+      "archivoBackend": "Documento cargado previamente",
+      "archivoBackendTooltip": "Este documento ya fue cargado al servidor",
+      "noPreviewTitle": "Sin previsualización",
+      "noPreviewText": "No fue posible obtener la previsualización del documento. Intenta de nuevo más tarde.",
+      "sinDocumentos": "Aún no has agregado documentos de soporte.",
+      "eliminarAria": "Eliminar documento",
+      "previsualizarAria": "Previsualizar documento",
+      "confirmEliminarTitle": "Eliminar documento",
+      "confirmEliminarText": "¿Estás seguro de que deseas eliminar el documento \"{{nombre}}\"? Esta acción no se puede deshacer."
+    },
+    "respuesta": {
+      "title": "Respuesta Solicitud",
+      "observaciones": "Observaciones y/o comentarios"
+    },
+    "actions": {
+      "enviarRevision": "Enviar a revisión",
+      "confirmEnvioTitle": "Confirmar envío",
+      "confirmEnvioText": "Una vez enviada, la solicitud avanzará al siguiente estado del flujo y no podrás revertir este paso. ¿Deseas continuar?"
+    },
+    "exito": {
+      "envioRevisionExitoso": "La solicitud se envió a revisión correctamente."
+    },
+    "errores": {
+      "terceroNoEncontrado": "No se pudo identificar al docente. Vuelve a iniciar sesión e inténtalo de nuevo.",
+      "envioRevisionFallido": "No fue posible enviar la solicitud a revisión. Intenta de nuevo más tarde.",
+      "documentosFallidos": "No fue posible cargar los siguientes documentos: {{documentos}}. Vuelve a intentarlo."
+    }
   }
 }

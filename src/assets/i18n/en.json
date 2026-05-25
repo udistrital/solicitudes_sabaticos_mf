@@ -588,6 +588,7 @@
     "columns": {
       "id": "ID",
       "fechaRadicado": "Filing date",
+      "tipoSolicitud": "Type",
       "docenteIdentificacion": "Instructor identification",
       "docenteNombre": "Instructor name",
       "estado": "Request status",
@@ -604,30 +605,42 @@
       "confirmSendGeneral": "Are you sure you want to send this request to the next review/approval phase?",
       "confirmSubsanacionTitle": "Confirm correction",
       "confirmSubsanacion": "Are you sure you want to return this request for correction?",
+      "confirmRechazarSolicitudTitle": "Confirm request rejection",
+      "confirmRechazarSolicitud": "Are you sure you want to reject this request? This action will mark it as Not approved.",
       "confirmDeleteDocTitle": "Confirm deletion",
       "confirmDeleteDoc": "Are you sure you want to delete this document?"
+    },
+    "iniciarSabatico": {
+      "title": "Formalize Sabbatical",
+      "fechaInicio": "Start date",
+      "fechaFin": "End date",
+      "cancelar": "Cancel",
+      "confirmar": "Start Sabbatical",
+      "rangoInvalido": "The start date cannot be after the end date.",
+      "exito": "The sabbatical year has been started successfully.",
+      "errorEnviar": "An error occurred while starting the sabbatical year. Please try again."
     },
     "filters": {
       "id": "Filter by ID",
       "fechaRadicadoDesde": "Start date",
       "fechaRadicadoHasta": "End date",
+      "tipoSolicitud": "Filter by type",
       "docenteIdentificacion": "Filter by identification",
       "docenteNombre": "Filter by name",
       "estado": "Filter by status",
       "gestion": "Filter by management"
     },
+    "tipoSolicitud": {
+      "nueva": "New",
+      "suspension": "Suspension",
+      "modificacion": "Modification"
+    },
     "status": {
       "draft": "Draft",
       "filedSentSa": "Filed / Sent to SA",
-      "receivedSa": "Received by SA",
-      "verificationSa": "Under SA verification",
-      "correctionRequested": "Correction requested",
-      "externalProcessCf": "External CF process",
-      "responseCfRecorded": "CF response recorded",
+      "correctionRequestedSa": "Correction requested by SA",
+      "correctionRequestedSg": "Correction requested by SG",
       "sentSg": "Sent to SG",
-      "receivedSg": "Received by SG",
-      "externalProcessCa": "External CA process",
-      "decisionCaRecorded": "CA decision recorded",
       "finishedNotApproved": "Completed not approved",
       "approvedPendingResolution": "Approved pending resolution",
       "finishedApprovedResolution": "Completed approved with resolution"
@@ -655,7 +668,7 @@
       "subtitle": "Section to view ongoing requests"
     },
     "roleInfo": {
-      "coordinador": "From this section, you can review the history of requests processed in SGA under SIGUD procedure GD-PR-020, review the consolidated file, record the Academic Council decision, and attach the resolution or supporting response documents.",
+      "secretariaGeneral": "From this section, you can review the history of requests processed in SGA under SIGUD procedure GD-PR-020, review the consolidated file, record the Academic Council decision, and attach the resolution or supporting response documents.",
       "secretariaAcademica": "From this section, you can review requests filed in SGA under SIGUD procedure GD-PR-020, check their documentary status, record the Faculty Council response, and manage returns or corrections when applicable.",
       "docente": "Welcome to the Sabbatical Request module. Here you can register and review your requests (SIGUD GD-PR-020) and continue the process whenever needed."
     },
@@ -672,7 +685,8 @@
       "save": "Save changes",
       "sendReview": "Send for review",
       "sendReviewSecretariaGeneral": "Send for review",
-      "subsanacion": "Correction",
+      "subsanacion": "Request correction",
+      "rechazarSolicitud": "Reject request",
       "saveSecretariaSuccess": "Changes saved successfully",
       "saveSecretariaError": "Error saving changes",
       "sendSecretariaSuccess": "Request sent successfully",
@@ -1165,6 +1179,62 @@
     "no_docente_encontrado": "No teacher found with the provided document",
     "no_vinculacion_docente": "No affiliations found for the provided teacher",
     "descripcion_asignar_docente": "Please enter the document in the corresponding field and press Enter to fill in the remaining fields."
+  },
+  "CREAR_SOLICITUD": {
+    "title": "Create sabbatical request",
+    "subtitle": "Fill in the information to register a new sabbatical request",
+    "procesoInfo": "In this section you can track the entire process and review the current status of your sabbatical request, along with its supporting documents and associated information.",
+    "cargando": "Loading request data...",
+    "summary": {
+      "idSolicitud": "Request ID",
+      "idSabatico": "Sabbatical ID",
+      "fechaInicio": "Start date",
+      "fechaFinal": "End date",
+      "estadoSabatico": "Sabbatical status",
+      "empty": "No information was received from the selected sabbatical. Go back to the history and select one to continue."
+    },
+    "fields": {
+      "tipoSolicitud": "Request type",
+      "justificacion": "Justification"
+    },
+    "tiposSolicitud": {
+      "suspension": "Suspension",
+      "modificacion": "Modification"
+    },
+    "documentos": {
+      "title": "Supporting documents",
+      "ayudaPdf": "Only PDF files are allowed.",
+      "nombreDocumento": "Enter the document name",
+      "cargar": "Upload",
+      "sinArchivo": "No file uploaded",
+      "sinNombre": "Document without name",
+      "archivoBackend": "Previously uploaded document",
+      "archivoBackendTooltip": "This document was already uploaded to the server",
+      "noPreviewTitle": "No preview available",
+      "noPreviewText": "It was not possible to fetch the document preview. Please try again later.",
+      "sinDocumentos": "You haven't added any supporting documents yet.",
+      "eliminarAria": "Delete document",
+      "previsualizarAria": "Preview document",
+      "confirmEliminarTitle": "Delete document",
+      "confirmEliminarText": "Are you sure you want to delete the document \"{{nombre}}\"? This action cannot be undone."
+    },
+    "respuesta": {
+      "title": "Request Response",
+      "observaciones": "Observations and/or comments"
+    },
+    "actions": {
+      "enviarRevision": "Send for review",
+      "confirmEnvioTitle": "Confirm submission",
+      "confirmEnvioText": "Once submitted, the request will advance to the next state in the flow and this step cannot be reverted. Do you want to continue?"
+    },
+    "exito": {
+      "envioRevisionExitoso": "The request was sent for review successfully."
+    },
+    "errores": {
+      "terceroNoEncontrado": "Could not identify the teacher. Sign in again and try once more.",
+      "envioRevisionFallido": "It was not possible to send the request for review. Please try again later.",
+      "documentosFallidos": "The following documents could not be uploaded: {{documentos}}. Please try again."
+    }
   }
 }
 

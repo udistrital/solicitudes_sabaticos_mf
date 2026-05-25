@@ -208,6 +208,31 @@
           </td>
         </ng-container>
 
+        <ng-container matColumnDef="tipoSolicitud">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="historial-solicitudes__header-cell">
+              <span>{{ 'HISTORIAL_SOLICITUDES.columns.tipoSolicitud' | translate }}</span>
+              <mat-form-field appearance="outline" class="historial-solicitudes__filter historial-solicitudes__filter--estado">
+                <mat-select [placeholder]="'HISTORIAL_SOLICITUDES.filters.tipoSolicitud' | translate" multiple
+                  [value]="columnFilters.tipoSolicitud" (selectionChange)="onTipoSolicitudFilterChange($event.value)">
+                  <mat-option *ngFor="let tipo of tipoSolicitudOptions" [value]="tipo">
+                    {{ getTipoSolicitudTranslation(tipo) | translate }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let solicitud"
+            [attr.data-label]="'HISTORIAL_SOLICITUDES.columns.tipoSolicitud' | translate">
+            <span [ngClass]="['tipo', getTipoSolicitudClass(solicitud.tipoSolicitud)]">
+              <mat-icon class="tipo__icono">{{ getTipoSolicitudIcon(solicitud.tipoSolicitud) }}</mat-icon>
+              <span class="tipo__texto">
+                {{ getTipoSolicitudTranslation(solicitud.tipoSolicitud) | translate }}
+              </span>
+            </span>
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="docenteIdentificacion">
           <th mat-header-cell *matHeaderCellDef>
             <div class="historial-solicitudes__header-cell">
@@ -282,7 +307,7 @@
               <mat-icon>visibility</mat-icon>
             </button>
             <button mat-icon-button class="historial-solicitudes__accion historial-solicitudes__accion--start"
-              type="button" (click)="onIniciarSabatico(solicitud.id)" *ngIf="shouldShowIniciarSabatico(solicitud)"
+              type="button" (click)="onIniciarSabatico(solicitud)" *ngIf="shouldShowIniciarSabatico(solicitud)"
               [attr.aria-label]="'HISTORIAL_SOLICITUDES.actions.startSabaticoAria' | translate">
               <mat-icon>play_circle_filled</mat-icon>
             </button>
