@@ -112,6 +112,7 @@ export class SolicitudSabaticoComponent implements OnDestroy {
   solicitudIdActual: number | null = null;
   rol = '';
   estadoActual = '';
+  private terceroIdSolicitud: number | null = null;
 
   nombreDocumento = '';
   documentosSeleccionadosDetalle: DocumentoDetalle[] = [];
@@ -126,6 +127,8 @@ export class SolicitudSabaticoComponent implements OnDestroy {
   // liberarlos al destruir el componente.
   documentoObjectUrls: Record<string, string> = {};
   documentosCargando: Record<string, boolean> = {};
+
+  private datosExtraContenido: Record<string, unknown> = {};
 
   // Mapa rol -> transición permitida desde el estado actual. Solo un único
   // disparo de "Enviar a revisión" por rol en todo el flujo (lineal puro,
@@ -179,6 +182,8 @@ export class SolicitudSabaticoComponent implements OnDestroy {
 
     if (this.isReadOnly) {
       this.form.disable();
+    } else if (this.esRolSecretaria) {
+      this.aplicarBloqueoSecretaria();
     }
 
     const solicitudIdRaw = navigationState?.solicitud?.id;
@@ -189,8 +194,12 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     }
   }
 
+  get esRolSecretaria(): boolean {
+    return this.rol === 'SECRETARIA_ACADEMICA' || this.rol === 'SECRETARIA_GENERAL';
+  }
+
   get puedeSolicitar(): boolean {
-    return !this.isReadOnly && !this.cargando;
+    return !this.isReadOnly && !this.esRolSecretaria && !this.cargando;
   }
 
   get canEnviarRevision(): boolean {
@@ -241,6 +250,10 @@ export class SolicitudSabaticoComponent implements OnDestroy {
 
           if (formularioRaw) {
             this.formularioRecordId = formularioRaw?.Id ?? null;
+            const terceroRaw = Number(formularioRaw?.SolicitudId?.TerceroId);
+            this.terceroIdSolicitud = Number.isFinite(terceroRaw) && terceroRaw > 0
+              ? terceroRaw
+              : null;
             const contenido = this.parseContenido(formularioRaw?.Contenido);
             this.aplicarContenido(contenido);
           }
@@ -256,6 +269,8 @@ export class SolicitudSabaticoComponent implements OnDestroy {
           // habilitaron controles previamente deshabilitados.
           if (this.isReadOnly) {
             this.form.disable();
+          } else if (this.esRolSecretaria) {
+            this.aplicarBloqueoSecretaria();
           } else if (this.tipoSolicitudBloqueado) {
             this.form.controls['tipoSolicitud'].disable();
           }
@@ -284,9 +299,20 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     }
   }
 
+  private static readonly CAMPOS_GESTIONADOS: ReadonlySet<string> = new Set([
+    'sabatico', 'documentos', 'justificacion', 'tipoSolicitud', 'respuestaSolicitud',
+  ]);
+
   private aplicarContenido(contenido: ContenidoSolicitud | null): void {
     if (!contenido) {
       return;
+    }
+
+    this.datosExtraContenido = {};
+    for (const key of Object.keys(contenido)) {
+      if (!SolicitudSabaticoComponent.CAMPOS_GESTIONADOS.has(key)) {
+        this.datosExtraContenido[key] = contenido[key];
+      }
     }
 
     if (contenido.sabatico) {
@@ -401,7 +427,10 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     this.enviando = true;
 
     try {
-      const terceroId = await this.resolveTerceroId();
+      const terceroId = transicion.endpoint === 'aprobar-rechazar'
+        ? this.terceroIdSolicitud
+        : await this.resolveTerceroId();
+
       if (terceroId === null) {
         this.popUpManager.showErrorAlert(
           this.translate.instant('CREAR_SOLICITUD.errores.terceroNoEncontrado'),
@@ -679,6 +708,11 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     });
   }
 
+  private aplicarBloqueoSecretaria(): void {
+    this.form.disable({ emitEvent: false });
+    this.form.controls['respuestaSolicitud'].enable({ emitEvent: false });
+  }
+
   private buildFormularioPayload(): CrearSolicitudFormulario {
     const { tipoSolicitud, justificacion, respuestaSolicitud } = this.form.getRawValue();
 
@@ -692,6 +726,7 @@ export class SolicitudSabaticoComponent implements OnDestroy {
       : null;
 
     return {
+      ...this.datosExtraContenido,
       tipoSolicitud: this.toNullable(tipoSolicitud),
       justificacion: this.toNullable(justificacion),
       respuestaSolicitud: this.toNullable(respuestaSolicitud),
