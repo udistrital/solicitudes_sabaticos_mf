@@ -371,6 +371,9 @@ export class HistorialSolicitudesComponent {
   }
 
   private isDocenteEditable(solicitud: HistorialSolicitud): boolean {
+    if (this.esSuspensionOModificacion(solicitud.tipoSolicitud)) {
+      return false;
+    }
     return solicitud.estado === 'Borrador'
       || solicitud.estado === 'Radicada / Enviada a SA'
       || solicitud.estado === 'Subsanación solicitada SA'

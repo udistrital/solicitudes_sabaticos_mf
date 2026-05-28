@@ -132,40 +132,42 @@
           {{ 'CREAR_SOLICITUD.documentos.title' | translate }}
         </h3>
 
-        <p class="solicitud-sabatico__documento-help">
-          {{ 'CREAR_SOLICITUD.documentos.ayudaPdf' | translate }}
-        </p>
+        <ng-container *ngIf="!isReadOnly && !esRolSecretaria">
+          <p class="solicitud-sabatico__documento-help">
+            {{ 'CREAR_SOLICITUD.documentos.ayudaPdf' | translate }}
+          </p>
 
-        <div class="solicitud-sabatico__documento-selector">
+          <div class="solicitud-sabatico__documento-selector">
 
-          <mat-form-field
-            appearance="outline"
-            class="solicitud-sabatico__field">
+            <mat-form-field
+              appearance="outline"
+              class="solicitud-sabatico__field">
 
-            <mat-label>
-              {{ 'CREAR_SOLICITUD.documentos.nombreDocumento' | translate }}
-            </mat-label>
+              <mat-label>
+                {{ 'CREAR_SOLICITUD.documentos.nombreDocumento' | translate }}
+              </mat-label>
 
-            <input
-              matInput
-              [(ngModel)]="nombreDocumento"
-              [ngModelOptions]="{ standalone: true }"
-              [disabled]="!puedeSolicitar"
-              [placeholder]="'CREAR_SOLICITUD.documentos.nombreDocumento' | translate" />
+              <input
+                matInput
+                [(ngModel)]="nombreDocumento"
+                [ngModelOptions]="{ standalone: true }"
+                [disabled]="!puedeSolicitar"
+                [placeholder]="'CREAR_SOLICITUD.documentos.nombreDocumento' | translate" />
 
-          </mat-form-field>
+            </mat-form-field>
 
-          <button
-            mat-raised-button
-            color="primary"
-            type="button"
-            class="solicitud-sabatico__documento-add"
-            [disabled]="!puedeSolicitar || !nombreDocumento.trim()"
-            (click)="onAgregarDocumento()">
-            {{ 'GLOBAL.agregar' | translate }}
-          </button>
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              class="solicitud-sabatico__documento-add"
+              [disabled]="!puedeSolicitar || !nombreDocumento.trim()"
+              (click)="onAgregarDocumento()">
+              {{ 'GLOBAL.agregar' | translate }}
+            </button>
 
-        </div>
+          </div>
+        </ng-container>
 
         <div class="solicitud-sabatico__documentos">
 
@@ -199,6 +201,7 @@
               <ng-container *ngIf="!documentoTieneArchivo(documento); else accionesArchivo">
 
                 <label
+                  *ngIf="!esRolSecretaria"
                   class="solicitud-sabatico__documento-action"
                   [class.solicitud-sabatico__documento-action--disabled]="!puedeSolicitar">
                   {{ 'CREAR_SOLICITUD.documentos.cargar' | translate }}
@@ -213,7 +216,7 @@
                   mat-icon-button
                   type="button"
                   class="solicitud-sabatico__documento-remove"
-                  *ngIf="!isReadOnly"
+                  *ngIf="!isReadOnly && !esRolSecretaria"
                   [attr.aria-label]="'CREAR_SOLICITUD.documentos.eliminarAria' | translate"
                   (click)="onEliminarDocumento(documento.key)">
                   <mat-icon>delete</mat-icon>
@@ -239,7 +242,7 @@
                   mat-icon-button
                   type="button"
                   class="solicitud-sabatico__documento-remove"
-                  *ngIf="!isReadOnly"
+                  *ngIf="!isReadOnly && !esRolSecretaria"
                   [attr.aria-label]="'CREAR_SOLICITUD.documentos.eliminarAria' | translate"
                   (click)="onEliminarDocumento(documento.key)">
                   <mat-icon>delete</mat-icon>
