@@ -11,6 +11,7 @@ import { LoaderService } from '../../services/loader.service';
 import { ParametrosService } from '../../services/parametros.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
 import { TercerosService } from '../../services/terceros.service';
+import { NotificacionService } from '../../services/notificacion.service';
 
 interface DocenteBasico {
   nombre: string;
@@ -124,6 +125,7 @@ export class CrearSolicitudModalComponent implements OnInit {
     private readonly popUpManager: PopUpManager,
     private readonly translate: TranslateService,
     private readonly loaderService: LoaderService,
+    private readonly notificacionService: NotificacionService,
   ) {
     this.form = this.formBuilder.group({
       docenteNombre: [{ value: data.docente.nombre, disabled: true }],
@@ -266,6 +268,34 @@ export class CrearSolicitudModalComponent implements OnInit {
       next: (response) => {
         this.guardando = false;
         this.popUpManager.showToast('HISTORIAL_SOLICITUDES.modal.guardarExitoso');
+
+        const solicitudId = response?.Data?.Solicitud?.Id;
+        const v = this.form.getRawValue();
+        if (solicitudId) {
+          const now = new Date();
+          const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
+          this.notificacionService.enviarTemplatedEmail({
+            Source: 'notificacionessga@udistrital.edu.co',
+            Template: 'sabaticos_notificacion',
+            Destinations: [
+              {
+                Destination: { ToAddresses: ['kaforerog@udistrital.edu.co'] },
+                ReplacementTemplateData: {
+                  NombreDestinatario: 'Kevin Forero',
+                  SolicitudId: String(solicitudId),
+                  Accion: 'creada',
+                  Fecha: fecha,
+                  NombreDocente: v.docenteNombre ?? '',
+                  IdentificacionDocente: v.docenteIdentificacion ?? '',
+                  Facultad: v.docenteFacultad ?? '',
+                  ProyectoCurricular: v.docenteProyecto ?? '',
+                },
+              },
+            ],
+            DefaultTemplateData: {},
+          }).subscribe();
+        }
+
         this.dialogRef.close({
           ...this.form.getRawValue(),
           documentos: this.documentoArchivos,

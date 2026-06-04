@@ -27,6 +27,7 @@ import { ConfiguracionService } from '../../services/configuracion.service';
 import { ParametrosService } from '../../services/parametros.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
 import { GestorDocumentalService } from '../../services/gestor-documental.service';
+import { NotificacionService } from '../../services/notificacion.service';
 import { SecretariaGeneralBody } from './interface/guardar-secretaria-general.type';
 
 @Component({
@@ -110,6 +111,7 @@ export class EditarSolicitudComponent implements OnDestroy {
     private readonly translate: TranslateService,
     private readonly loaderService: LoaderService,
     private readonly configuracionService: ConfiguracionService,
+    private readonly notificacionService: NotificacionService,
   ) {
     const navigationState = this.router.currentNavigation()?.extras?.state ?? history.state;
     const rolNavegacion = String(navigationState?.['rol'] ?? '');
@@ -966,6 +968,7 @@ export class EditarSolicitudComponent implements OnDestroy {
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.saveSecretariaSuccess')
         );
         this.marcarFormularioGuardado();
+        this.enviarNotificacion(solicitudId, 'guardada');
       },
       error: (error) => {
         this.showErrorAndReload(
@@ -974,6 +977,34 @@ export class EditarSolicitudComponent implements OnDestroy {
         );
       }
     });
+  }
+
+  private enviarNotificacion(solicitudId: string | number, accion: string): void {
+    const formValue = this.form?.getRawValue();
+    if (!formValue) return;
+
+    const now = new Date();
+    const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
+    this.notificacionService.enviarTemplatedEmail({
+      Source: 'notificacionessga@udistrital.edu.co',
+      Template: 'sabaticos_notificacion',
+      Destinations: [
+        {
+          Destination: { ToAddresses: ['kaforerog@udistrital.edu.co'] },
+          ReplacementTemplateData: {
+            NombreDestinatario: 'Kevin Forero',
+            SolicitudId: String(solicitudId),
+            Accion: accion,
+            Fecha: fecha,
+            NombreDocente: this.formulario?.docente?.nombre ?? formValue.docenteNombre ?? '',
+            IdentificacionDocente: this.formulario?.docente?.identificacion ?? formValue.docenteIdentificacion ?? '',
+            Facultad: this.formulario?.docente?.facultad ?? formValue.docenteFacultad ?? '',
+            ProyectoCurricular: this.formulario?.docente?.proyecto_curricular ?? formValue.docenteProyecto ?? '',
+          },
+        },
+      ],
+      DefaultTemplateData: {},
+    }).subscribe();
   }
 
   async onEnviarRevision(): Promise<void> {
@@ -1059,6 +1090,7 @@ export class EditarSolicitudComponent implements OnDestroy {
         this.popUpManager.showSuccessAlert(
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaSuccess')
         );
+        this.enviarNotificacion(this.formularioInit?.id ?? 0, 'enviada');
         this.router.navigate(['solicitudes']);
       },
       error: (error) => {
@@ -1141,6 +1173,7 @@ export class EditarSolicitudComponent implements OnDestroy {
         this.popUpManager.showSuccessAlert(
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaSuccess')
         );
+        this.enviarNotificacion(solicitudId, 'enviada_secretaria');
         this.router.navigate(['solicitudes']);
       },
       error: (error) => {
