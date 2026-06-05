@@ -1273,15 +1273,20 @@
     "actions": {
       "enviarRevision": "Enviar a revisión",
       "confirmEnvioTitle": "Confirmar envío",
-      "confirmEnvioText": "Una vez enviada, la solicitud avanzará al siguiente estado del flujo y no podrás revertir este paso. ¿Deseas continuar?"
+      "confirmEnvioText": "Una vez enviada, la solicitud avanzará al siguiente estado del flujo y no podrás revertir este paso. ¿Deseas continuar?",
+      "rechazarSolicitud": "Rechazar solicitud",
+      "confirmRechazarSolicitudTitle": "Confirmar rechazo de solicitud",
+      "confirmRechazarSolicitud": "¿Está seguro/a de que desea rechazar esta solicitud? Esta acción la dejará como No aprobada."
     },
     "exito": {
-      "envioRevisionExitoso": "La solicitud se envió a revisión correctamente."
+      "envioRevisionExitoso": "La solicitud se envió a revisión correctamente.",
+      "rechazoExitoso": "La solicitud se rechazó correctamente."
     },
     "errores": {
       "terceroNoEncontrado": "No se pudo identificar al docente. Vuelve a iniciar sesión e inténtalo de nuevo.",
       "envioRevisionFallido": "No fue posible enviar la solicitud a revisión. Intenta de nuevo más tarde.",
-      "documentosFallidos": "No fue posible cargar los siguientes documentos: {{documentos}}. Vuelve a intentarlo."
+      "documentosFallidos": "No fue posible cargar los siguientes documentos: {{documentos}}. Vuelve a intentarlo.",
+      "rechazoFallido": "No fue posible rechazar la solicitud. Intenta de nuevo más tarde."
     }
   }
 }
