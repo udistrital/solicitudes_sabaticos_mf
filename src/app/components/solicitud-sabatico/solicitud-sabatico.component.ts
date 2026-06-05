@@ -3,7 +3,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { firstValueFrom, forkJoin } from 'rxjs';
+import { firstValueFrom, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { GestorDocumentalService } from '../../services/gestor-documental.service';
 import { ImplicitAutenticationService } from '../../services/implicit_authentication.service';
@@ -213,6 +214,17 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     return !!transicion && this.estadoActual === transicion.origen;
   }
 
+  get canRechazar(): boolean {
+    if (this.isReadOnly || this.cargando || this.enviando) {
+      return false;
+    }
+    if (!this.solicitudIdActual || !this.esRolSecretaria) {
+      return false;
+    }
+    const respuesta = String(this.form.get('respuestaSolicitud')?.value ?? '').trim();
+    return respuesta.length > 0;
+  }
+
   private resolveNavigationState(): NavigationState | null {
     const fromNavigation = this.router.getCurrentNavigation()?.extras?.state as
       | NavigationState
@@ -239,10 +251,13 @@ export class SolicitudSabaticoComponent implements OnDestroy {
       documentosResponse: this.sabaticosCrudService.get(
         `soporte_solicitud?query=SolicitudId:${solicitudId},Activo:True&limit=-1`
       ),
+      documentosNombreResponse: this.sabaticosMidService
+        .get(`soporte_solicitud/${solicitudId}`)
+        .pipe(catchError(() => of(null))),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ formularioResponse, documentosResponse }: any) => {
+        next: ({ formularioResponse, documentosResponse, documentosNombreResponse }: any) => {
           const formularios = formularioResponse?.Data ?? formularioResponse ?? [];
           const formularioRaw = Array.isArray(formularios) && formularios.length > 0
             ? formularios[0]
@@ -263,7 +278,8 @@ export class SolicitudSabaticoComponent implements OnDestroy {
             : Array.isArray(documentosResponse)
               ? documentosResponse
               : [];
-          this.aplicarSoportes(soportes);
+          const nombresPorDocumentoId = this.construirMapaNombresDocumentos(documentosNombreResponse);
+          this.aplicarSoportes(soportes, nombresPorDocumentoId);
 
           // Reaplicamos el bloqueo por readOnly al final por si los patchValue
           // habilitaron controles previamente deshabilitados.
@@ -347,13 +363,33 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     }
   }
 
-  private aplicarSoportes(soportes: any[]): void {
+  // Construye un mapa DocumentoId -> Nombre real a partir de la respuesta del
+  // MID (`soporte_solicitud/{idSolicitud}`), que devuelve cada documento dentro
+  // de la propiedad `Documento`.
+  private construirMapaNombresDocumentos(respuesta: any): Map<number, string> {
+    const mapa = new Map<number, string>();
+    const data = Array.isArray(respuesta?.Data) ? respuesta.Data : [];
+
+    data.forEach((item: any) => {
+      const documento = item?.Documento ?? item;
+      const documentoId = Number(documento?.Id);
+      const nombre = this.toStringSafe(documento?.Nombre).trim();
+      if (Number.isFinite(documentoId) && documentoId > 0 && nombre) {
+        mapa.set(documentoId, nombre);
+      }
+    });
+
+    return mapa;
+  }
+
+  private aplicarSoportes(soportes: any[], nombresPorDocumentoId?: Map<number, string>): void {
     if (!Array.isArray(soportes) || soportes.length === 0) {
       this.documentosExistentesIds = [];
       return;
     }
 
     const idsRecolectados: number[] = [];
+    const nombres = nombresPorDocumentoId ?? new Map<number, string>();
 
     // Los soportes del backend se asocian por orden con los documentos cargados
     // desde el Contenido. Si llegan más soportes que documentos declarados, los
@@ -361,9 +397,11 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     soportes.forEach((soporte, index) => {
       const soporteId = Number(soporte?.Id);
       const documentoId = Number(soporte?.DocumentoId);
+      const documentoIdValido = Number.isFinite(documentoId) && documentoId > 0;
+      const nombreReal = documentoIdValido ? nombres.get(documentoId) : undefined;
       const archivoBackend: ArchivoBackend = {
-        documentoId: Number.isFinite(documentoId) && documentoId > 0 ? documentoId : undefined,
-        nombre: this.translate.instant('CREAR_SOLICITUD.documentos.archivoBackend'),
+        documentoId: documentoIdValido ? documentoId : undefined,
+        nombre: nombreReal ?? this.translate.instant('CREAR_SOLICITUD.documentos.archivoBackend'),
         soporte,
       };
 
@@ -486,6 +524,79 @@ export class SolicitudSabaticoComponent implements OnDestroy {
       console.error('Error al enviar la solicitud a revisión', error);
       this.popUpManager.showErrorAlert(
         this.translate.instant('CREAR_SOLICITUD.errores.envioRevisionFallido'),
+      );
+    } finally {
+      this.enviando = false;
+    }
+  }
+
+  async onRechazarSolicitud(): Promise<void> {
+    if (!this.canRechazar) {
+      return;
+    }
+
+    const confirm = await this.popUpManager.showConfirmAlert(
+      this.translate.instant('CREAR_SOLICITUD.actions.confirmRechazarSolicitud'),
+      this.translate.instant('CREAR_SOLICITUD.actions.confirmRechazarSolicitudTitle'),
+    );
+
+    if (!confirm?.isConfirmed) {
+      return;
+    }
+
+    this.enviando = true;
+
+    try {
+      const solicitudId = this.solicitudIdActual as number;
+      const terceroId = this.terceroIdSolicitud;
+
+      if (terceroId === null) {
+        this.popUpManager.showErrorAlert(
+          this.translate.instant('CREAR_SOLICITUD.errores.terceroNoEncontrado'),
+        );
+        return;
+      }
+
+      // Persistir el formulario_solicitud (Contenido actualizado) antes de
+      // disparar la transición de rechazo.
+      if (this.formularioRecordId !== null) {
+        const formularioBody: FormularioSolicitudBody = {
+          Id: this.formularioRecordId,
+          Contenido: JSON.stringify(this.buildFormularioPayload()),
+          Activo: true,
+          FechaModificacion: this.formatTimestampForBackend(),
+          FechaCreacion: this.formatTimestampForBackend(),
+          SolicitudId: { Id: solicitudId },
+        };
+
+        await firstValueFrom(
+          this.sabaticosCrudService
+            .put('formulario_solicitud', formularioBody)
+            .pipe(takeUntilDestroyed(this.destroyRef)),
+        );
+      }
+
+      const body: AprobarRechazarBody = {
+        TerceroId: terceroId,
+        SolicitudId: solicitudId,
+        Justificacion: String(this.form.get('respuestaSolicitud')?.value ?? ''),
+        EstadoSolicitud: 'FINALIZADA_NO_APROBADA',
+      };
+
+      await firstValueFrom(
+        this.sabaticosMidService
+          .post('solicitud/aprobar-rechazar', body)
+          .pipe(takeUntilDestroyed(this.destroyRef)),
+      );
+
+      this.popUpManager.showSuccessAlert(
+        this.translate.instant('CREAR_SOLICITUD.exito.rechazoExitoso'),
+      );
+      this.router.navigate(['/solicitudes']);
+    } catch (error) {
+      console.error('Error al rechazar la solicitud', error);
+      this.popUpManager.showErrorAlert(
+        this.translate.instant('CREAR_SOLICITUD.errores.rechazoFallido'),
       );
     } finally {
       this.enviando = false;

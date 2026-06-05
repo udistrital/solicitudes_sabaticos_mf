@@ -297,6 +297,11 @@
     margin-top: 1rem;
     flex-wrap: wrap;
   }
+
+  &__reject.mat-mdc-raised-button:not(:disabled) {
+    background-color: #bc4749;
+    color: #ffffff;
+  }
 }
 
 @media (max-width: 768px) {
