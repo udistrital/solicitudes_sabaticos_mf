@@ -281,6 +281,16 @@
 
         <button
           mat-raised-button
+          type="button"
+          class="solicitud-sabatico__reject"
+          *ngIf="esRolSecretaria"
+          [disabled]="enviando || !canRechazar"
+          (click)="onRechazarSolicitud()">
+          {{ 'CREAR_SOLICITUD.actions.rechazarSolicitud' | translate }}
+        </button>
+
+        <button
+          mat-raised-button
           color="primary"
           type="button"
           [disabled]="enviando || !canEnviarRevision"
