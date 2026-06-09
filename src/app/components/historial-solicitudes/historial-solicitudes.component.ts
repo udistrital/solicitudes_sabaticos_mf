@@ -17,6 +17,7 @@ import { PopUpManager } from '../../../managers/popUpManager';
 import { RequestManager } from '../../../managers/requestManager';
 import { ConfiguracionService } from '../../services/configuracion.service';
 import { LoaderService } from '../../services/loader.service';
+import { NotificacionService } from '../../services/notificacion.service';
 import { finalize } from 'rxjs/operators';
 
 type EstadoSolicitud =
@@ -216,7 +217,8 @@ export class HistorialSolicitudesComponent {
     private readonly sabaticosCrudService: SabaticosCrudService,
     private readonly configuracionService: ConfiguracionService,
     private readonly sabaticosMidService: SabaticosMidService,
-    private readonly loaderService: LoaderService
+    private readonly loaderService: LoaderService,
+    private readonly notificacionService: NotificacionService,
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
     this.dateAdapter.setLocale(this.currentLang);
@@ -713,6 +715,16 @@ export class HistorialSolicitudesComponent {
       .subscribe({
         next: () => {
           this.popUpManager.showToast('HISTORIAL_SOLICITUDES.iniciarSabatico.exito');
+          const now = new Date();
+          const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
+          this.notificacionService.sendNotification('INICIO_SABATICO', {
+            SolicitudId: String(solicitud.id),
+            Fecha: fecha,
+            NombreDocente: solicitud.docenteNombre ?? '',
+            IdentificacionDocente: solicitud.docenteIdentificacion ?? '',
+            Facultad: '',
+            ProyectoCurricular: '',
+          });
           this.recargarSolicitudes();
         },
         error: (error) => {

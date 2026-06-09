@@ -10,7 +10,6 @@ import { ImplicitAutenticationService } from '../../services/implicit_authentica
 import { SabaticosCrudService } from '../../services/sabatico-crud.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
 import { TercerosService } from '../../services/terceros.service';
-import { NotificacionService } from '../../services/notificacion.service';
 
 export interface SabaticoSeleccionado {
   id: string;
@@ -163,7 +162,6 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     private readonly autenticationService: ImplicitAutenticationService,
     private readonly gestorDocumentalService: GestorDocumentalService,
     private readonly destroyRef: DestroyRef,
-    private readonly notificacionService: NotificacionService,
   ) {
     this.form = this.buildForm();
 
@@ -479,29 +477,6 @@ export class SolicitudSabaticoComponent implements OnDestroy {
 
       // 3) Disparar la transición de estado vía MID según rol.
       await this.dispararTransicionMid(transicion, solicitudId, terceroId);
-
-      const now = new Date();
-      const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
-      this.notificacionService.enviarTemplatedEmail({
-        Source: 'notificacionessga@udistrital.edu.co',
-        Template: 'sabaticos_notificacion',
-        Destinations: [
-          {
-            Destination: { ToAddresses: ['kaforerog@udistrital.edu.co'] },
-            ReplacementTemplateData: {
-              NombreDestinatario: 'Kevin Forero',
-              SolicitudId: String(solicitudId),
-              Accion: 'enviada',
-              Fecha: fecha,
-              NombreDocente: '',
-              IdentificacionDocente: '',
-              Facultad: '',
-              ProyectoCurricular: '',
-            },
-          },
-        ],
-        DefaultTemplateData: {},
-      }).subscribe();
 
       this.popUpManager.showSuccessAlert(
         this.translate.instant('CREAR_SOLICITUD.exito.envioRevisionExitoso'),

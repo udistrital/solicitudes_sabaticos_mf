@@ -274,26 +274,14 @@ export class CrearSolicitudModalComponent implements OnInit {
         if (solicitudId) {
           const now = new Date();
           const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
-          this.notificacionService.enviarTemplatedEmail({
-            Source: 'notificacionessga@udistrital.edu.co',
-            Template: 'sabaticos_notificacion',
-            Destinations: [
-              {
-                Destination: { ToAddresses: ['kaforerog@udistrital.edu.co'] },
-                ReplacementTemplateData: {
-                  NombreDestinatario: 'Kevin Forero',
-                  SolicitudId: String(solicitudId),
-                  Accion: 'creada',
-                  Fecha: fecha,
-                  NombreDocente: v.docenteNombre ?? '',
-                  IdentificacionDocente: v.docenteIdentificacion ?? '',
-                  Facultad: v.docenteFacultad ?? '',
-                  ProyectoCurricular: v.docenteProyecto ?? '',
-                },
-              },
-            ],
-            DefaultTemplateData: {},
-          }).subscribe();
+          this.notificacionService.sendNotification('BORRADOR_CREADO', {
+            SolicitudId: String(solicitudId),
+            Fecha: fecha,
+            NombreDocente: v.docenteNombre ?? '',
+            IdentificacionDocente: v.docenteIdentificacion ?? '',
+            Facultad: v.docenteFacultad ?? '',
+            ProyectoCurricular: v.docenteProyecto ?? '',
+          });
         }
 
         this.dialogRef.close({
