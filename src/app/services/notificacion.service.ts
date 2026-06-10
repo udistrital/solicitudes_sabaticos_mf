@@ -2,11 +2,7 @@ import { Injectable } from '@angular/core';
 import { RequestManager } from '../../managers/requestManager';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { NotificationRole } from './notification-role.type';
-import { NotificationEvent } from './notification-event.type';
-import { notificationEventMapper } from './notification-event.mapper';
-import { notificationEventReadable } from './notification-event-readable';
-import { SolicitudNotificationData } from './solicitud-notification-data.type';
+import { PopUpManager } from '../../managers/popUpManager';
 
 export interface EmailTemplatedDestination {
   Destination: {
@@ -26,7 +22,10 @@ export interface EmailTemplatedBody {
   providedIn: 'root',
 })
 export class NotificacionService {
-  constructor(private readonly requestManager: RequestManager) {
+  constructor(
+    private readonly requestManager: RequestManager,
+    private readonly popUpManager: PopUpManager,
+  ) {
     this.requestManager.setPath('NOTIFICACION_MID_SERVICE');
   }
 
@@ -35,50 +34,34 @@ export class NotificacionService {
     return this.requestManager.post('email/enviar_templated_email/', body);
   }
 
-  getNotificationEmailByRole(role: NotificationRole): string {
-    const config = environment.notifications;
-    if (config.mode === 'testing') {
-      return config.testEmail;
-    }
-    const email = config.emailsByRole[role];
-    if (!email) {
-      throw new Error(`No hay correo configurado para el rol: ${role}`);
-    }
-    return email;
-  }
-
   sendNotification(
-    event: NotificationEvent,
-    data: SolicitudNotificationData,
+    templateName: string,
+    role: string,
+    data: Record<string, string>,
   ): void {
-    const roles = notificationEventMapper[event];
-    if (!roles || roles.length === 0) {
-      console.warn(`No hay roles configurados para el evento: ${event}`);
+    const emailConfig = environment.notifications;
+    const email = emailConfig.mode === 'testing'
+      ? emailConfig.testEmail
+      : (emailConfig.emailsByRole as Record<string, string>)[role];
+
+    if (!email) {
+      console.error(`No hay correo configurado para el rol: ${role}`);
       return;
     }
 
-    const destinations: EmailTemplatedDestination[] = roles.map((role) => ({
-      Destination: { ToAddresses: [this.getNotificationEmailByRole(role)] },
-      ReplacementTemplateData: {
-        NombreDestinatario: role,
-        SolicitudId: data.SolicitudId,
-        Accion: notificationEventReadable[event],
-        Fecha: data.Fecha,
-        NombreDocente: data.NombreDocente,
-        IdentificacionDocente: data.IdentificacionDocente,
-        Facultad: data.Facultad,
-        ProyectoCurricular: data.ProyectoCurricular,
-      },
-    }));
-
     this.enviarTemplatedEmail({
       Source: 'notificacionessga@udistrital.edu.co',
-      Template: 'sabaticos_notificacion',
-      Destinations: destinations,
+      Template: templateName,
+      Destinations: [{
+        Destination: { ToAddresses: [email] },
+        ReplacementTemplateData: data,
+      }],
       DefaultTemplateData: {},
     }).subscribe({
-      error: (err) =>
-        console.error(`Error enviando notificación ${event}:`, err),
+      error: (err) => {
+        console.error(`Error enviando notificación ${templateName}:`, err);
+        this.popUpManager.showErrorToast('Error al enviar notificación por correo electrónico');
+      },
     });
   }
 }

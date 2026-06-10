@@ -274,13 +274,10 @@ export class CrearSolicitudModalComponent implements OnInit {
         if (solicitudId) {
           const now = new Date();
           const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
-          this.notificacionService.sendNotification('BORRADOR_CREADO', {
-            SolicitudId: String(solicitudId),
-            Fecha: fecha,
-            NombreDocente: v.docenteNombre ?? '',
-            IdentificacionDocente: v.docenteIdentificacion ?? '',
-            Facultad: v.docenteFacultad ?? '',
-            ProyectoCurricular: v.docenteProyecto ?? '',
+          this.notificacionService.sendNotification('sabaticos_borrador_creado', 'docente', {
+            nombre_docente: v.docenteNombre ?? '',
+            id_solicitud: String(solicitudId),
+            fecha_solicitud: fecha,
           });
         }
 

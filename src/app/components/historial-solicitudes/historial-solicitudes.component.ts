@@ -717,13 +717,11 @@ export class HistorialSolicitudesComponent {
           this.popUpManager.showToast('HISTORIAL_SOLICITUDES.iniciarSabatico.exito');
           const now = new Date();
           const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
-          this.notificacionService.sendNotification('INICIO_SABATICO', {
-            SolicitudId: String(solicitud.id),
-            Fecha: fecha,
-            NombreDocente: solicitud.docenteNombre ?? '',
-            IdentificacionDocente: solicitud.docenteIdentificacion ?? '',
-            Facultad: '',
-            ProyectoCurricular: '',
+          this.notificacionService.sendNotification('sabaticos_inicio_sabatico_docente', 'docente', {
+            nombre_docente: solicitud.docenteNombre ?? '',
+            id_solicitud: String(solicitud.id),
+            fecha_inicio: this.formatDate(fechaInicio),
+            fecha_fin: this.formatDate(fechaFin),
           });
           this.recargarSolicitudes();
         },
