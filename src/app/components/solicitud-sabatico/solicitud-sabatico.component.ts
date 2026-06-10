@@ -3,7 +3,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { firstValueFrom, forkJoin } from 'rxjs';
+import { firstValueFrom, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { PopUpManager } from '../../../managers/popUpManager';
 import { GestorDocumentalService } from '../../services/gestor-documental.service';
 import { ImplicitAutenticationService } from '../../services/implicit_authentication.service';
@@ -112,6 +113,7 @@ export class SolicitudSabaticoComponent implements OnDestroy {
   solicitudIdActual: number | null = null;
   rol = '';
   estadoActual = '';
+  private terceroIdSolicitud: number | null = null;
 
   nombreDocumento = '';
   documentosSeleccionadosDetalle: DocumentoDetalle[] = [];
@@ -126,6 +128,8 @@ export class SolicitudSabaticoComponent implements OnDestroy {
   // liberarlos al destruir el componente.
   documentoObjectUrls: Record<string, string> = {};
   documentosCargando: Record<string, boolean> = {};
+
+  private datosExtraContenido: Record<string, unknown> = {};
 
   // Mapa rol -> transición permitida desde el estado actual. Solo un único
   // disparo de "Enviar a revisión" por rol en todo el flujo (lineal puro,
@@ -179,6 +183,8 @@ export class SolicitudSabaticoComponent implements OnDestroy {
 
     if (this.isReadOnly) {
       this.form.disable();
+    } else if (this.esRolSecretaria) {
+      this.aplicarBloqueoSecretaria();
     }
 
     const solicitudIdRaw = navigationState?.solicitud?.id;
@@ -189,8 +195,12 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     }
   }
 
+  get esRolSecretaria(): boolean {
+    return this.rol === 'SECRETARIA_ACADEMICA' || this.rol === 'SECRETARIA_GENERAL';
+  }
+
   get puedeSolicitar(): boolean {
-    return !this.isReadOnly && !this.cargando;
+    return !this.isReadOnly && !this.esRolSecretaria && !this.cargando;
   }
 
   get canEnviarRevision(): boolean {
@@ -202,6 +212,17 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     }
     const transicion = this.transicionesPorRol[this.rol as RolPermitido];
     return !!transicion && this.estadoActual === transicion.origen;
+  }
+
+  get canRechazar(): boolean {
+    if (this.isReadOnly || this.cargando || this.enviando) {
+      return false;
+    }
+    if (!this.solicitudIdActual || !this.esRolSecretaria) {
+      return false;
+    }
+    const respuesta = String(this.form.get('respuestaSolicitud')?.value ?? '').trim();
+    return respuesta.length > 0;
   }
 
   private resolveNavigationState(): NavigationState | null {
@@ -230,10 +251,13 @@ export class SolicitudSabaticoComponent implements OnDestroy {
       documentosResponse: this.sabaticosCrudService.get(
         `soporte_solicitud?query=SolicitudId:${solicitudId},Activo:True&limit=-1`
       ),
+      documentosNombreResponse: this.sabaticosMidService
+        .get(`soporte_solicitud/${solicitudId}`)
+        .pipe(catchError(() => of(null))),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ formularioResponse, documentosResponse }: any) => {
+        next: ({ formularioResponse, documentosResponse, documentosNombreResponse }: any) => {
           const formularios = formularioResponse?.Data ?? formularioResponse ?? [];
           const formularioRaw = Array.isArray(formularios) && formularios.length > 0
             ? formularios[0]
@@ -241,6 +265,10 @@ export class SolicitudSabaticoComponent implements OnDestroy {
 
           if (formularioRaw) {
             this.formularioRecordId = formularioRaw?.Id ?? null;
+            const terceroRaw = Number(formularioRaw?.SolicitudId?.TerceroId);
+            this.terceroIdSolicitud = Number.isFinite(terceroRaw) && terceroRaw > 0
+              ? terceroRaw
+              : null;
             const contenido = this.parseContenido(formularioRaw?.Contenido);
             this.aplicarContenido(contenido);
           }
@@ -250,12 +278,15 @@ export class SolicitudSabaticoComponent implements OnDestroy {
             : Array.isArray(documentosResponse)
               ? documentosResponse
               : [];
-          this.aplicarSoportes(soportes);
+          const nombresPorDocumentoId = this.construirMapaNombresDocumentos(documentosNombreResponse);
+          this.aplicarSoportes(soportes, nombresPorDocumentoId);
 
           // Reaplicamos el bloqueo por readOnly al final por si los patchValue
           // habilitaron controles previamente deshabilitados.
           if (this.isReadOnly) {
             this.form.disable();
+          } else if (this.esRolSecretaria) {
+            this.aplicarBloqueoSecretaria();
           } else if (this.tipoSolicitudBloqueado) {
             this.form.controls['tipoSolicitud'].disable();
           }
@@ -284,9 +315,20 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     }
   }
 
+  private static readonly CAMPOS_GESTIONADOS: ReadonlySet<string> = new Set([
+    'sabatico', 'documentos', 'justificacion', 'tipoSolicitud', 'respuestaSolicitud',
+  ]);
+
   private aplicarContenido(contenido: ContenidoSolicitud | null): void {
     if (!contenido) {
       return;
+    }
+
+    this.datosExtraContenido = {};
+    for (const key of Object.keys(contenido)) {
+      if (!SolicitudSabaticoComponent.CAMPOS_GESTIONADOS.has(key)) {
+        this.datosExtraContenido[key] = contenido[key];
+      }
     }
 
     if (contenido.sabatico) {
@@ -321,13 +363,33 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     }
   }
 
-  private aplicarSoportes(soportes: any[]): void {
+  // Construye un mapa DocumentoId -> Nombre real a partir de la respuesta del
+  // MID (`soporte_solicitud/{idSolicitud}`), que devuelve cada documento dentro
+  // de la propiedad `Documento`.
+  private construirMapaNombresDocumentos(respuesta: any): Map<number, string> {
+    const mapa = new Map<number, string>();
+    const data = Array.isArray(respuesta?.Data) ? respuesta.Data : [];
+
+    data.forEach((item: any) => {
+      const documento = item?.Documento ?? item;
+      const documentoId = Number(documento?.Id);
+      const nombre = this.toStringSafe(documento?.Nombre).trim();
+      if (Number.isFinite(documentoId) && documentoId > 0 && nombre) {
+        mapa.set(documentoId, nombre);
+      }
+    });
+
+    return mapa;
+  }
+
+  private aplicarSoportes(soportes: any[], nombresPorDocumentoId?: Map<number, string>): void {
     if (!Array.isArray(soportes) || soportes.length === 0) {
       this.documentosExistentesIds = [];
       return;
     }
 
     const idsRecolectados: number[] = [];
+    const nombres = nombresPorDocumentoId ?? new Map<number, string>();
 
     // Los soportes del backend se asocian por orden con los documentos cargados
     // desde el Contenido. Si llegan más soportes que documentos declarados, los
@@ -335,9 +397,11 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     soportes.forEach((soporte, index) => {
       const soporteId = Number(soporte?.Id);
       const documentoId = Number(soporte?.DocumentoId);
+      const documentoIdValido = Number.isFinite(documentoId) && documentoId > 0;
+      const nombreReal = documentoIdValido ? nombres.get(documentoId) : undefined;
       const archivoBackend: ArchivoBackend = {
-        documentoId: Number.isFinite(documentoId) && documentoId > 0 ? documentoId : undefined,
-        nombre: this.translate.instant('CREAR_SOLICITUD.documentos.archivoBackend'),
+        documentoId: documentoIdValido ? documentoId : undefined,
+        nombre: nombreReal ?? this.translate.instant('CREAR_SOLICITUD.documentos.archivoBackend'),
         soporte,
       };
 
@@ -401,7 +465,10 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     this.enviando = true;
 
     try {
-      const terceroId = await this.resolveTerceroId();
+      const terceroId = transicion.endpoint === 'aprobar-rechazar'
+        ? this.terceroIdSolicitud
+        : await this.resolveTerceroId();
+
       if (terceroId === null) {
         this.popUpManager.showErrorAlert(
           this.translate.instant('CREAR_SOLICITUD.errores.terceroNoEncontrado'),
@@ -457,6 +524,79 @@ export class SolicitudSabaticoComponent implements OnDestroy {
       console.error('Error al enviar la solicitud a revisión', error);
       this.popUpManager.showErrorAlert(
         this.translate.instant('CREAR_SOLICITUD.errores.envioRevisionFallido'),
+      );
+    } finally {
+      this.enviando = false;
+    }
+  }
+
+  async onRechazarSolicitud(): Promise<void> {
+    if (!this.canRechazar) {
+      return;
+    }
+
+    const confirm = await this.popUpManager.showConfirmAlert(
+      this.translate.instant('CREAR_SOLICITUD.actions.confirmRechazarSolicitud'),
+      this.translate.instant('CREAR_SOLICITUD.actions.confirmRechazarSolicitudTitle'),
+    );
+
+    if (!confirm?.isConfirmed) {
+      return;
+    }
+
+    this.enviando = true;
+
+    try {
+      const solicitudId = this.solicitudIdActual as number;
+      const terceroId = this.terceroIdSolicitud;
+
+      if (terceroId === null) {
+        this.popUpManager.showErrorAlert(
+          this.translate.instant('CREAR_SOLICITUD.errores.terceroNoEncontrado'),
+        );
+        return;
+      }
+
+      // Persistir el formulario_solicitud (Contenido actualizado) antes de
+      // disparar la transición de rechazo.
+      if (this.formularioRecordId !== null) {
+        const formularioBody: FormularioSolicitudBody = {
+          Id: this.formularioRecordId,
+          Contenido: JSON.stringify(this.buildFormularioPayload()),
+          Activo: true,
+          FechaModificacion: this.formatTimestampForBackend(),
+          FechaCreacion: this.formatTimestampForBackend(),
+          SolicitudId: { Id: solicitudId },
+        };
+
+        await firstValueFrom(
+          this.sabaticosCrudService
+            .put('formulario_solicitud', formularioBody)
+            .pipe(takeUntilDestroyed(this.destroyRef)),
+        );
+      }
+
+      const body: AprobarRechazarBody = {
+        TerceroId: terceroId,
+        SolicitudId: solicitudId,
+        Justificacion: String(this.form.get('respuestaSolicitud')?.value ?? ''),
+        EstadoSolicitud: 'FINALIZADA_NO_APROBADA',
+      };
+
+      await firstValueFrom(
+        this.sabaticosMidService
+          .post('solicitud/aprobar-rechazar', body)
+          .pipe(takeUntilDestroyed(this.destroyRef)),
+      );
+
+      this.popUpManager.showSuccessAlert(
+        this.translate.instant('CREAR_SOLICITUD.exito.rechazoExitoso'),
+      );
+      this.router.navigate(['/solicitudes']);
+    } catch (error) {
+      console.error('Error al rechazar la solicitud', error);
+      this.popUpManager.showErrorAlert(
+        this.translate.instant('CREAR_SOLICITUD.errores.rechazoFallido'),
       );
     } finally {
       this.enviando = false;
@@ -679,6 +819,11 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     });
   }
 
+  private aplicarBloqueoSecretaria(): void {
+    this.form.disable({ emitEvent: false });
+    this.form.controls['respuestaSolicitud'].enable({ emitEvent: false });
+  }
+
   private buildFormularioPayload(): CrearSolicitudFormulario {
     const { tipoSolicitud, justificacion, respuestaSolicitud } = this.form.getRawValue();
 
@@ -692,6 +837,7 @@ export class SolicitudSabaticoComponent implements OnDestroy {
       : null;
 
     return {
+      ...this.datosExtraContenido,
       tipoSolicitud: this.toNullable(tipoSolicitud),
       justificacion: this.toNullable(justificacion),
       respuestaSolicitud: this.toNullable(respuestaSolicitud),
