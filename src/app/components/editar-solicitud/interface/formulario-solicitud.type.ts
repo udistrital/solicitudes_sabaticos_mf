@@ -5,6 +5,7 @@ export type FormularioSolicitud = {
     nombre: string;
     identificacion: string;
     facultad: string;
+    codigoFacultad: string;
     proyecto_curricular: string;
   };
   detalle_solicitud: {

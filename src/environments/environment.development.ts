@@ -33,12 +33,10 @@ export const environment = {
   CONFIGURACION_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/configuracion_crud_api/v1/',
   NOTIFICACION_MID_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/notificacion_mid/v1/',
   notifications: {
-    mode: 'testing' as 'testing' | 'roleBased',
+    emailMode: 'testing' as 'testing' | 'production',
     testEmail: 'kaforerog@udistrital.edu.co',
     emailsByRole: {
       docente: 'kaforerog@udistrital.edu.co',
-      secretaria_academica: 'kaforerog@udistrital.edu.co',
-      secretaria_general: 'kaforerog@udistrital.edu.co',
     },
   },
 };

@@ -17,6 +17,7 @@ interface DocenteBasico {
   nombre: string;
   documentoIdentificacion: string;
   facultad: string;
+  codigoFacultad: string;
   proyectoCurricular: string;
 }
 
@@ -132,6 +133,7 @@ export class CrearSolicitudModalComponent implements OnInit {
       docenteIdentificacion: [{ value: data.docente.documentoIdentificacion, disabled: true }],
       docenteFacultad: [{ value: data.docente.facultad, disabled: true }],
       docenteProyecto: [{ value: data.docente.proyectoCurricular, disabled: true }],
+      docenteCodigoFacultad: [{ value: data.docente.codigoFacultad, disabled: true }],
       periodoEjecucion: ['', Validators.required],
       ultimoSabatico: this.formBuilder.group({
         start: [null, Validators.required],
@@ -278,6 +280,7 @@ export class CrearSolicitudModalComponent implements OnInit {
             nombre_docente: v.docenteNombre ?? '',
             id_solicitud: String(solicitudId),
             fecha_solicitud: fecha,
+            codigo_facultad: v.docenteCodigoFacultad ?? '',
           });
         }
 
@@ -404,7 +407,8 @@ export class CrearSolicitudModalComponent implements OnInit {
           nombre_docente: this.valueOrNull(v.docenteNombre),
           numero_identificacion: this.valueOrNull(v.docenteIdentificacion),
           facultad: this.valueOrNull(v.docenteFacultad),
-          proyecto_curricular: this.valueOrNull(v.docenteProyecto)
+          proyecto_curricular: this.valueOrNull(v.docenteProyecto),
+          codigo_facultad: this.valueOrNull(v.docenteCodigoFacultad)
         },
         detalle_solicitud: {
           periodo_ejecucion: this.valueOrNull(v.periodoEjecucion),

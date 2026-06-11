@@ -977,6 +977,7 @@ export class EditarSolicitudComponent implements OnDestroy {
             nombre_docente: this.formulario?.docente?.nombre ?? formValue.docenteNombre ?? '',
             id_solicitud: String(solicitudId),
             fecha_solicitud: fecha,
+            codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
           });
         }
       },
@@ -1082,18 +1083,21 @@ export class EditarSolicitudComponent implements OnDestroy {
             id_solicitud: String(solicitudId),
             nombre_docente: nombreDoc,
             fecha_solicitud: fecha,
+            codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
           });
         } else {
           this.notificacionService.sendNotification('sabaticos_radicado_docente', 'docente', {
             nombre_docente: nombreDoc,
             id_solicitud: String(solicitudId),
             fecha_radicacion: fecha,
+            codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
           });
           this.notificacionService.sendNotification('sabaticos_radicado_secretaria_academica', 'secretaria_academica', {
             id_solicitud: String(solicitudId),
             nombre_docente: nombreDoc,
             fecha_radicacion: fecha,
             hora_radicacion: hora,
+            codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
           });
         }
         this.router.navigate(['solicitudes']);
@@ -1187,22 +1191,26 @@ export class EditarSolicitudComponent implements OnDestroy {
               nombre_docente: nombreDoc,
               id_solicitud: String(solicitudId),
               fecha_aprobacion: fecha,
+              codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
             });
             this.notificacionService.sendNotification('sabaticos_aprobacion_sg_secretaria_academica', 'secretaria_academica', {
               id_solicitud: String(solicitudId),
               nombre_docente: nombreDoc,
               fecha_aprobacion: fecha,
+              codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
             });
           } else {
             this.notificacionService.sendNotification('sabaticos_aval_sa_docente', 'docente', {
               nombre_docente: nombreDoc,
               id_solicitud: String(solicitudId),
               fecha_solicitud: fecha,
+              codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
             });
             this.notificacionService.sendNotification('sabaticos_aval_sa_secretaria_general', 'secretaria_general', {
               id_solicitud: String(solicitudId),
               nombre_docente: nombreDoc,
               fecha_solicitud: fecha,
+              codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
             });
           }
         } else {
@@ -1212,12 +1220,14 @@ export class EditarSolicitudComponent implements OnDestroy {
               nombre_docente: nombreDoc,
               id_solicitud: String(solicitudId),
               motivo_decision: obs || 'Revise las observaciones registradas por la Secretaría General en el sistema.',
+              codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
             });
           } else {
             this.notificacionService.sendNotification('sabaticos_subsanacion_sa_docente', 'docente', {
               nombre_docente: nombreDoc,
               id_solicitud: String(solicitudId),
               observaciones: obs || 'Revise las observaciones registradas por la Secretaría Académica en el sistema.',
+              codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
             });
           }
         }
@@ -1281,6 +1291,7 @@ export class EditarSolicitudComponent implements OnDestroy {
           nombre_docente: this.formulario?.docente?.nombre ?? '',
           id_solicitud: String(solicitudId),
           motivo_decision: this.formulario?.observacionesSecretaria ?? '',
+          codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
         });
         this.router.navigate(['solicitudes']);
       },
@@ -1862,7 +1873,8 @@ private subirDocumentosDocenteNuevos(
         nombre: ident.nombre_docente ?? '',
         identificacion: ident.numero_identificacion ?? '',
         facultad: ident.facultad ?? '',
-        proyecto_curricular: ident.proyecto_curricular ?? ''
+        proyecto_curricular: ident.proyecto_curricular ?? '',
+        codigoFacultad: ident.codigo_facultad ?? ''
       },
       detalle_solicitud: {
         modalidad: detalleSol.modalidad ?? '',
@@ -1914,7 +1926,8 @@ private subirDocumentosDocenteNuevos(
         nombre: formulario.docente?.nombre ?? '',
         identificacion: formulario.docente?.identificacion ?? '',
         facultad: formulario.docente?.facultad ?? '',
-        proyecto_curricular: formulario.docente?.proyecto_curricular ?? ''
+        proyecto_curricular: formulario.docente?.proyecto_curricular ?? '',
+        codigoFacultad: formulario.docente?.codigoFacultad ?? ''
       },
       detalle_solicitud: {
         modalidad: formulario.detalle_solicitud?.modalidad ?? '',
@@ -2015,6 +2028,7 @@ private subirDocumentosDocenteNuevos(
       docenteIdentificacion: [{ value: this.formulario?.docente?.identificacion ?? '', disabled: true }],
       docenteFacultad: [{ value: this.formulario?.docente?.facultad ?? '', disabled: true }],
       docenteProyecto: [{ value: this.formulario?.docente?.proyecto_curricular ?? '', disabled: true }],
+      docenteCodigoFacultad: [{ value: this.formulario?.docente?.codigoFacultad ?? '', disabled: true }],
       periodoEjecucion: ['', Validators.required],
       ultimoSabatico: this.formBuilder.group({
         start: [null, Validators.required],
@@ -2096,7 +2110,8 @@ private subirDocumentosDocenteNuevos(
         nombre: formValue.docenteNombre,
         identificacion: formValue.docenteIdentificacion,
         facultad: formValue.docenteFacultad,
-        proyecto_curricular: formValue.docenteProyecto
+        proyecto_curricular: formValue.docenteProyecto,
+        codigoFacultad: formValue.docenteCodigoFacultad,
       },
       detalle_solicitud: {
         ...this.formulario.detalle_solicitud,

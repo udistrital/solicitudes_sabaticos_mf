@@ -58,6 +58,7 @@ interface FechaFiltro {
 interface DocenteInfo {
   nombre: string;
   facultad: string;
+  codigoFacultad: string;
   documentoIdentificacion: string;
   edad: string;
   correoElectronico: string;
@@ -118,6 +119,7 @@ export class HistorialSolicitudesComponent {
   docenteInfo: DocenteInfo = {
     nombre: '',
     facultad: '',
+    codigoFacultad: '',
     documentoIdentificacion: '',
     edad: '',
     correoElectronico: '',
@@ -618,6 +620,7 @@ export class HistorialSolicitudesComponent {
     return {
       nombre: `${datos.nombres || ''} ${datos.apellidos || ''}`.trim(),
       facultad: datos.facultad || '',
+      codigoFacultad: String(datos?.codigo_facultad ?? ''),
       documentoIdentificacion: datos.documento || '',
       correoElectronico: (datos.correo || '').split(';').map((c: string) => c.trim()).filter(Boolean).join('|'),
       proyectoCurricular: datos.proyecto || '',
@@ -722,6 +725,7 @@ export class HistorialSolicitudesComponent {
             id_solicitud: String(solicitud.id),
             fecha_inicio: this.formatDate(fechaInicio),
             fecha_fin: this.formatDate(fechaFin),
+            codigo_facultad: this.docenteInfo?.codigoFacultad ?? '',
           });
           this.recargarSolicitudes();
         },
@@ -764,7 +768,8 @@ export class HistorialSolicitudesComponent {
           nombre: this.docenteInfo.nombre,
           documentoIdentificacion: this.docenteInfo.documentoIdentificacion,
           facultad: this.docenteInfo.facultad,
-          proyectoCurricular: this.docenteInfo.proyectoCurricular
+          proyectoCurricular: this.docenteInfo.proyectoCurricular,
+          codigoFacultad: this.docenteInfo.codigoFacultad,
         },
         terceroId: this.terceroId
       }
