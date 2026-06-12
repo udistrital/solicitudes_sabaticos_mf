@@ -48,12 +48,9 @@ export class RequestManager {
    * @returns Observable<any>
    */
   get(endpoint: any) {
-    const url = `${this.path}${endpoint}`;
-    console.log('[HTTP] GET:', url);
-    return this.http.get<any>(url, this.httpOptions).pipe(
+    return this.http.get<any>(`${this.path}${endpoint}`, this.httpOptions).pipe(
       map(
         (res) => {
-          console.log('[HTTP] GET RESPUESTA:', url, res);
           if (res.hasOwnProperty('Body')) {
             return res;
           } else {
@@ -71,21 +68,15 @@ export class RequestManager {
    * @returns Observable<string>
    */
   getXml(endpoint: any) {
-    const url = `${this.path}${endpoint}`;
-    console.log('[HTTP] GET XML:', url);
     const acces_token = window.localStorage.getItem('access_token');
     const headers = acces_token
       ? new HttpHeaders({ 'Authorization': `Bearer ${acces_token}` })
       : new HttpHeaders();
 
-    return this.http.get(url, {
+    return this.http.get(`${this.path}${endpoint}`, {
       headers,
       responseType: 'text'
     }).pipe(
-      map((res) => {
-        console.log('[HTTP] GET XML RESPUESTA:', url, res?.substring(0, 200));
-        return res;
-      }),
       catchError(this.errManager.handleError.bind(this)),
     );
   }
@@ -97,13 +88,7 @@ export class RequestManager {
    * @returns Observable<any>
    */
   post(endpoint: any, element: any) {
-    const url = `${this.path}${endpoint}`;
-    console.log('[HTTP] POST:', url);
-    return this.http.post<any>(url, element, this.httpOptions).pipe(
-      map((res) => {
-        console.log('[HTTP] POST RESPUESTA:', url, res);
-        return res;
-      }),
+    return this.http.post<any>(`${this.path}${endpoint}`, element, this.httpOptions).pipe(
       catchError(this.errManager.handleError),
     );
   }
