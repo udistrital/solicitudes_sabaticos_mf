@@ -1272,6 +1272,7 @@
     },
     "actions": {
       "enviarRevision": "Enviar a revisión",
+      "aprobarSolicitud": "Aprobar solicitud",
       "confirmEnvioTitle": "Confirmar envío",
       "confirmEnvioText": "Una vez enviada, la solicitud avanzará al siguiente estado del flujo y no podrás revertir este paso. ¿Deseas continuar?",
       "rechazarSolicitud": "Rechazar solicitud",

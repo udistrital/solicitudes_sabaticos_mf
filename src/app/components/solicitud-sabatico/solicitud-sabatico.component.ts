@@ -214,6 +214,26 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     return !!transicion && this.estadoActual === transicion.origen;
   }
 
+  // Para SECRETARIA_GENERAL una solicitud en 'Enviada a SG' (SUSPENSION o
+  // MODIFICACION) está en el paso final del flujo: el envío equivale a
+  // aprobar la solicitud.
+  get esAprobacionFinal(): boolean {
+    return this.rol === 'SECRETARIA_GENERAL';
+  }
+
+  // Solo la aprobación de una SUSPENSION dispara además la actualización del
+  // estado del sabático asociado.
+  get esAprobacionFinalSuspension(): boolean {
+    return this.esAprobacionFinal
+      && this.normalizarTipoSolicitud(this.form.getRawValue().tipoSolicitud) === 'SUSPENSION';
+  }
+
+  get etiquetaBotonEnvio(): string {
+    return this.esAprobacionFinal
+      ? 'CREAR_SOLICITUD.actions.aprobarSolicitud'
+      : 'CREAR_SOLICITUD.actions.enviarRevision';
+  }
+
   get canRechazar(): boolean {
     if (this.isReadOnly || this.cargando || this.enviando) {
       return false;
@@ -516,6 +536,12 @@ export class SolicitudSabaticoComponent implements OnDestroy {
       // 3) Disparar la transición de estado vía MID según rol.
       await this.dispararTransicionMid(transicion, solicitudId, terceroId);
 
+      // 4) Solo para SUSPENSION aprobada por SECRETARIA_GENERAL: actualizar
+      // el estado del sabático asociado.
+      if (this.esAprobacionFinalSuspension) {
+        await this.actualizarEstadoSabaticoSuspendido();
+      }
+
       this.popUpManager.showSuccessAlert(
         this.translate.instant('CREAR_SOLICITUD.exito.envioRevisionExitoso'),
       );
@@ -601,6 +627,26 @@ export class SolicitudSabaticoComponent implements OnDestroy {
     } finally {
       this.enviando = false;
     }
+  }
+
+  // Notifica al MID el cambio de estado del sabático (ES7) cuando la
+  // SECRETARIA_GENERAL aprueba una solicitud de SUSPENSION. El SabaticoId
+  // proviene de los datos principales de la vista.
+  private async actualizarEstadoSabaticoSuspendido(): Promise<void> {
+    const sabaticoId = Number(this.sabaticoSeleccionado?.id);
+    if (!Number.isFinite(sabaticoId) || sabaticoId <= 0) {
+      throw new Error('SabaticoId inválido: no se pudo actualizar el estado del sabático');
+    }
+
+    await firstValueFrom(
+      this.sabaticosMidService
+        .post('sabatico/plan_trabajo/estado', {
+          SabaticoId: sabaticoId,
+          Justificacion: 'Solicitud de suspensión de sabático aprobada',
+          EstadoSabatico: 'ES7',
+        })
+        .pipe(takeUntilDestroyed(this.destroyRef)),
+    );
   }
 
   private async dispararTransicionMid(

@@ -1224,6 +1224,7 @@
     },
     "actions": {
       "enviarRevision": "Send for review",
+      "aprobarSolicitud": "Approve request",
       "confirmEnvioTitle": "Confirm submission",
       "confirmEnvioText": "Once submitted, the request will advance to the next state in the flow and this step cannot be reverted. Do you want to continue?",
       "rechazarSolicitud": "Reject request",
