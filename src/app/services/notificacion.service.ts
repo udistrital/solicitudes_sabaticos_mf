@@ -44,12 +44,18 @@ export class NotificacionService {
     const emailConfig = environment.notifications;
     const esDocente = role === 'docente';
     const cedula = data['identificacion_docente'];
+    const codigoFacultad = data['codigo_facultad'];
+
+    if (!esDocente && role !== 'secretaria_general' && !codigoFacultad) {
+      console.error('codigo_facultad vacío — no se puede resolver correo de SA');
+      return;
+    }
 
     const email$ = esDocente
       ? this.secretarioEmailService.getDocenteEmail(cedula)
       : role === 'secretaria_general'
         ? this.secretarioEmailService.resolveEmail('2')
-        : this.secretarioEmailService.resolveEmail(data['codigo_facultad']);
+        : this.secretarioEmailService.resolveEmail(codigoFacultad);
 
     if (emailConfig.emailMode === 'testing') {
       email$.subscribe({
