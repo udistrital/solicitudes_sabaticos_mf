@@ -973,6 +973,7 @@ export class EditarSolicitudComponent implements OnDestroy {
         if (formValue) {
           const now = new Date();
           const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
+          console.log('[TRAMO] editar-solicitud: ANTES de sendNotification sabaticos_borrador_creado, codigo_facultad:', this.formulario?.docente?.codigoFacultad ?? '');
           this.notificacionService.sendNotification('sabaticos_borrador_creado', 'docente', {
             nombre_docente: this.formulario?.docente?.nombre ?? formValue.docenteNombre ?? '',
             id_solicitud: String(solicitudId),
@@ -1079,6 +1080,7 @@ export class EditarSolicitudComponent implements OnDestroy {
         const nombreDoc = this.formulario?.docente?.nombre ?? '';
 
         if (reenviaDirectoASg) {
+          console.log('[TRAMO] editar-solicitud: ANTES de sendNotification sabaticos_reenvio_subsanacion_secretaria_general, codigo_facultad:', this.formulario?.docente?.codigoFacultad ?? '');
           this.notificacionService.sendNotification('sabaticos_reenvio_subsanacion_secretaria_general', 'secretaria_general', {
             id_solicitud: String(solicitudId),
             nombre_docente: nombreDoc,
@@ -1086,12 +1088,14 @@ export class EditarSolicitudComponent implements OnDestroy {
             codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
           });
         } else {
+          console.log('[TRAMO] editar-solicitud: ANTES de sendNotification sabaticos_radicado_docente, codigo_facultad:', this.formulario?.docente?.codigoFacultad ?? '');
           this.notificacionService.sendNotification('sabaticos_radicado_docente', 'docente', {
             nombre_docente: nombreDoc,
             id_solicitud: String(solicitudId),
             fecha_radicacion: fecha,
             codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
           });
+          console.log('[TRAMO] editar-solicitud: ANTES de sendNotification sabaticos_radicado_secretaria_academica, codigo_facultad:', this.formulario?.docente?.codigoFacultad ?? '');
           this.notificacionService.sendNotification('sabaticos_radicado_secretaria_academica', 'secretaria_academica', {
             id_solicitud: String(solicitudId),
             nombre_docente: nombreDoc,
@@ -1187,12 +1191,14 @@ export class EditarSolicitudComponent implements OnDestroy {
         const nombreDoc = this.formulario?.docente?.nombre ?? '';
         if (value) {
           if (esSecretariaGeneral) {
+            console.log('[TRAMO] editar-solicitud: ANTES de sendNotification sabaticos_aprobacion_sg_docente, codigo_facultad:', this.formulario?.docente?.codigoFacultad ?? '');
             this.notificacionService.sendNotification('sabaticos_aprobacion_sg_docente', 'docente', {
               nombre_docente: nombreDoc,
               id_solicitud: String(solicitudId),
               fecha_aprobacion: fecha,
               codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
             });
+            console.log('[TRAMO] editar-solicitud: ANTES de sendNotification sabaticos_aprobacion_sg_secretaria_academica, codigo_facultad:', this.formulario?.docente?.codigoFacultad ?? '');
             this.notificacionService.sendNotification('sabaticos_aprobacion_sg_secretaria_academica', 'secretaria_academica', {
               id_solicitud: String(solicitudId),
               nombre_docente: nombreDoc,
@@ -1200,12 +1206,14 @@ export class EditarSolicitudComponent implements OnDestroy {
               codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
             });
           } else {
+            console.log('[TRAMO] editar-solicitud: ANTES de sendNotification sabaticos_aval_sa_docente, codigo_facultad:', this.formulario?.docente?.codigoFacultad ?? '');
             this.notificacionService.sendNotification('sabaticos_aval_sa_docente', 'docente', {
               nombre_docente: nombreDoc,
               id_solicitud: String(solicitudId),
               fecha_solicitud: fecha,
               codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
             });
+            console.log('[TRAMO] editar-solicitud: ANTES de sendNotification sabaticos_aval_sa_secretaria_general, codigo_facultad:', this.formulario?.docente?.codigoFacultad ?? '');
             this.notificacionService.sendNotification('sabaticos_aval_sa_secretaria_general', 'secretaria_general', {
               id_solicitud: String(solicitudId),
               nombre_docente: nombreDoc,
@@ -1216,6 +1224,7 @@ export class EditarSolicitudComponent implements OnDestroy {
         } else {
           const obs = this.formulario?.observacionesSecretaria ?? '';
           if (esSecretariaGeneral) {
+            console.log('[TRAMO] editar-solicitud: ANTES de sendNotification sabaticos_subsanacion_sg_docente, codigo_facultad:', this.formulario?.docente?.codigoFacultad ?? '');
             this.notificacionService.sendNotification('sabaticos_subsanacion_sg_docente', 'docente', {
               nombre_docente: nombreDoc,
               id_solicitud: String(solicitudId),
@@ -1223,6 +1232,7 @@ export class EditarSolicitudComponent implements OnDestroy {
               codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
             });
           } else {
+            console.log('[TRAMO] editar-solicitud: ANTES de sendNotification sabaticos_subsanacion_sa_docente, codigo_facultad:', this.formulario?.docente?.codigoFacultad ?? '');
             this.notificacionService.sendNotification('sabaticos_subsanacion_sa_docente', 'docente', {
               nombre_docente: nombreDoc,
               id_solicitud: String(solicitudId),
@@ -1287,6 +1297,7 @@ export class EditarSolicitudComponent implements OnDestroy {
         );
         const now = new Date();
         const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
+        console.log('[TRAMO] editar-solicitud: ANTES de sendNotification sabaticos_no_aprobacion_sg_docente, codigo_facultad:', this.formulario?.docente?.codigoFacultad ?? '');
         this.notificacionService.sendNotification('sabaticos_no_aprobacion_sg_docente', 'docente', {
           nombre_docente: this.formulario?.docente?.nombre ?? '',
           id_solicitud: String(solicitudId),

@@ -720,6 +720,7 @@ export class HistorialSolicitudesComponent {
           this.popUpManager.showToast('HISTORIAL_SOLICITUDES.iniciarSabatico.exito');
           const now = new Date();
           const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
+          console.log('[TRAMO] historial-solicitudes: ANTES de sendNotification sabaticos_inicio_sabatico_docente, codigo_facultad:', this.docenteInfo?.codigoFacultad ?? '');
           this.notificacionService.sendNotification('sabaticos_inicio_sabatico_docente', 'docente', {
             nombre_docente: solicitud.docenteNombre ?? '',
             id_solicitud: String(solicitud.id),
