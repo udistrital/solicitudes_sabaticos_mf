@@ -699,7 +699,7 @@ export class HistorialSolicitudesComponent {
     const payload = {
       solicitud_id: solicitudIdNumerico,
       tercero_id: terceroId,
-      observaciones: 'Creación de año sabático',
+      observaciones: '',
       fecha_inicio: this.formatDate(fechaInicio),
       fecha_fin: this.formatDate(fechaFin)
     };
