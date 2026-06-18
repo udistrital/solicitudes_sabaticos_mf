@@ -17,6 +17,7 @@ import { PopUpManager } from '../../../managers/popUpManager';
 import { RequestManager } from '../../../managers/requestManager';
 import { ConfiguracionService } from '../../services/configuracion.service';
 import { LoaderService } from '../../services/loader.service';
+import { NotificacionService } from '../../services/notificacion.service';
 import { finalize } from 'rxjs/operators';
 
 type EstadoSolicitud =
@@ -59,6 +60,7 @@ interface FechaFiltro {
 interface DocenteInfo {
   nombre: string;
   facultad: string;
+  codigoFacultad: string;
   documentoIdentificacion: string;
   edad: string;
   correoElectronico: string;
@@ -119,6 +121,7 @@ export class HistorialSolicitudesComponent {
   docenteInfo: DocenteInfo = {
     nombre: '',
     facultad: '',
+    codigoFacultad: '',
     documentoIdentificacion: '',
     edad: '',
     correoElectronico: '',
@@ -252,7 +255,8 @@ export class HistorialSolicitudesComponent {
     private readonly sabaticosCrudService: SabaticosCrudService,
     private readonly configuracionService: ConfiguracionService,
     private readonly sabaticosMidService: SabaticosMidService,
-    private readonly loaderService: LoaderService
+    private readonly loaderService: LoaderService,
+    private readonly notificacionService: NotificacionService,
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
     this.dateAdapter.setLocale(this.currentLang);
@@ -804,6 +808,7 @@ export class HistorialSolicitudesComponent {
     return {
       nombre: `${datos.nombres || ''} ${datos.apellidos || ''}`.trim(),
       facultad: datos.facultad || '',
+      codigoFacultad: String(datos?.codigo_facultad ?? ''),
       documentoIdentificacion: datos.documento || '',
       correoElectronico: (datos.correo || '').split(';').map((c: string) => c.trim()).filter(Boolean).join('|'),
       proyectoCurricular: datos.proyecto || '',
@@ -901,6 +906,16 @@ export class HistorialSolicitudesComponent {
       .subscribe({
         next: () => {
           this.popUpManager.showToast('HISTORIAL_SOLICITUDES.iniciarSabatico.exito');
+          const now = new Date();
+          const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
+          this.notificacionService.sendNotification('sabaticos_inicio_sabatico_docente', 'docente', {
+            nombre_docente: solicitud.docenteNombre ?? '',
+            id_solicitud: String(solicitud.id),
+            fecha_inicio: this.formatDate(fechaInicio),
+            fecha_fin: this.formatDate(fechaFin),
+            codigo_facultad: this.docenteInfo?.codigoFacultad ?? '',
+            identificacion_docente: solicitud.docenteIdentificacion ?? '',
+          });
           this.recargarSolicitudes();
         },
         error: (error) => {
@@ -942,7 +957,8 @@ export class HistorialSolicitudesComponent {
           nombre: this.docenteInfo.nombre,
           documentoIdentificacion: this.docenteInfo.documentoIdentificacion,
           facultad: this.docenteInfo.facultad,
-          proyectoCurricular: this.docenteInfo.proyectoCurricular
+          proyectoCurricular: this.docenteInfo.proyectoCurricular,
+          codigoFacultad: this.docenteInfo.codigoFacultad,
         },
         terceroId: this.terceroId
       }

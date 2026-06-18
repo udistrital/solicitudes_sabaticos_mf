@@ -8,6 +8,7 @@ export interface FormularioDetalle {
   docenteNombre?: string;
   docenteIdentificacion?: string;
   docenteFacultad?: string;
+  docenteCodigoFacultad?: string;
   docenteProyecto?: string;
   periodoEjecucion?: string;
   ultimoSabatico?: {

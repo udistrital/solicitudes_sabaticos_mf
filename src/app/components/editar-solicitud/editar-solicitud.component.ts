@@ -27,6 +27,7 @@ import { ConfiguracionService } from '../../services/configuracion.service';
 import { ParametrosService } from '../../services/parametros.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
 import { GestorDocumentalService } from '../../services/gestor-documental.service';
+import { NotificacionService } from '../../services/notificacion.service';
 import { SecretariaGeneralBody } from './interface/guardar-secretaria-general.type';
 
 @Component({
@@ -110,6 +111,7 @@ export class EditarSolicitudComponent implements OnDestroy {
     private readonly translate: TranslateService,
     private readonly loaderService: LoaderService,
     private readonly configuracionService: ConfiguracionService,
+    private readonly notificacionService: NotificacionService,
   ) {
     const navigationState = this.router.currentNavigation()?.extras?.state ?? history.state;
     const rolNavegacion = String(navigationState?.['rol'] ?? '');
@@ -966,6 +968,19 @@ export class EditarSolicitudComponent implements OnDestroy {
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.saveSecretariaSuccess')
         );
         this.marcarFormularioGuardado();
+
+        const formValue = this.form?.getRawValue();
+        if (formValue) {
+          const now = new Date();
+          const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
+          this.notificacionService.sendNotification('sabaticos_borrador_creado', 'docente', {
+            nombre_docente: this.formulario?.docente?.nombre ?? formValue.docenteNombre ?? '',
+            id_solicitud: String(solicitudId),
+            fecha_solicitud: fecha,
+            codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
+            identificacion_docente: this.formulario?.docente?.identificacion ?? '',
+          });
+        }
       },
       error: (error) => {
         this.showErrorAndReload(
@@ -1059,6 +1074,34 @@ export class EditarSolicitudComponent implements OnDestroy {
         this.popUpManager.showSuccessAlert(
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaSuccess')
         );
+        const now = new Date();
+        const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
+        const hora = now.toTimeString().substring(0, 8);
+        const nombreDoc = this.formulario?.docente?.nombre ?? '';
+
+        if (reenviaDirectoASg) {
+          this.notificacionService.sendNotification('sabaticos_reenvio_subsanacion_secretaria_general', 'secretaria_general', {
+            id_solicitud: String(solicitudId),
+            nombre_docente: nombreDoc,
+            fecha_solicitud: fecha,
+            codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
+          });
+        } else {
+          this.notificacionService.sendNotification('sabaticos_radicado_docente', 'docente', {
+            nombre_docente: nombreDoc,
+            id_solicitud: String(solicitudId),
+            fecha_radicacion: fecha,
+            codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
+            identificacion_docente: this.formulario?.docente?.identificacion ?? '',
+          });
+          this.notificacionService.sendNotification('sabaticos_radicado_secretaria_academica', 'secretaria_academica', {
+            id_solicitud: String(solicitudId),
+            nombre_docente: nombreDoc,
+            fecha_radicacion: fecha,
+            hora_radicacion: hora,
+            codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
+          });
+        }
         this.router.navigate(['solicitudes']);
       },
       error: (error) => {
@@ -1141,6 +1184,59 @@ export class EditarSolicitudComponent implements OnDestroy {
         this.popUpManager.showSuccessAlert(
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaSuccess')
         );
+        const now = new Date();
+        const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
+        const nombreDoc = this.formulario?.docente?.nombre ?? '';
+        if (value) {
+          if (esSecretariaGeneral) {
+            this.notificacionService.sendNotification('sabaticos_aprobacion_sg_docente', 'docente', {
+              nombre_docente: nombreDoc,
+              id_solicitud: String(solicitudId),
+              fecha_aprobacion: fecha,
+              codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
+              identificacion_docente: this.formulario?.docente?.identificacion ?? '',
+            });
+            this.notificacionService.sendNotification('sabaticos_aprobacion_sg_secretaria_academica', 'secretaria_academica', {
+              id_solicitud: String(solicitudId),
+              nombre_docente: nombreDoc,
+              fecha_aprobacion: fecha,
+              codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
+            });
+          } else {
+            this.notificacionService.sendNotification('sabaticos_aval_sa_docente', 'docente', {
+              nombre_docente: nombreDoc,
+              id_solicitud: String(solicitudId),
+              fecha_solicitud: fecha,
+              codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
+              identificacion_docente: this.formulario?.docente?.identificacion ?? '',
+            });
+            this.notificacionService.sendNotification('sabaticos_aval_sa_secretaria_general', 'secretaria_general', {
+              id_solicitud: String(solicitudId),
+              nombre_docente: nombreDoc,
+              fecha_solicitud: fecha,
+              codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
+            });
+          }
+        } else {
+          const obs = this.formulario?.observacionesSecretaria ?? '';
+          if (esSecretariaGeneral) {
+            this.notificacionService.sendNotification('sabaticos_subsanacion_sg_docente', 'docente', {
+              nombre_docente: nombreDoc,
+              id_solicitud: String(solicitudId),
+              motivo_decision: obs || 'Revise las observaciones registradas por la Secretaría General en el sistema.',
+              codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
+              identificacion_docente: this.formulario?.docente?.identificacion ?? '',
+            });
+          } else {
+            this.notificacionService.sendNotification('sabaticos_subsanacion_sa_docente', 'docente', {
+              nombre_docente: nombreDoc,
+              id_solicitud: String(solicitudId),
+              observaciones: obs || 'Revise las observaciones registradas por la Secretaría Académica en el sistema.',
+              codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
+              identificacion_docente: this.formulario?.docente?.identificacion ?? '',
+            });
+          }
+        }
         this.router.navigate(['solicitudes']);
       },
       error: (error) => {
@@ -1195,6 +1291,15 @@ export class EditarSolicitudComponent implements OnDestroy {
         this.popUpManager.showSuccessAlert(
           this.translate.instant('HISTORIAL_SOLICITUDES.edit.sendSecretariaSuccess')
         );
+        const now = new Date();
+        const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
+        this.notificacionService.sendNotification('sabaticos_no_aprobacion_sg_docente', 'docente', {
+          nombre_docente: this.formulario?.docente?.nombre ?? '',
+          id_solicitud: String(solicitudId),
+          motivo_decision: this.formulario?.observacionesSecretaria ?? '',
+          codigo_facultad: this.formulario?.docente?.codigoFacultad ?? '',
+          identificacion_docente: this.formulario?.docente?.identificacion ?? '',
+        });
         this.router.navigate(['solicitudes']);
       },
       error: (error) => {
@@ -1775,7 +1880,8 @@ private subirDocumentosDocenteNuevos(
         nombre: ident.nombre_docente ?? '',
         identificacion: ident.numero_identificacion ?? '',
         facultad: ident.facultad ?? '',
-        proyecto_curricular: ident.proyecto_curricular ?? ''
+        proyecto_curricular: ident.proyecto_curricular ?? '',
+        codigoFacultad: ident.codigo_facultad ?? ''
       },
       detalle_solicitud: {
         modalidad: detalleSol.modalidad ?? '',
@@ -1827,7 +1933,8 @@ private subirDocumentosDocenteNuevos(
         nombre: formulario.docente?.nombre ?? '',
         identificacion: formulario.docente?.identificacion ?? '',
         facultad: formulario.docente?.facultad ?? '',
-        proyecto_curricular: formulario.docente?.proyecto_curricular ?? ''
+        proyecto_curricular: formulario.docente?.proyecto_curricular ?? '',
+        codigoFacultad: formulario.docente?.codigoFacultad ?? ''
       },
       detalle_solicitud: {
         modalidad: formulario.detalle_solicitud?.modalidad ?? '',
@@ -1928,6 +2035,7 @@ private subirDocumentosDocenteNuevos(
       docenteIdentificacion: [{ value: this.formulario?.docente?.identificacion ?? '', disabled: true }],
       docenteFacultad: [{ value: this.formulario?.docente?.facultad ?? '', disabled: true }],
       docenteProyecto: [{ value: this.formulario?.docente?.proyecto_curricular ?? '', disabled: true }],
+      docenteCodigoFacultad: [{ value: this.formulario?.docente?.codigoFacultad ?? '', disabled: true }],
       periodoEjecucion: ['', Validators.required],
       ultimoSabatico: this.formBuilder.group({
         start: [null, Validators.required],
@@ -2009,7 +2117,8 @@ private subirDocumentosDocenteNuevos(
         nombre: formValue.docenteNombre,
         identificacion: formValue.docenteIdentificacion,
         facultad: formValue.docenteFacultad,
-        proyecto_curricular: formValue.docenteProyecto
+        proyecto_curricular: formValue.docenteProyecto,
+        codigoFacultad: formValue.docenteCodigoFacultad,
       },
       detalle_solicitud: {
         ...this.formulario.detalle_solicitud,
