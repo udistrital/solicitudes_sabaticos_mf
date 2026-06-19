@@ -31,6 +31,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
+import { AvisoCreacionComponent } from './components/aviso-creacion/aviso-creacion.component';
 import { CrearSolicitudModalComponent } from './components/crear-solicitud-modal/crear-solicitud-modal.component';
 import { EditarSolicitudComponent } from './components/editar-solicitud/editar-solicitud.component';
 import { HistorialSolicitudesComponent } from './components/historial-solicitudes/historial-solicitudes.component';
@@ -85,8 +86,9 @@ export function createPaginatorIntl(translate: TranslateService): MatPaginatorIn
   return paginatorIntl;
 }
 
-@NgModule({ declarations: [
+@NgModule({     declarations: [
         AppComponent,
+        AvisoCreacionComponent,
         CrearSolicitudModalComponent,
         EditarSolicitudComponent,
         HistorialSolicitudesComponent,

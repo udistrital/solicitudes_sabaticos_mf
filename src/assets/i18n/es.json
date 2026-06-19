@@ -862,6 +862,14 @@
       "rangoInvalido": "La fecha de inicio no puede ser posterior a la fecha de finalización.",
       "exito": "El año sabático se ha iniciado correctamente.",
       "errorEnviar": "Ocurrió un error al iniciar el año sabático. Intente nuevamente."
+    },
+    "avisoCreacion": {
+      "title": "Normativa del proceso",
+      "cuerpo": "Docente, a continuación encontrará la normativa relacionada con el proceso de Año Sabático. Se recomienda consultarla antes de iniciar o gestionar su solicitud, con el fin de actualizar o reforzar el conocimiento sobre los requisitos, condiciones y lineamientos aplicables. Para revisar la norma de su interés, seleccione el enlace correspondiente.",
+      "normativaTitle": "Normativa vigente para Comisiones de Estudio:",
+      "checkbox": "He leído y entiendo la información anterior, y acepto los términos establecidos en la normativa.",
+      "cancelar": "Cancelar",
+      "continuar": "Continuar"
     }
   },
   "gestion_horarios": {
