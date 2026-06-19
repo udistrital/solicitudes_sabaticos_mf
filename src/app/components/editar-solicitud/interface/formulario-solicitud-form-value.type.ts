@@ -4,6 +4,7 @@ export type FormularioSolicitudFormValue = {
   docenteNombre: string;
   docenteIdentificacion: string;
   docenteFacultad: string;
+  docenteCodigoFacultad: string;
   docenteProyecto: string;
   periodoEjecucion: string;
   ultimoSabatico: {

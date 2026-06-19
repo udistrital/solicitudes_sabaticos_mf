@@ -672,9 +672,21 @@
       "subtitle": "Sección para visualizar las solicitudes en curso"
     },
     "roleInfo": {
+      "adminConsulta": "Usuario de consulta: seleccione el rol operativo que desea visualizar. Las solicitudes se abrirán en modo solo lectura y no se habilitarán acciones de gestión.",
       "secretariaGeneral": "Desde esta sección podrá consultar el historial de solicitudes tramitadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar el expediente consolidado, registrar la decisión del Consejo Académico y adjuntar la resolución o los documentos que soportan la respuesta.",
       "secretariaAcademica": "Desde esta sección podrá consultar las solicitudes radicadas en el SGA, correspondientes al procedimiento GD-PR-020 del SIGUD, revisar su estado documental, registrar la respuesta del Consejo de Facultad y gestionar devoluciones o subsanaciones cuando corresponda.",
       "docente": "Le damos la bienvenida al módulo de solicitudes de Año Sabático, aquí usted podrá registrar y consultar sus solicitudes (GD-PR-020 del SIGUD), y dar continuidad al proceso cuando lo requiera."
+    },
+    "adminConsulta": {
+      "label": "Modo consulta ADMIN_SGA",
+      "selectLabel": "Rol a consultar",
+      "documentoDocente": "Cédula del docente",
+      "buscarDocente": "Buscar",
+      "roles": {
+        "docente": "Docente",
+        "secretariaAcademica": "Secretaría Académica",
+        "secretariaGeneral": "Secretaría General"
+      }
     },
     "abreviaturas": {
       "titulo": "Definición de abreviaturas",
@@ -1272,6 +1284,7 @@
     },
     "actions": {
       "enviarRevision": "Enviar a revisión",
+      "aprobarSolicitud": "Aprobar solicitud",
       "confirmEnvioTitle": "Confirmar envío",
       "confirmEnvioText": "Una vez enviada, la solicitud avanzará al siguiente estado del flujo y no podrás revertir este paso. ¿Deseas continuar?",
       "rechazarSolicitud": "Rechazar solicitud",

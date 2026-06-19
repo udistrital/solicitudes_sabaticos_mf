@@ -668,9 +668,21 @@
       "subtitle": "Section to view ongoing requests"
     },
     "roleInfo": {
+      "adminConsulta": "Consultation user: select the operational role you want to view. Requests will open in read-only mode and management actions will remain disabled.",
       "secretariaGeneral": "From this section, you can review the history of requests processed in SGA under SIGUD procedure GD-PR-020, review the consolidated file, record the Academic Council decision, and attach the resolution or supporting response documents.",
       "secretariaAcademica": "From this section, you can review requests filed in SGA under SIGUD procedure GD-PR-020, check their documentary status, record the Faculty Council response, and manage returns or corrections when applicable.",
       "docente": "Welcome to the Sabbatical Request module. Here you can register and review your requests (SIGUD GD-PR-020) and continue the process whenever needed."
+    },
+    "adminConsulta": {
+      "label": "ADMIN_SGA consultation mode",
+      "selectLabel": "Role to view",
+      "documentoDocente": "Teacher ID number",
+      "buscarDocente": "Search",
+      "roles": {
+        "docente": "Teacher",
+        "secretariaAcademica": "Academic Secretariat",
+        "secretariaGeneral": "General Secretariat"
+      }
     },
     "abreviaturas": {
       "titulo": "Abbreviations",
@@ -1224,6 +1236,7 @@
     },
     "actions": {
       "enviarRevision": "Send for review",
+      "aprobarSolicitud": "Approve request",
       "confirmEnvioTitle": "Confirm submission",
       "confirmEnvioText": "Once submitted, the request will advance to the next state in the flow and this step cannot be reverted. Do you want to continue?",
       "rechazarSolicitud": "Reject request",
@@ -1242,4 +1255,3 @@
     }
   }
 }
-

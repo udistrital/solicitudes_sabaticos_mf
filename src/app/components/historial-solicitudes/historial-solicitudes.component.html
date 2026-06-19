@@ -9,8 +9,36 @@
   </blockquote>
 
   <mat-card-content class="historial-solicitudes__contenido">
+    <section class="historial-solicitudes__admin-consulta" *ngIf="esModoConsultaAdmin">
+      <div class="historial-solicitudes__admin-consulta-text">
+        <mat-icon color="primary">manage_search</mat-icon>
+        <span>{{ 'HISTORIAL_SOLICITUDES.adminConsulta.label' | translate }}</span>
+      </div>
+      <mat-form-field appearance="outline" class="historial-solicitudes__admin-consulta-select">
+        <mat-label>{{ 'HISTORIAL_SOLICITUDES.adminConsulta.selectLabel' | translate }}</mat-label>
+        <mat-select [value]="rolConsulta" (selectionChange)="onRolConsultaChange($event.value)">
+          <mat-option *ngFor="let rolOption of rolesConsultaOptions" [value]="rolOption">
+            {{ getRolConsultaTranslationKey(rolOption) | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div class="historial-solicitudes__admin-consulta-docente" *ngIf="isConsultaDocenteAdmin">
+        <mat-form-field appearance="outline" class="historial-solicitudes__admin-consulta-documento">
+          <mat-label>{{ 'HISTORIAL_SOLICITUDES.adminConsulta.documentoDocente' | translate }}</mat-label>
+          <input matInput type="text" [value]="documentoDocenteConsulta"
+            (input)="onDocumentoDocenteConsultaChange($any($event.target).value)"
+            (keyup.enter)="onBuscarDocenteConsulta()" />
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="button" (click)="onBuscarDocenteConsulta()"
+          [disabled]="!canBuscarDocenteConsulta">
+          <mat-icon>search</mat-icon>
+          {{ 'HISTORIAL_SOLICITUDES.adminConsulta.buscarDocente' | translate }}
+        </button>
+      </div>
+    </section>
+
     <div class="historial-solicitudes__info-wrapper">
-      <section class="historial-solicitudes__docente" *ngIf="isDocente">
+      <section class="historial-solicitudes__docente" *ngIf="showDocenteInfo">
         <div class="historial-solicitudes__docente-header">
           <mat-icon color="primary">school</mat-icon>
           <span>{{ 'HISTORIAL_SOLICITUDES.docente.titulo' | translate }}</span>

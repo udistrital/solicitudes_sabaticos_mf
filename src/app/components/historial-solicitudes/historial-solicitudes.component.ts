@@ -17,6 +17,7 @@ import { PopUpManager } from '../../../managers/popUpManager';
 import { RequestManager } from '../../../managers/requestManager';
 import { ConfiguracionService } from '../../services/configuracion.service';
 import { LoaderService } from '../../services/loader.service';
+import { NotificacionService } from '../../services/notificacion.service';
 import { finalize } from 'rxjs/operators';
 
 type EstadoSolicitud =
@@ -29,6 +30,8 @@ type EstadoSolicitud =
   | 'Aprobada pendiente Resolución'
   | 'Finalizada Aprobada con Resolución';
 type TipoSolicitud = 'Nueva' | 'Suspensión' | 'Modificación';
+type RolOperativo = 'DOCENTE' | 'SECRETARIA_ACADEMICA' | 'SECRETARIA_GENERAL';
+type RolSistema = RolOperativo | 'ADMIN_SGA';
 type FilterColumn = 'id' | 'docenteIdentificacion' | 'docenteNombre';
 
 interface HistorialSolicitud {
@@ -57,6 +60,7 @@ interface FechaFiltro {
 interface DocenteInfo {
   nombre: string;
   facultad: string;
+  codigoFacultad: string;
   documentoIdentificacion: string;
   edad: string;
   correoElectronico: string;
@@ -117,6 +121,7 @@ export class HistorialSolicitudesComponent {
   docenteInfo: DocenteInfo = {
     nombre: '',
     facultad: '',
+    codigoFacultad: '',
     documentoIdentificacion: '',
     edad: '',
     correoElectronico: '',
@@ -159,13 +164,37 @@ export class HistorialSolicitudesComponent {
   };
 
   fechaFiltro: FechaFiltro = { start: null, end: null };
-  rol!: string;
+  rol: RolOperativo = 'DOCENTE';
+  rolReal: RolSistema | '' = '';
+  rolConsulta: RolOperativo = 'SECRETARIA_ACADEMICA';
+  documentoDocenteConsulta = '';
+  readonly rolesConsultaOptions: RolOperativo[] = ['DOCENTE', 'SECRETARIA_ACADEMICA', 'SECRETARIA_GENERAL'];
+
+  get esModoConsultaAdmin(): boolean {
+    return this.rolReal === 'ADMIN_SGA';
+  }
+
+  get isConsultaDocenteAdmin(): boolean {
+    return this.esModoConsultaAdmin && this.isDocente;
+  }
+
+  get canBuscarDocenteConsulta(): boolean {
+    return this.isConsultaDocenteAdmin
+      && !this.cargandoSolicitudes
+      && this.documentoDocenteConsulta.trim().length > 0;
+  }
 
   get canCrearSolicitud(): boolean {
+    if (this.esModoConsultaAdmin) {
+      return false;
+    }
     return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Crear_Solicitud_Sabatico');
   }
 
   get canEditarSolicitud(): boolean {
+    if (this.esModoConsultaAdmin) {
+      return false;
+    }
     return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Editar_Solicitud_Sabatico');
   }
 
@@ -174,6 +203,9 @@ export class HistorialSolicitudesComponent {
   }
 
   get canCrearSabatico(): boolean {
+    if (this.esModoConsultaAdmin) {
+      return false;
+    }
     return this.permisos.some((p: any) => p?.Opcion?.Nombre === 'Crear_Sabatico');
   }
 
@@ -190,10 +222,17 @@ export class HistorialSolicitudesComponent {
   }
 
   get canViewDocenteColumns(): boolean {
-    return this.isSecretariaAcademica || this.isSecretariaGeneral;
+    return this.esModoConsultaAdmin || this.isSecretariaAcademica || this.isSecretariaGeneral;
+  }
+
+  get showDocenteInfo(): boolean {
+    return this.isDocente && !this.esModoConsultaAdmin;
   }
 
   get roleInfoMessageKey(): string {
+    if (this.esModoConsultaAdmin) {
+      return 'HISTORIAL_SOLICITUDES.roleInfo.adminConsulta';
+    }
     if (this.isSecretariaGeneral) {
       return 'HISTORIAL_SOLICITUDES.roleInfo.secretariaGeneral';
     }
@@ -216,7 +255,8 @@ export class HistorialSolicitudesComponent {
     private readonly sabaticosCrudService: SabaticosCrudService,
     private readonly configuracionService: ConfiguracionService,
     private readonly sabaticosMidService: SabaticosMidService,
-    private readonly loaderService: LoaderService
+    private readonly loaderService: LoaderService,
+    private readonly notificacionService: NotificacionService,
   ) {
     this.currentLang = this.translate.currentLang || this.translate.getDefaultLang() || 'es';
     this.dateAdapter.setLocale(this.currentLang);
@@ -229,27 +269,19 @@ export class HistorialSolicitudesComponent {
         this.applyFilters();
       });
 
-    let roles: any = this.autenticationService.getRole();
-
-    this.rol= roles.__zone_symbol__value.find((x: string) => ['SECRETARIA_ACADEMICA', 'DOCENTE', 'SECRETARIA_GENERAL'].includes(x));
-
-    this.configuracionService.get("perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:" + this.rol)
-    .subscribe((response: any) => {
-      this.permisos = response
-      this.perfil = response[0]?.Perfil?.Nombre ?? '';
-    });
-
-    this.autenticationService.getDocument().then((documento: any) => {
+    Promise.all([
+      this.autenticationService.getRole(),
+      this.autenticationService.getDocument()
+    ]).then(([roles, documento]: [unknown, unknown]) => {
+      this.inicializarRol(roles);
+      this.cargarPermisosPorRol(this.rolReal);
       this.documento = String(documento ?? '');
-      this.loadDocenteInfo(this.documento);
 
-      if (this.isSecretariaAcademica) {
-        this.loadSolicitudesSecretariaAcademica();
-      } else if (this.isSecretariaGeneral) {
-        this.loadSolicitudesSecretariaGeneral();
-      } else {
-        this.loadTerceroIdAndSolicitudes(this.documento);
+      if (this.showDocenteInfo) {
+        this.loadDocenteInfo(this.documento);
       }
+
+      this.cargarSolicitudesPorRol();
     });
   }
 
@@ -330,7 +362,7 @@ export class HistorialSolicitudesComponent {
   }
 
   onEditar(solicitud: HistorialSolicitud): void {
-    this.navigateToEditarSolicitud(solicitud, false);
+    this.navigateToEditarSolicitud(solicitud, this.esModoConsultaAdmin);
   }
 
   onVisualizar(solicitud: HistorialSolicitud): void {
@@ -339,6 +371,9 @@ export class HistorialSolicitudesComponent {
 
   shouldShowViewOnly(solicitud: HistorialSolicitud): boolean {
     if (this.canViewSolicitud){
+      if (this.esModoConsultaAdmin) {
+        return true;
+      }
       if (this.isDocente) {
         return !this.isDocenteEditable(solicitud);
       }
@@ -420,6 +455,98 @@ export class HistorialSolicitudesComponent {
     return estado === 'Enviada a SG';
   }
 
+  private isEstadoVisibleSecretariaAcademicaConsulta(estado: EstadoSolicitud): boolean {
+    return estado === 'Radicada / Enviada a SA'
+      || estado === 'Aprobada pendiente Resolución';
+  }
+
+  private inicializarRol(rolesRaw: unknown): void {
+    const roles = Array.isArray(rolesRaw) ? rolesRaw.map(String) : [];
+    const rolesSoportados: RolSistema[] = ['SECRETARIA_ACADEMICA', 'DOCENTE', 'SECRETARIA_GENERAL', 'ADMIN_SGA'];
+    const rolEncontrado = roles.find((rol) => rolesSoportados.includes(rol as RolSistema)) as RolSistema | undefined;
+
+    this.rolReal = roles.includes('ADMIN_SGA')
+      ? 'ADMIN_SGA'
+      : rolEncontrado ?? '';
+    this.rol = this.esModoConsultaAdmin
+      ? this.rolConsulta
+      : (this.rolReal as RolOperativo) || 'DOCENTE';
+  }
+
+  private cargarPermisosPorRol(rol: string): void {
+    if (!rol) {
+      this.permisos = [];
+      this.perfil = '';
+      return;
+    }
+
+    this.configuracionService.get(`perfil_x_menu_opcion?limit=-1&query=Perfil__Nombre__in:${rol}`)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((response: any) => {
+        this.permisos = response;
+        this.perfil = response[0]?.Perfil?.Nombre ?? '';
+      });
+  }
+
+  onRolConsultaChange(rol: RolOperativo): void {
+    if (!this.esModoConsultaAdmin || this.rolConsulta === rol) {
+      return;
+    }
+
+    this.rolConsulta = rol;
+    this.rol = rol;
+    if (rol !== 'DOCENTE') {
+      this.documentoDocenteConsulta = '';
+    }
+    this.cargarSolicitudesPorRol();
+  }
+
+  onDocumentoDocenteConsultaChange(value: string): void {
+    this.documentoDocenteConsulta = value;
+  }
+
+  onBuscarDocenteConsulta(): void {
+    if (!this.canBuscarDocenteConsulta) {
+      return;
+    }
+
+    this.loadSolicitudesDocenteConsultaPorDocumento(this.documentoDocenteConsulta.trim());
+  }
+
+  getRolConsultaTranslationKey(rol: RolOperativo): string {
+    const traducciones: Record<RolOperativo, string> = {
+      DOCENTE: 'HISTORIAL_SOLICITUDES.adminConsulta.roles.docente',
+      SECRETARIA_ACADEMICA: 'HISTORIAL_SOLICITUDES.adminConsulta.roles.secretariaAcademica',
+      SECRETARIA_GENERAL: 'HISTORIAL_SOLICITUDES.adminConsulta.roles.secretariaGeneral'
+    };
+    return traducciones[rol];
+  }
+
+  private cargarSolicitudesPorRol(): void {
+    this.solicitudes = [];
+    this.filteredSolicitudes = [];
+    this.pageIndex = 0;
+    this.cargandoSolicitudes = false;
+
+    if (this.isSecretariaAcademica) {
+      this.esModoConsultaAdmin
+        ? this.loadSolicitudesSecretariaAcademicaConsulta()
+        : this.loadSolicitudesSecretariaAcademica();
+      return;
+    }
+
+    if (this.isSecretariaGeneral) {
+      this.loadSolicitudesSecretariaGeneral();
+      return;
+    }
+
+    if (this.esModoConsultaAdmin) {
+      return;
+    }
+
+    this.loadTerceroIdAndSolicitudes(this.documento);
+  }
+
   private loadTerceroIdAndSolicitudes(documento: string): void {
     this.cargandoSolicitudes = true;
     const endpoint = `datos_identificacion?query=Activo:true,Numero:${documento}&sortby=FechaCreacion&order=desc`;
@@ -471,6 +598,71 @@ export class HistorialSolicitudesComponent {
         },
         error: (error) => {
           console.error('Error al cargar solicitudes del coordinador:', error);
+          this.solicitudes = [];
+          this.applyFilters();
+          this.cargandoSolicitudes = false;
+        }
+      });
+  }
+
+  private loadSolicitudesSecretariaAcademicaConsulta(): void {
+    this.cargandoSolicitudes = true;
+    const endpoint = 'historial_solicitud?query=Activo:True&limit=-1';
+
+    this.sabaticosCrudService.get(endpoint)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: any) => {
+          const data = response?.Data ?? response ?? [];
+          const apiSolicitudes = this.mapHistorialResponse(Array.isArray(data) ? data : [])
+            .filter((s) => this.isEstadoVisibleSecretariaAcademicaConsulta(s.estado));
+          this.solicitudes = apiSolicitudes;
+          this.applyFilters();
+          this.cargandoSolicitudes = false;
+          this.fetchDocenteInfoForSolicitudes(apiSolicitudes);
+        },
+        error: (error) => {
+          console.error('Error al cargar solicitudes de secretaría académica en modo consulta:', error);
+          this.solicitudes = [];
+          this.applyFilters();
+          this.cargandoSolicitudes = false;
+        }
+      });
+  }
+
+  private loadSolicitudesDocenteConsultaPorDocumento(documento: string): void {
+    this.cargandoSolicitudes = true;
+    this.terceroId = null;
+    const endpoint = `datos_identificacion?query=Activo:true,Numero:${documento}&sortby=FechaCreacion&order=desc`;
+
+    this.tercerosService.get(endpoint).pipe(
+      switchMap((response: any) => {
+        const registros = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.Data)
+            ? response.Data
+            : [];
+        if (!registros.length || !registros[0]?.TerceroId?.Id) {
+          throw new Error('No se encontró el TerceroId para el documento consultado.');
+        }
+
+        this.terceroId = registros[0].TerceroId.Id;
+        const historialEndpoint = `historial_solicitud?query=TerceroId:${this.terceroId},Activo:true&limit=-1`;
+        return this.sabaticosCrudService.get(historialEndpoint);
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    )
+      .subscribe({
+        next: (response: any) => {
+          const data = response?.Data ?? response ?? [];
+          const apiSolicitudes = this.mapHistorialResponse(Array.isArray(data) ? data : []);
+          this.solicitudes = apiSolicitudes;
+          this.applyFilters();
+          this.cargandoSolicitudes = false;
+          this.fetchDocenteInfoForSolicitudes(apiSolicitudes);
+        },
+        error: (error) => {
+          console.error('Error al cargar solicitudes del docente en modo consulta:', error);
           this.solicitudes = [];
           this.applyFilters();
           this.cargandoSolicitudes = false;
@@ -616,6 +808,7 @@ export class HistorialSolicitudesComponent {
     return {
       nombre: `${datos.nombres || ''} ${datos.apellidos || ''}`.trim(),
       facultad: datos.facultad || '',
+      codigoFacultad: String(datos?.codigo_facultad ?? ''),
       documentoIdentificacion: datos.documento || '',
       correoElectronico: (datos.correo || '').split(';').map((c: string) => c.trim()).filter(Boolean).join('|'),
       proyectoCurricular: datos.proyecto || '',
@@ -635,7 +828,7 @@ export class HistorialSolicitudesComponent {
       this.router.navigate(['solicitudes/suspension-modificacion'], {
         state: {
           rol: this.rol,
-          readOnly,
+          readOnly: this.esModoConsultaAdmin ? true : readOnly,
           tipoSolicitud: solicitud.tipoSolicitud,
           solicitud: {
             id: solicitud.id,
@@ -651,7 +844,7 @@ export class HistorialSolicitudesComponent {
     this.router.navigate(['solicitudes/editar'], {
       state: {
         rol: this.rol,
-        readOnly,
+        readOnly: this.esModoConsultaAdmin ? true : readOnly,
         solicitud: {
           id: solicitud.id,
           fechaRadicado: solicitud.fechaRadicado,
@@ -699,7 +892,7 @@ export class HistorialSolicitudesComponent {
     const payload = {
       solicitud_id: solicitudIdNumerico,
       tercero_id: terceroId,
-      observaciones: 'Creación de año sabático',
+      observaciones: '',
       fecha_inicio: this.formatDate(fechaInicio),
       fecha_fin: this.formatDate(fechaFin)
     };
@@ -713,6 +906,16 @@ export class HistorialSolicitudesComponent {
       .subscribe({
         next: () => {
           this.popUpManager.showToast('HISTORIAL_SOLICITUDES.iniciarSabatico.exito');
+          const now = new Date();
+          const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
+          this.notificacionService.sendNotification('sabaticos_inicio_sabatico_docente', 'docente', {
+            nombre_docente: solicitud.docenteNombre ?? '',
+            id_solicitud: String(solicitud.id),
+            fecha_inicio: this.formatDate(fechaInicio),
+            fecha_fin: this.formatDate(fechaFin),
+            codigo_facultad: this.docenteInfo?.codigoFacultad ?? '',
+            identificacion_docente: solicitud.docenteIdentificacion ?? '',
+          });
           this.recargarSolicitudes();
         },
         error: (error) => {
@@ -754,7 +957,8 @@ export class HistorialSolicitudesComponent {
           nombre: this.docenteInfo.nombre,
           documentoIdentificacion: this.docenteInfo.documentoIdentificacion,
           facultad: this.docenteInfo.facultad,
-          proyectoCurricular: this.docenteInfo.proyectoCurricular
+          proyectoCurricular: this.docenteInfo.proyectoCurricular,
+          codigoFacultad: this.docenteInfo.codigoFacultad,
         },
         terceroId: this.terceroId
       }
@@ -772,6 +976,11 @@ export class HistorialSolicitudesComponent {
   }
 
   private recargarSolicitudes(): void {
+    if (this.esModoConsultaAdmin) {
+      this.cargarSolicitudesPorRol();
+      return;
+    }
+
     if (this.isSecretariaAcademica) {
       this.loadSolicitudesSecretariaAcademica();
       return;

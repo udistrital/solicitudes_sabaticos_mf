@@ -31,4 +31,12 @@ export const environment = {
   SABATICOS_CRUD_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/sabaticos_crud/v1/',
   GESTOR_DOCUMENTAL_MID_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/gestor_documental_mid/v1/',
   CONFIGURACION_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/configuracion_crud_api/v1/',
+  NOTIFICACION_MID_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/notificacion_mid/v1/',
+  notifications: {
+    emailMode: 'production' as 'testing' | 'production',
+    testEmail: 'kaforerog@udistrital.edu.co',
+    emailsByRole: {
+      docente: 'kaforerog@udistrital.edu.co',
+    },
+  },
 };

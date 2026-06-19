@@ -11,11 +11,13 @@ import { LoaderService } from '../../services/loader.service';
 import { ParametrosService } from '../../services/parametros.service';
 import { SabaticosMidService } from '../../services/sabaticos-mid.service';
 import { TercerosService } from '../../services/terceros.service';
+import { NotificacionService } from '../../services/notificacion.service';
 
 interface DocenteBasico {
   nombre: string;
   documentoIdentificacion: string;
   facultad: string;
+  codigoFacultad: string;
   proyectoCurricular: string;
 }
 
@@ -124,12 +126,14 @@ export class CrearSolicitudModalComponent implements OnInit {
     private readonly popUpManager: PopUpManager,
     private readonly translate: TranslateService,
     private readonly loaderService: LoaderService,
+    private readonly notificacionService: NotificacionService,
   ) {
     this.form = this.formBuilder.group({
       docenteNombre: [{ value: data.docente.nombre, disabled: true }],
       docenteIdentificacion: [{ value: data.docente.documentoIdentificacion, disabled: true }],
       docenteFacultad: [{ value: data.docente.facultad, disabled: true }],
       docenteProyecto: [{ value: data.docente.proyectoCurricular, disabled: true }],
+      docenteCodigoFacultad: [{ value: data.docente.codigoFacultad, disabled: true }],
       periodoEjecucion: ['', Validators.required],
       ultimoSabatico: this.formBuilder.group({
         start: [null, Validators.required],
@@ -266,6 +270,21 @@ export class CrearSolicitudModalComponent implements OnInit {
       next: (response) => {
         this.guardando = false;
         this.popUpManager.showToast('HISTORIAL_SOLICITUDES.modal.guardarExitoso');
+
+        const solicitudId = response?.Data?.Solicitud?.Id;
+        const v = this.form.getRawValue();
+        if (solicitudId) {
+          const now = new Date();
+          const fecha = now.toISOString().replace('T', ' ').substring(0, 19);
+          this.notificacionService.sendNotification('sabaticos_borrador_creado', 'docente', {
+            nombre_docente: v.docenteNombre ?? '',
+            id_solicitud: String(solicitudId),
+            fecha_solicitud: fecha,
+            codigo_facultad: v.docenteCodigoFacultad ?? '',
+            identificacion_docente: v.docenteIdentificacion ?? '',
+          });
+        }
+
         this.dialogRef.close({
           ...this.form.getRawValue(),
           documentos: this.documentoArchivos,
@@ -389,7 +408,8 @@ export class CrearSolicitudModalComponent implements OnInit {
           nombre_docente: this.valueOrNull(v.docenteNombre),
           numero_identificacion: this.valueOrNull(v.docenteIdentificacion),
           facultad: this.valueOrNull(v.docenteFacultad),
-          proyecto_curricular: this.valueOrNull(v.docenteProyecto)
+          proyecto_curricular: this.valueOrNull(v.docenteProyecto),
+          codigo_facultad: this.valueOrNull(v.docenteCodigoFacultad)
         },
         detalle_solicitud: {
           periodo_ejecucion: this.valueOrNull(v.periodoEjecucion),
