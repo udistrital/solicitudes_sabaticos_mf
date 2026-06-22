@@ -7,6 +7,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
+import { AvisoCreacionComponent } from '../aviso-creacion/aviso-creacion.component';
 import { CrearSolicitudModalComponent } from '../crear-solicitud-modal/crear-solicitud-modal.component';
 import { IniciarSabaticoModalComponent } from '../iniciar-sabatico-modal/iniciar-sabatico-modal.component';
 import { ImplicitAutenticationService } from '../../services/implicit_authentication.service';
@@ -42,6 +43,18 @@ interface HistorialSolicitud {
   terceroIdDocente?: number;
   docenteIdentificacion?: string;
   docenteNombre?: string;
+}
+
+enum EstadoSabaticoCode {
+  EN_EJECUCION = 'ES0',
+  CARGUE_PLAN_TRABAJO = 'ES1',
+  REVISION_SA = 'ES2',
+  SOCIALIZACION_PENDIENTE = 'ES3',
+  SUBSANACION = 'ES4',
+  FINALIZADO = 'ES5',
+  INCUMPLIMIENTO = 'ES6',
+  SUSPENDIDO = 'ES7'
+  
 }
 
 interface ColumnFilters {
@@ -137,6 +150,7 @@ export class HistorialSolicitudesComponent {
   };
 
   terceroId: number | null = null;
+  tieneSabaticoEnEjecucion = false;
   private documento = '';
   cargandoSolicitudes = true;
   solicitudes: HistorialSolicitud[] = [];
@@ -559,6 +573,7 @@ export class HistorialSolicitudesComponent {
         }
 
         this.terceroId = registros[0].TerceroId.Id;
+        this.validarSabaticoEnEjecucion();
         const historialEndpoint = `historial_solicitud?query=TerceroId:${this.terceroId},Activo:true&limit=-1`;
         return this.sabaticosCrudService.get(historialEndpoint);
       }),
@@ -695,6 +710,48 @@ export class HistorialSolicitudesComponent {
         }
       });
   }
+
+private validarSabaticoEnEjecucion(): void {
+  if (!this.terceroId) {
+    this.tieneSabaticoEnEjecucion = false;
+    return;
+  }
+
+  const endpoint =
+    `historial_estado_sabatico?query=TerceroId:${this.terceroId},Activo:True&limit=-1`;
+
+  this.sabaticosCrudService.get(endpoint)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: (response: any) => {
+        const data = response?.Data ?? response ?? [];
+        console.log(response);
+
+        if (!Array.isArray(data) || data.length === 0) {
+          // no hay sábaticos → permitido
+          this.tieneSabaticoEnEjecucion = false;
+          return;
+        }
+
+        const estadosPermitidos = [
+          EstadoSabaticoCode.FINALIZADO,
+          EstadoSabaticoCode.SUSPENDIDO
+        ];
+
+        const todosFinalizadosOSuspendidos = data.every(
+          (item: any) =>
+            estadosPermitidos.includes(
+              item?.EstadoSabaticoId?.CodigoAbreviacion
+            )
+        );
+
+        this.tieneSabaticoEnEjecucion = !todosFinalizadosOSuspendidos;
+      },
+      error: () => {
+        this.tieneSabaticoEnEjecucion = false;
+      }
+    });
+}
 
   private mapSecretariaAcademicaSolicitudes(data: any[]): HistorialSolicitud[] {
     const latestByIdSolicitud = new Map<number, any>();
@@ -945,7 +1002,43 @@ export class HistorialSolicitudesComponent {
     return false;
   }
 
+  get puedeCrearNuevaSolicitud(): boolean {
+    const estadosEnProceso: EstadoSolicitud[] = [
+      'Borrador',
+      'Radicada / Enviada a SA',
+      'Subsanación solicitada SA',
+      'Subsanación solicitada SG',
+      'Enviada a SG',
+      'Aprobada pendiente Resolución'
+    ];
+
+    const tieneSolicitudEnProceso = this.solicitudes.some(
+      solicitud => estadosEnProceso.includes(solicitud.estado)
+    );
+
+    return !tieneSolicitudEnProceso && !this.tieneSabaticoEnEjecucion;
+  }
+
+
   onCrearSolicitud(): void {
+    const avisoDialogRef = this.dialog.open(AvisoCreacionComponent, {
+      width: '560px',
+      maxWidth: '90vw',
+      disableClose: true,
+      autoFocus: false,
+      backdropClass: 'sga-sabaticos-blurred-backdrop'
+    });
+
+    avisoDialogRef.afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((aceptado) => {
+        if (aceptado) {
+          this.abrirCrearSolicitudModal();
+        }
+      });
+  }
+
+  private abrirCrearSolicitudModal(): void {
     const dialogRef = this.dialog.open(CrearSolicitudModalComponent, {
       width: '90vw',
       maxWidth: '90vw',

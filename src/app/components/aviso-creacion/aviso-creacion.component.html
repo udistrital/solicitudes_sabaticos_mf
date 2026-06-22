@@ -1,0 +1,39 @@
+<div class="aviso-creacion">
+  <h2 mat-dialog-title class="aviso-creacion__title">
+    {{ 'HISTORIAL_SOLICITUDES.avisoCreacion.title' | translate }}
+  </h2>
+
+  <mat-dialog-content class="aviso-creacion__content">
+    <p class="aviso-creacion__cuerpo">
+      {{ 'HISTORIAL_SOLICITUDES.avisoCreacion.cuerpo' | translate }}
+    </p>
+
+    <div class="aviso-creacion__normativa">
+      <p class="aviso-creacion__normativa-title">
+        {{ 'HISTORIAL_SOLICITUDES.avisoCreacion.normativaTitle' | translate }}
+      </p>
+      <ul class="aviso-creacion__normativa-list">
+        <li class="aviso-creacion__normativa-item" *ngFor="let item of normativa">
+          <a class="aviso-creacion__normativa-link" [href]="item.url" target="_blank" rel="noopener noreferrer">
+            <mat-icon class="aviso-creacion__normativa-icon">open_in_new</mat-icon>
+            <span>{{ item.label }}</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <mat-checkbox class="aviso-creacion__checkbox" [(ngModel)]="aceptado">
+      {{ 'HISTORIAL_SOLICITUDES.avisoCreacion.checkbox' | translate }}
+    </mat-checkbox>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="aviso-creacion__actions">
+    <button mat-raised-button type="button" class="aviso-creacion__cancel" (click)="cancelar()">
+      {{ 'HISTORIAL_SOLICITUDES.avisoCreacion.cancelar' | translate }}
+    </button>
+    <button mat-raised-button color="primary" type="button" class="aviso-creacion__confirm"
+      [disabled]="!aceptado" (click)="confirmar()">
+      {{ 'HISTORIAL_SOLICITUDES.avisoCreacion.continuar' | translate }}
+    </button>
+  </mat-dialog-actions>
+</div>

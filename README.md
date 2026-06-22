@@ -1,27 +1,98 @@
-# SolicitudesSabaticosMf
+# solicitudes_sabaticos_mf
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.17.
+Microfrontend para la gestión de solicitudes de año sabático del Sistema de Gestión Académica (SGA) de la Universidad Distrital Francisco José de Caldas.
 
-## Development server
+El proyecto forma parte de una arquitectura de microclientes: se construye como una aplicación Angular independiente y se integra en el cliente contenedor mediante [single-spa](https://single-spa.js.org/).
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+## Especificaciones técnicas
 
-## Code scaffolding
+### Tecnologías implementadas
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+* [Angular 20](https://angular.dev/)
+* [single-spa](https://single-spa.js.org/) >= 4
+* [single-spa-angular](https://single-spa.js.org/docs/ecosystem-angular/) 9.2
+* [Angular Material 20](https://material.angular.dev/)
+* [TypeScript 5.8](https://www.typescriptlang.org/)
+* [RxJS 7.8](https://rxjs.dev/)
+* Node.js 24, versión utilizada en el pipeline de CI
 
-## Build
+### Arquitectura
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+El punto de entrada es `src/main.single-spa.ts`. La compilación utiliza `@angular-builders/custom-webpack` y `single-spa-angular` para generar los artefactos que carga la aplicación contenedora.
 
-## Running unit tests
+Durante el desarrollo, el microfrontend se publica en `http://localhost:4219/`. Para probar el flujo completo debe estar registrado en el mapa de importaciones o la configuración equivalente del cliente contenedor de SGA.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+### Configuración por ambiente
 
-## Running end-to-end tests
+La configuración de servicios se encuentra en los archivos de Angular:
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+| Ambiente | Archivo | Compilación |
+| --- | --- | --- |
+| Local | `src/environments/environment.ts` | `npm run build` |
+| Pruebas | `src/environments/environment.development.ts` | `npm run build:test` |
+| Producción | `src/environments/environment.production.ts` | `npm run build:prod` |
 
-## Further help
+## Ejecución del proyecto
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+### Requisitos
+
+* Node.js 24
+* npm
+* Google Chrome o Chromium para las pruebas unitarias
+
+### Instalación
+
+```bash
+git clone https://github.com/udistrital/solicitudes_sabaticos_mf.git
+cd solicitudes_sabaticos_mf
+npm install
+```
+
+### Servidor local
+
+```bash
+npm start
+```
+
+El servidor queda disponible en `http://localhost:4219/`.
+
+También se puede iniciar con el comando específico de single-spa:
+
+```bash
+npm run serve:single-spa:solicitudes-sabaticos-mf
+```
+
+### Compilación
+
+```bash
+# Local
+npm run build
+
+# Pruebas
+npm run build:test
+
+# Producción
+npm run build:prod
+
+# Producción específica de single-spa
+npm run build:single-spa:solicitudes-sabaticos-mf
+```
+
+Los artefactos se generan en `dist/`.
+
+### Pruebas
+
+Las pruebas unitarias utilizan Karma y Jasmine:
+
+```bash
+npm test
+
+# Ejecución no interactiva
+npm test -- --watch=false --browsers=ChromeHeadless
+```
+
+## Estado CI
+
+| Develop | Release 0.0.1 | Master | Sonar |
+| --- | --- | --- | --- |
+| [![Build Status](https://hubci.portaloas.udistrital.edu.co/api/badges/udistrital/solicitudes_sabaticos_mf/status.svg?ref=refs/heads/develop)](https://hubci.portaloas.udistrital.edu.co/udistrital/solicitudes_sabaticos_mf) | [![Build Status](https://hubci.portaloas.udistrital.edu.co/api/badges/udistrital/solicitudes_sabaticos_mf/status.svg?ref=refs/heads/release/0.0.1)](https://hubci.portaloas.udistrital.edu.co/udistrital/solicitudes_sabaticos_mf) | [![Build Status](https://hubci.portaloas.udistrital.edu.co/api/badges/udistrital/solicitudes_sabaticos_mf/status.svg?ref=refs/heads/master)](https://hubci.portaloas.udistrital.edu.co/udistrital/solicitudes_sabaticos_mf) | [![Quality Gate Status](https://sonarqube.portaloas.udistrital.edu.co/api/project_badges/measure?project=solicitudes_sabaticos_mf&metric=alert_status)](https://sonar.portaloas.udistrital.edu.co/dashboard?id=solicitudes_sabaticos_mf) |
