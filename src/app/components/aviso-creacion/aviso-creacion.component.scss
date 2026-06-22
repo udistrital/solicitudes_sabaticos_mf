@@ -1,0 +1,103 @@
+*:not(mat-icon) {
+  font-family: Open Sans, "Helvetica Neue", sans-serif !important;
+}
+
+.aviso-creacion {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+
+  &__title {
+    margin: 0;
+    padding: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #03678f;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 0;
+    margin: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  &__cuerpo {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.8);
+    text-align: justify;
+  }
+
+  &__normativa {
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 0.5rem;
+    padding: 1rem;
+  }
+
+  &__normativa-title {
+    margin: 0 0 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #03678f;
+  }
+
+  &__normativa-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__normativa-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    color: #03678f;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #1e40af;
+    }
+  }
+
+  &__normativa-icon {
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
+    line-height: 15px;
+  }
+
+  &__checkbox {
+    font-size: 0.8125rem;
+    color: rgba(0, 0, 0, 0.8);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 0;
+    margin: 0;
+    min-height: auto;
+  }
+
+  &__cancel {
+    background-color: #bc4749;
+    color: #ffffff;
+
+    &:hover {
+      background-color: #a53b3d;
+    }
+  }
+}

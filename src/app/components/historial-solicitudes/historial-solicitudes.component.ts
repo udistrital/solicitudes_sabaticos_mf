@@ -7,6 +7,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
+import { AvisoCreacionComponent } from '../aviso-creacion/aviso-creacion.component';
 import { CrearSolicitudModalComponent } from '../crear-solicitud-modal/crear-solicitud-modal.component';
 import { IniciarSabaticoModalComponent } from '../iniciar-sabatico-modal/iniciar-sabatico-modal.component';
 import { ImplicitAutenticationService } from '../../services/implicit_authentication.service';
@@ -946,6 +947,24 @@ export class HistorialSolicitudesComponent {
   }
 
   onCrearSolicitud(): void {
+    const avisoDialogRef = this.dialog.open(AvisoCreacionComponent, {
+      width: '560px',
+      maxWidth: '90vw',
+      disableClose: true,
+      autoFocus: false,
+      backdropClass: 'sga-sabaticos-blurred-backdrop'
+    });
+
+    avisoDialogRef.afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((aceptado) => {
+        if (aceptado) {
+          this.abrirCrearSolicitudModal();
+        }
+      });
+  }
+
+  private abrirCrearSolicitudModal(): void {
     const dialogRef = this.dialog.open(CrearSolicitudModalComponent, {
       width: '90vw',
       maxWidth: '90vw',

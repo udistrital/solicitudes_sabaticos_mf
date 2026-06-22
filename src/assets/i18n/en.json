@@ -620,6 +620,14 @@
       "exito": "The sabbatical year has been started successfully.",
       "errorEnviar": "An error occurred while starting the sabbatical year. Please try again."
     },
+    "avisoCreacion": {
+      "title": "Process regulations",
+      "cuerpo": "Professor, below you will find the regulations related to the Sabbatical Year process. We recommend reviewing them before starting or managing your request, in order to update or reinforce your knowledge of the applicable requirements, conditions, and guidelines. To review the regulation of your interest, select the corresponding link.",
+      "normativaTitle": "Current regulations for Study Commissions:",
+      "checkbox": "I have read and understand the information above, and I accept the terms set out in the regulations.",
+      "cancelar": "Cancel",
+      "continuar": "Continue"
+    },
     "filters": {
       "id": "Filter by ID",
       "fechaRadicadoDesde": "Start date",
