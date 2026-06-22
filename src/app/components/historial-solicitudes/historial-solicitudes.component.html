@@ -175,7 +175,7 @@
           {{ 'HISTORIAL_SOLICITUDES.tableSection.subtitle' | translate }}
         </mat-card-subtitle>
       </div>
-      <button mat-raised-button color="primary" type="button" (click)="onCrearSolicitud()" *ngIf="canCrearSolicitud">
+      <button mat-raised-button color="primary" type="button" [disabled]="!puedeCrearNuevaSolicitud"  (click)="onCrearSolicitud()" *ngIf="canCrearSolicitud">
         {{ 'HISTORIAL_SOLICITUDES.actions.add' | translate }}
       </button>
     </div>
